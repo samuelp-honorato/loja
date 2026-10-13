@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel de Gestão - Loja</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #0f1115; color: #e5e7eb; margin: 0; display: flex; height: 100vh; }
+        
+        /* Layout Principal */
+        .sidebar-admin { width: 450px; background: #161b22; padding: 30px; overflow-y: auto; border-right: 1px solid #30363d; }
+        .preview-area { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0d1117; padding: 20px; }
+        
+        h2 { margin-top: 0; font-size: 20px; color: #fff; border-bottom: 1px solid #30363d; padding-bottom: 15px; }
+        
+        /* Formulário */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 13px; margin-bottom: 5px; color: #8b949e; }
+        input, textarea, select { width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: #fff; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
+        input:focus, textarea:focus { border-color: #58a6ff; outline: none; }
+        
+        .file-upload { border: 2px dashed #30363d; padding: 20px; text-align: center; border-radius: 6px; cursor: pointer; background: #0d1117; transition: 0.2s; }
+        .file-upload:hover { border-color: #58a6ff; }
+        input[type="file"] { display: none; }
+        
+        .btn-salvar { background: #238636; color: #fff; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 15px; margin-top: 10px; }
+        .btn-salvar:hover { background: #2ea043; }
+
+        /* Card de Preview (Idêntico à loja) */
+        .preview-title { color: #8b949e; margin-bottom: 20px; }
+        .card { background: #161b22; border-radius: 8px; width: 300px; border: 1px solid #30363d; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .card img { width: 100%; height: 350px; object-fit: cover; background: #222; }
+        .card-info { padding: 20px; text-align: left; }
+        .card-tags { display: flex; gap: 10px; margin-bottom: 10px; }
+        .tag { background: #21262d; padding: 4px 8px; border-radius: 4px; font-size: 11px; border: 1px solid #30363d; }
+        .card h4 { margin: 0 0 5px 0; font-size: 18px; color: #fff; }
+        .card p { margin: 0 0 15px 0; color: #8b949e; font-size: 13px; line-height: 1.4; }
+        .card-price { font-size: 20px; font-weight: bold; color: #fff; margin-bottom: 15px; }
+        .btn-loja { background: #fff; color: #000; border: none; padding: 10px; width: 100%; font-weight: bold; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar-admin">
+        <h2>Adicionar Nova Peça</h2>
+        
+        <div class="form-group">
+            <label>Imagem da Peça (PNG, JPG)</label>
+            <label class="file-upload">
+                <span id="file-label">Clique para escolher a foto...</span>
+                <input type="file" id="imagemFile" accept=".png, .jpg, .jpeg" onchange="processarImagem(event)">
+            </label>
+        </div>
+
+        <div class="form-group">
+            <label>Nome da Peça</label>
+            <input type="text" id="nome" placeholder="Ex: Jaqueta Puffer" oninput="atualizarPreview()">
+        </div>
+
+        <div class="form-group" style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+                <label>Preço (R$)</label>
+                <input type="number" id="preco" placeholder="149.90" oninput="atualizarPreview()">
+            </div>
+            <div style="flex: 1;">
+                <label>Qtd Estoque</label>
+                <input type="number" id="estoque" placeholder="10">
+            </div>
+        </div>
+
+        <div class="form-group" style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+                <label>Tamanho (Etiqueta)</label>
+                <input type="text" id="tamanho" placeholder="Ex: M, G, 42..." oninput="atualizarPreview()">
+            </div>
+            <div style="flex: 1;">
+                <label>Cor</label>
+                <input type="text" id="cor" placeholder="Ex: Preto" oninput="atualizarPreview()">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Descrição Breve</label>
+            <textarea id="descricao" rows="3" placeholder="Detalhes do tecido, caimento..." oninput="atualizarPreview()"></textarea>
+        </div>
+
+        <button class="btn-salvar" onclick="cadastrarProduto()">Publicar no Catálogo</button>
+    </div>
+
+    <div class="preview-area">
+        <div class="preview-title">Pré-visualização em Tempo Real</div>
+        <div class="card">
+            <img id="prev-img" src="" alt="Sem imagem">
+            <div class="card-info">
+                <div class="card-tags">
+                    <span class="tag" id="prev-tam">Tam: --</span>
+                    <span class="tag" id="prev-cor">Cor: --</span>
+                </div>
+                <h4 id="prev-nome">Nome da Peça</h4>
+                <p id="prev-desc">A descrição da peça aparecerá aqui para o seu cliente ler.</p>
+                <div class="card-price" id="prev-preco">R$ 0,00</div>
+                <button class="btn-loja">Adicionar ao Carrinho</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let imagemBase64 = "";
+
+        // Transforma o arquivo PNG/JPG em código para salvar direto no banco sem complicações
+        function processarImagem(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            document.getElementById('file-label').innerText = file.name;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagemBase64 = e.target.result;
+                document.getElementById('prev-img').src = imagemBase64;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Atualiza o card da direita enquanto você digita
+        function atualizarPreview() {
+            document.getElementById('prev-nome').innerText = document.getElementById('nome').value || 'Nome da Peça';
+            document.getElementById('prev-desc').innerText = document.getElementById('descricao').value || 'A descrição da peça aparecerá aqui.';
+            document.getElementById('prev-tam').innerText = 'Tam: ' + (document.getElementById('tamanho').value || '--');
+            document.getElementById('prev-cor').innerText = 'Cor: ' + (document.getElementById('cor').value || '--');
+            
+            const preco = parseFloat(document.getElementById('preco').value) || 0;
+            document.getElementById('prev-preco').innerText = `R$ ${preco.toFixed(2).replace('.', ',')}`;
+        }
+
+        async function cadastrarProduto() {
+            if(!imagemBase64 || !document.getElementById('nome').value) {
+                return alert("Preencha o nome e adicione uma imagem!");
+            }
+
+            const dados = {
+                nome: document.getElementById('nome').value,
+                preco: parseFloat(document.getElementById('preco').value),
+                estoque: parseInt(document.getElementById('estoque').value),
+                imagem_url: imagemBase64,
+                descricao: document.getElementById('descricao').value,
+                tamanho: document.getElementById('tamanho').value,
+                cor: document.getElementById('cor').value
+            };
+
+            const btn = document.querySelector('.btn-salvar');
+            btn.innerText = "Salvando...";
+
+            await fetch('http://127.0.0.1:8000/api/produtos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+            
+            alert('Produto publicado com sucesso!');
+            window.location.reload();
+        }
+    </script>
+</body>
+</html>

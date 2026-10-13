@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Catálogo</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #0d1117; color: #e5e7eb; margin: 0; }
+        header { padding: 30px; text-align: center; border-bottom: 1px solid #30363d; background: #161b22; }
+        header h2 { margin: 0; font-weight: 300; letter-spacing: 2px; color: #fff; }
+        
+        .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
+        
+        /* Card de Produto */
+        .card { background: #161b22; border-radius: 8px; overflow: hidden; border: 1px solid #30363d; transition: transform 0.2s; display: flex; flex-direction: column; }
+        .card:hover { transform: translateY(-5px); border-color: #58a6ff; }
+        .card img { width: 100%; height: 350px; object-fit: cover; }
+        .card-info { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
+        
+        .card-tags { display: flex; gap: 8px; margin-bottom: 12px; }
+        .tag { background: #21262d; padding: 4px 8px; border-radius: 4px; font-size: 11px; border: 1px solid #30363d; color: #8b949e; }
+        
+        .card h4 { margin: 0 0 8px 0; font-size: 18px; color: #fff; }
+        .card p { margin: 0 0 15px 0; color: #8b949e; font-size: 13px; line-height: 1.5; flex-grow: 1; }
+        .card-price { font-size: 20px; font-weight: bold; color: #fff; margin-bottom: 15px; }
+        
+        .btn { background: #fff; color: #000; border: none; padding: 12px; width: 100%; cursor: pointer; font-weight: bold; border-radius: 4px; transition: 0.2s; }
+        .btn:hover { background: #ccc; }
+        
+        /* Carrinho Lateral */
+        .cart-btn { position: fixed; bottom: 30px; right: 30px; background: #fff; color: #000; padding: 15px 25px; border-radius: 30px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 20px rgba(0,0,0,0.5); z-index: 100; border: none; display: flex; align-items: center; gap: 10px; }
+        .sidebar { position: fixed; top: 0; right: -400px; width: 350px; height: 100vh; background: #161b22; border-left: 1px solid #30363d; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 25px; box-sizing: border-box; z-index: 1000; display: flex; flex-direction: column; }
+        .sidebar.open { right: 0; box-shadow: -10px 0 30px rgba(0,0,0,0.5); }
+        .close-btn { text-align: right; cursor: pointer; color: #8b949e; margin-bottom: 20px; font-size: 16px; }
+        .close-btn:hover { color: #fff; }
+        
+        .cart-items { flex-grow: 1; overflow-y: auto; }
+        .cart-item { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #30363d; padding-bottom: 15px; font-size: 14px; }
+        .item-details { display: flex; flex-direction: column; gap: 5px; }
+        .item-tam { font-size: 12px; color: #8b949e; }
+        
+        .sidebar input { width: 100%; padding: 12px; margin-bottom: 15px; background: #0d1117; border: 1px solid #30363d; color: #fff; border-radius: 6px; box-sizing: border-box; }
+        .btn-whatsapp { background: #238636; color: #fff; padding: 15px; width: 100%; border: none; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .btn-whatsapp:hover { background: #2ea043; }
+    </style>
+</head>
+<body>
+
+    <header><h2>C A T Á L O G O</h2></header>
+    <div class="container"><div class="grid" id="catalogo"></div></div>
+
+    <button class="cart-btn" onclick="toggleCart()">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+        Meu Pedido (<span id="cart-count">0</span>)
+    </button>
+
+    <div class="sidebar" id="sidebar">
+        <div class="close-btn" onclick="toggleCart()">✕ Fechar Aba</div>
+        <h3 style="margin-top: 0;">Resumo da Compra</h3>
+        <div class="cart-items" id="cart-items"></div>
+        <div style="margin-top: 20px; border-top: 1px solid #30363d; padding-top: 20px;">
+            <h3 style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <span>Total:</span> 
+                <span>R$ <span id="cart-total">0,00</span></span>
+            </h3>
+            <input type="text" id="nomeCliente" placeholder="Como devemos te chamar?">
+            <button class="btn-whatsapp" onclick="enviarWhatsApp()">Enviar pedido para WhatsApp</button>
+        </div>
+    </div>
+
+    <script>
+        let carrinho = [];
+
+        async function carregarProdutos() {
+            const resposta = await fetch('http://127.0.0.1:8000/api/produtos');
+            const produtos = await resposta.json();
+            const catalogo = document.getElementById('catalogo');
+            
+            if(produtos.length === 0) {
+                catalogo.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #8b949e;'>Nenhuma peça disponível no momento.</p>";
+                return;
+            }
+
+            produtos.forEach(prod => {
+                catalogo.innerHTML += `
+                    <div class="card">
+                        <img src="${prod.imagem_url}">
+                        <div class="card-info">
+                            <div class="card-tags">
+                                <span class="tag">Tam: ${prod.tamanho}</span>
+                                <span class="tag">Cor: ${prod.cor}</span>
+                            </div>
+                            <h4>${prod.nome}</h4>
+                            <p>${prod.descricao}</p>
+                            <div class="card-price">R$ ${prod.preco.toFixed(2).replace('.', ',')}</div>
+                            <button class="btn" onclick="adicionarAoCarrinho(${prod.id}, '${prod.nome}', ${prod.preco}, '${prod.tamanho}')">Adicionar ao Carrinho</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function adicionarAoCarrinho(id, nome, preco, tamanho) {
+            const itemExistente = carrinho.find(i => i.produto_id === id);
+            if (itemExistente) {
+                itemExistente.quantidade++;
+            } else {
+                carrinho.push({ produto_id: id, nome: nome, preco: preco, tamanho: tamanho, quantidade: 1 });
+            }
+            atualizarSidebar();
+            toggleCart(true);
+        }
+
+        function atualizarSidebar() {
+            document.getElementById('cart-count').innerText = carrinho.reduce((sum, item) => sum + item.quantidade, 0);
+            
+            const divItems = document.getElementById('cart-items');
+            divItems.innerHTML = '';
+            let total = 0;
+
+            carrinho.forEach(item => {
+                total += item.preco * item.quantidade;
+                divItems.innerHTML += `
+                    <div class="cart-item">
+                        <div class="item-details">
+                            <strong>${item.quantidade}x ${item.nome}</strong>
+                            <span class="item-tam">Tamanho: ${item.tamanho}</span>
+                        </div>
+                        <strong>R$ ${(item.preco * item.quantidade).toFixed(2).replace('.', ',')}</strong>
+                    </div>
+                `;
+            });
+            document.getElementById('cart-total').innerText = total.toFixed(2).replace('.', ',');
+        }
+
+        function toggleCart(forceOpen = false) {
+            const sidebar = document.getElementById('sidebar');
+            if(forceOpen) sidebar.classList.add('open');
+            else sidebar.classList.toggle('open');
+        }
+
+        async function enviarWhatsApp() {
+            const nome = document.getElementById('nomeCliente').value;
+            if(!nome || carrinho.length === 0) return alert("Preencha seu nome e adicione itens ao carrinho.");
+
+            const resposta = await fetch('http://127.0.0.1:8000/api/comprar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    cliente_nome: nome,
+                    telefone: "",
+                    itens: carrinho
+                })
+            });
+
+            const dados = await resposta.json();
+            if(dados.status === "sucesso") window.location.href = dados.whatsapp_url;
+            else alert("Ops! Algum item do seu carrinho acabou de esgotar.");
+        }
+
+        carregarProdutos();
+    </script>
+</body>
+</html>
