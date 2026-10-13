@@ -72,7 +72,7 @@
         let carrinho = [];
 
         async function carregarProdutos() {
-            const resposta = await fetch('http://127.0.0.1:8000/api/produtos');
+            const resposta = await fetch('https://marli-lingerie.onrender.com/api/produtos');
             const produtos = await resposta.json();
             const catalogo = document.getElementById('catalogo');
             
@@ -143,7 +143,7 @@
             const nome = document.getElementById('nomeCliente').value;
             if(!nome || carrinho.length === 0) return alert("Preencha seu nome e adicione itens ao carrinho.");
 
-            const resposta = await fetch('http://127.0.0.1:8000/api/comprar', {
+            const resposta = await fetch('https://marli-lingerie.onrender.com/api/comprar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

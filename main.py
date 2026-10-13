@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
@@ -96,3 +97,11 @@ def finalizar_compra(pedido: PedidoCreate, db: Session = Depends(get_db)):
     mensagem = f"Olá! Meu nome é {pedido.cliente_nome}.\n\nGostaria de finalizar o pedido:\n- {texto_resumo}\n\n*Total: R$ {total_compra:.2f}*"
     link_whatsapp = f"https://wa.me/{MEU_NUMERO}?text={urllib.parse.quote(mensagem)}"
     return {"status": "sucesso", "whatsapp_url": link_whatsapp}
+
+    @app.get("/")
+    def abrir_loja():
+        return FileResponse("index.html")
+
+    @app.get("/painel")
+    def abrir_painel():
+        return FileResponse("admin.html")
