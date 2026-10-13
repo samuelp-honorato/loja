@@ -18,7 +18,7 @@ class ProdutoDB(Base):
     nome = Column(String, index=True)
     preco = Column(Float)
     estoque = Column(Integer, default=1)
-    imagem_url = Column(String) # Vai guardar a imagem convertida
+    imagem_url = Column(String)
     descricao = Column(String)
     tamanho = Column(String)
     cor = Column(String)
@@ -62,6 +62,16 @@ class PedidoCreate(BaseModel):
     telefone: str
     itens: List[ItemCarrinho]
 
+# --- AS ROTAS QUE MOSTRAM O SEU SITE ---
+@app.get("/")
+def abrir_loja():
+    return FileResponse("index.html")
+
+@app.get("/painel")
+def abrir_painel():
+    return FileResponse("admin.html")
+
+# --- ROTAS DO BANCO DE DADOS ---
 @app.post("/api/produtos")
 def cadastrar_produto(produto: ProdutoCreate, db: Session = Depends(get_db)):
     novo_produto = ProdutoDB(**produto.dict())
@@ -93,15 +103,7 @@ def finalizar_compra(pedido: PedidoCreate, db: Session = Depends(get_db)):
     db.add(novo_pedido)
     db.commit()
 
-    MEU_NUMERO = "5511999999999" # SEU WHATSAPP AQUI
-    mensagem = f"Olá! Meu nome é {pedido.cliente_nome}.\n\nGostaria de finalizar o pedido:\n- {texto_resumo}\n\n*Total: R$ {total_compra:.2f}*"
+    MEU_NUMERO = "5511999999999" # Não se esqueça de colocar aqui o seu número com o código do país
+    mensagem = f"Olá! O meu nome é {pedido.cliente_nome}.\n\nGostaria de finalizar o pedido:\n- {texto_resumo}\n\n*Total: R$ {total_compra:.2f}*"
     link_whatsapp = f"https://wa.me/{MEU_NUMERO}?text={urllib.parse.quote(mensagem)}"
     return {"status": "sucesso", "whatsapp_url": link_whatsapp}
-
-    @app.get("/")
-    def abrir_loja():
-        return FileResponse("index.html")
-
-    @app.get("/painel")
-    def abrir_painel():
-        return FileResponse("admin.html")
