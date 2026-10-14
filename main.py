@@ -62,7 +62,6 @@ class PedidoCreate(BaseModel):
     telefone: str
     itens: List[ItemCarrinho]
 
-# --- AS ROTAS QUE MOSTRAM O SEU SITE ---
 @app.get("/")
 def abrir_loja():
     return FileResponse("index.html")
@@ -71,7 +70,7 @@ def abrir_loja():
 def abrir_painel():
     return FileResponse("admin.html")
 
-# --- ROTAS DO BANCO DE DADOS ---
+
 @app.post("/api/produtos")
 def cadastrar_produto(produto: ProdutoCreate, db: Session = Depends(get_db)):
     novo_produto = ProdutoDB(**produto.dict())
@@ -103,7 +102,7 @@ def finalizar_compra(pedido: PedidoCreate, db: Session = Depends(get_db)):
     db.add(novo_pedido)
     db.commit()
 
-    MEU_NUMERO = "5511999999999" # Não se esqueça de colocar aqui o seu número com o código do país
+    MEU_NUMERO = "5511982902294" 
     mensagem = f"Olá! O meu nome é {pedido.cliente_nome}.\n\nGostaria de finalizar o pedido:\n- {texto_resumo}\n\n*Total: R$ {total_compra:.2f}*"
     link_whatsapp = f"https://wa.me/{MEU_NUMERO}?text={urllib.parse.quote(mensagem)}"
     return {"status": "sucesso", "whatsapp_url": link_whatsapp}
