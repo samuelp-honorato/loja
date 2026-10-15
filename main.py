@@ -1,5 +1,7 @@
 import os
-from fastapi import FastAPI, HTTPException, Depends, status, Request, Response, Form
+import jwt
+from datetime import datetime, timedelta
+from fastapi import FastAPI, HTTPException, Depends, Request, Response, Form
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, Column, Integer, String, Float
@@ -17,7 +19,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 class ProdutoDB(Base):
-    __tablename__ = "produtos_v2" 
+    __tablename__ = "produtos_v2"
     id = Column(Integer, primary_key=True, index=True)
     nome = Column(String, index=True)
     preco = Column(Float)
@@ -39,7 +41,7 @@ class PedidoDB(Base):
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Plataforma Gestão PRO")
+app = FastAPI(title="Plataforma PRO - Core")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 def get_db():
@@ -47,10 +49,21 @@ def get_db():
     try: yield db
     finally: db.close()
 
+SECRET_KEY = os.getenv("SECRET_KEY", "chave_mestre_super_secreta_marli_pro_2026")
+ALGORITHM = "HS256"
+
 def verificar_admin(request: Request):
     token = request.cookies.get("session_token")
-    if token != "token_secreto_admin_marli":
-        raise HTTPException(status_code=401, detail="Acesso Negado")
+    if not token:
+        raise HTTPException(status_code=401, detail="Acesso não autorizado")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("sub") != "admin":
+            raise HTTPException(status_code=401, detail="Utilizador inválido")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Sessão expirada")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Token corrompido")
     return True
 
 class ProdutoCreate(BaseModel):
@@ -72,18 +85,22 @@ def tela_login():
 
 @app.post("/api/login")
 def fazer_login(response: Response, usuario: str = Form(...), senha: str = Form(...)):
-    if usuario == "admmarli" and senha == "Deusbom7.":
+    if usuario == "admin" and senha == "marli123":
+        expiracao = datetime.utcnow() + timedelta(hours=12) 
+        token = jwt.encode({"sub": usuario, "exp": expiracao}, SECRET_KEY, algorithm=ALGORITHM)
+        
         redirect = RedirectResponse(url="/painel", status_code=303)
-        redirect.set_cookie(key="session_token", value="token_secreto_admin_marli", httponly=True)
+        redirect.set_cookie(key="session_token", value=token, httponly=True, samesite="lax", max_age=43200)
         return redirect
     return RedirectResponse(url="/login?erro=1", status_code=303)
 
 @app.get("/painel")
 def abrir_painel(request: Request):
-    token = request.cookies.get("session_token")
-    if token != "token_secreto_admin_marli":
+    try:
+        verificar_admin(request)
+        return FileResponse("admin.html")
+    except HTTPException:
         return RedirectResponse(url="/login")
-    return FileResponse("admin.html")
 
 @app.get("/api/logout")
 def sair():
@@ -124,6 +141,6 @@ def finalizar_compra(pedido: PedidoCreate, db: Session = Depends(get_db)):
     db.commit()
 
     MEU_NUMERO = "5511982902294" 
-    mensagem = f"Olá! O meu nome é {pedido.cliente_nome}.\n\nGostaria de finalizar o pedido:\n- {texto_resumo}\n\n*Total: R$ {total_compra:.2f}*"
+    mensagem = f"Olá! Sou {pedido.cliente_nome}.\n\nGostaria de finalizar a encomenda:\n- {texto_resumo}\n\n*Total: R$ {total_compra:.2f}*"
     link_whatsapp = f"https://wa.me/{MEU_NUMERO}?text={urllib.parse.quote(mensagem)}"
     return {"status": "sucesso", "whatsapp_url": link_whatsapp}

@@ -2,73 +2,94 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Catálogo Oficial</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marli | Coleção Exclusiva</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f3f4f6; color: #1f2937; margin: 0; }
-        header { padding: 30px; text-align: center; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 50; }
-        header h2 { margin: 0; font-weight: 600; letter-spacing: 2px; color: #111827; }
+        :root { --bg: #ffffff; --surface: #f9fafb; --text: #111827; --muted: #6b7280; --border: #e5e7eb; --brand: #000000; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; -webkit-font-smoothing: antialiased; }
         
-        .category-filter { display: flex; justify-content: center; gap: 10px; margin: 20px auto 0; flex-wrap: wrap; max-width: 800px; }
-        .filter-btn { padding: 8px 16px; border-radius: 20px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; font-size: 13px; font-weight: 500; transition: 0.2s; color: #4b5563; }
-        .filter-btn:hover, .filter-btn.active { background: #111827; color: #fff; border-color: #111827; }
+        header { padding: 40px 20px; text-align: center; border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 40; }
+        header h1 { margin: 0; font-size: 28px; font-weight: 400; letter-spacing: 4px; text-transform: uppercase; }
+        
+        .filtros { display: flex; justify-content: center; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+        .btn-filtro { padding: 8px 20px; border-radius: 30px; border: 1px solid var(--border); background: var(--bg); color: var(--muted); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; }
+        .btn-filtro:hover, .btn-filtro.active { background: var(--brand); color: #fff; border-color: var(--brand); }
 
-        .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
-        
-        .card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column; transition: transform 0.2s; border: 1px solid #f3f4f6; }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        .card img { width: 100%; height: 350px; object-fit: cover; }
-        .card-info { padding: 25px; display: flex; flex-direction: column; flex-grow: 1; }
-        .card-tags { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-        .tag { background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-size: 11px; color: #4b5563; font-weight: 600; text-transform: uppercase; }
-        .tag-etiqueta { background: #e5e7eb; border-left: 3px solid #111827; }
-        
-        .card h4 { margin: 0 0 8px 0; font-size: 18px; color: #111827; }
-        .card p { margin: 0 0 15px 0; color: #6b7280; font-size: 13px; line-height: 1.5; flex-grow: 1; }
-        .card-price { font-size: 22px; font-weight: bold; color: #111827; margin-bottom: 20px; }
-        
-        .btn { background: #111827; color: #fff; border: none; padding: 14px; width: 100%; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; }
-        .btn:hover { background: #374151; }
-        
-        .cart-btn { position: fixed; bottom: 30px; right: 30px; background: #111827; color: #fff; padding: 15px 25px; border-radius: 30px; cursor: pointer; font-weight: bold; z-index: 100; border: none; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
-        .sidebar { position: fixed; top: 0; right: -400px; width: 350px; height: 100vh; background: #fff; border-left: 1px solid #e5e7eb; transition: 0.3s; padding: 25px; box-sizing: border-box; z-index: 1000; display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.1); }
-        .sidebar.open { right: 0; }
-        .close-btn { text-align: right; cursor: pointer; color: #6b7280; margin-bottom: 20px; font-weight: bold; }
-        .cart-items { flex-grow: 1; overflow-y: auto; }
-        .cart-item { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #f3f4f6; padding-bottom: 15px; font-size: 14px; }
-        .sidebar input { width: 100%; padding: 12px; margin-bottom: 15px; background: #f9fafb; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; }
-        .btn-whatsapp { background: #10b981; color: #fff; padding: 15px; width: 100%; border: none; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .container { max-width: 1200px; margin: 60px auto; padding: 0 24px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 40px; }
+        .card { display: flex; flex-direction: column; cursor: pointer; }
+        .card-img-wrapper { overflow: hidden; position: relative; border-radius: 4px; background: var(--surface); aspect-ratio: 3/4; }
+        .card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+        .card:hover img { transform: scale(1.05); }
+        .card-info { padding: 20px 0; }
+        .card-meta { display: flex; gap: 12px; margin-bottom: 8px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .card h3 { margin: 0 0 4px 0; font-size: 16px; font-weight: 500; }
+        .card p { margin: 0 0 16px 0; font-size: 14px; color: var(--muted); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .price-row { display: flex; justify-content: space-between; align-items: center; }
+        .price { font-size: 18px; font-weight: 500; }
+        .btn-add { background: var(--surface); border: 1px solid var(--border); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; color: var(--text); }
+        .card:hover .btn-add { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+        .fab-wa { position: fixed; bottom: 32px; left: 32px; background: #25D366; color: white; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4); z-index: 50; transition: transform 0.3s; text-decoration: none; animation: pulse 2s infinite; }
+        .fab-wa:hover { transform: scale(1.1); }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); } }
+
+        .cart-trigger { position: fixed; bottom: 32px; right: 32px; background: var(--brand); color: #fff; padding: 16px 32px; border-radius: 30px; cursor: pointer; font-size: 14px; font-weight: 500; z-index: 50; border: none; box-shadow: 0 8px 24px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .cart-trigger:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.2); }
+        .sidebar-cart { position: fixed; top: 0; right: -100%; width: 100%; max-width: 400px; height: 100vh; background: var(--bg); border-left: 1px solid var(--border); transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 100; display: flex; flex-direction: column; box-shadow: -10px 0 40px rgba(0,0,0,0.1); }
+        .sidebar-cart.open { right: 0; }
+        .cart-header { padding: 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .cart-header h2 { margin: 0; font-size: 18px; font-weight: 500; }
+        .btn-close { background: none; border: none; cursor: pointer; color: var(--muted); padding: 0; }
+        .cart-body { padding: 32px; flex-grow: 1; overflow-y: auto; }
+        .cart-item { display: flex; justify-content: space-between; margin-bottom: 24px; font-size: 14px; align-items: center; }
+        .cart-footer { padding: 32px; border-top: 1px solid var(--border); background: var(--surface); }
+        .cart-total { display: flex; justify-content: space-between; font-size: 18px; font-weight: 500; margin-bottom: 24px; }
+        .input-dark { width: 100%; padding: 16px; margin-bottom: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; font-family: 'Inter'; font-size: 14px; box-sizing: border-box; }
+        .input-dark:focus { border-color: var(--brand); outline: none; }
+        .btn-checkout { background: var(--brand); color: #fff; padding: 18px; width: 100%; border: none; font-weight: 500; border-radius: 8px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: 0.2s; }
+        .btn-checkout:hover { background: #1f2937; }
     </style>
 </head>
 <body>
     <header>
-        <h2>C A T Á L O G O</h2>
-        <div class="category-filter" id="filtros">
-            <button class="filter-btn active" onclick="filtrar('Todas')">Todas as Peças</button>
-            <button class="filter-btn" onclick="filtrar('Calcinha')">Calcinhas</button>
-            <button class="filter-btn" onclick="filtrar('Sutiã')">Sutiãs</button>
-            <button class="filter-btn" onclick="filtrar('Cueca')">Cuecas</button>
-            <button class="filter-btn" onclick="filtrar('Baby Doll')">Baby Doll</button>
-            <button class="filter-btn" onclick="filtrar('Conjunto')">Conjuntos</button>
+        <h1>M A R L I</h1>
+        <div class="filtros" id="filtros">
+            <button class="btn-filtro active" onclick="filtrar('Todas')">A Coleção</button>
+            <button class="btn-filtro" onclick="filtrar('Sutiã')">Sutiãs</button>
+            <button class="btn-filtro" onclick="filtrar('Calcinha')">Calcinhas</button>
+            <button class="btn-filtro" onclick="filtrar('Conjunto')">Conjuntos</button>
         </div>
     </header>
 
     <div class="container"><div class="grid" id="catalogo"></div></div>
     
-    <button class="cart-btn" onclick="toggleCart()">Sacola (<span id="cart-count">0</span>)</button>
+    <a href="https://wa.me/5511999999999?text=Olá!%20Estou%20no%20site%20e%20gostaria%20de%20tirar%20uma%20dúvida." class="fab-wa" target="_blank">
+        <i data-lucide="message-circle" style="width: 28px; height: 28px;"></i>
+    </a>
 
-    <div class="sidebar" id="sidebar">
-        <div class="close-btn" onclick="toggleCart()">✕ Fechar</div>
-        <h3 style="margin-top: 0;">Seu Pedido</h3>
-        <div class="cart-items" id="cart-items"></div>
-        <div style="margin-top: 20px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
-            <h3 style="display: flex; justify-content: space-between; margin-bottom: 20px;"><span>Total:</span> <span>R$ <span id="cart-total">0,00</span></span></h3>
-            <input type="text" id="nomeCliente" placeholder="Qual o seu nome?">
-            <button class="btn-whatsapp" onclick="enviarWhatsApp()">Enviar pedido para WhatsApp</button>
+    <!-- Botão de Carrinho (À direita) -->
+    <button class="cart-trigger" onclick="toggleCart()">
+        <i data-lucide="shopping-bag" style="width: 18px; height: 18px;"></i> Sacola (<span id="cart-count">0</span>)
+    </button>
+
+    <div class="sidebar-cart" id="sidebar">
+        <div class="cart-header">
+            <h2>A Sua Seleção</h2>
+            <button class="btn-close" onclick="toggleCart()"><i data-lucide="x"></i></button>
+        </div>
+        <div class="cart-body" id="cart-items"></div>
+        <div class="cart-footer">
+            <div class="cart-total"><span>Subtotal</span> <span>R$ <span id="cart-total">0.00</span></span></div>
+            <input type="text" id="nomeCliente" class="input-dark" placeholder="O seu nome para contacto">
+            <button class="btn-checkout" onclick="enviarWhatsApp()"><i data-lucide="send"></i> Concluir via WhatsApp</button>
         </div>
     </div>
 
     <script>
+        lucide.createIcons();
         let carrinho = [];
         let todosProdutos = [];
 
@@ -79,40 +100,34 @@
         }
 
         function filtrar(categoria) {
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.btn-filtro').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
-
-            if(categoria === 'Todas') {
-                renderizarCatalogo(todosProdutos);
-            } else {
-                const filtrados = todosProdutos.filter(p => p.categoria === categoria);
-                renderizarCatalogo(filtrados);
-            }
+            renderizarCatalogo(categoria === 'Todas' ? todosProdutos : todosProdutos.filter(p => p.categoria === categoria));
         }
 
         function renderizarCatalogo(produtos) {
             const catalogo = document.getElementById('catalogo');
             if(produtos.length === 0) {
-                catalogo.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #6b7280;'>Nenhuma peça desta categoria no momento.</p>";
+                catalogo.innerHTML = "<div style='grid-column: 1/-1; text-align: center; padding: 100px 0; color: var(--muted);'>Coleção atualmente indisponível.</div>";
                 return;
             }
             catalogo.innerHTML = '';
             produtos.forEach(prod => {
                 catalogo.innerHTML += `
                     <div class="card">
-                        <img src="${prod.imagem_url}">
+                        <div class="card-img-wrapper"><img src="${prod.imagem_url}"></div>
                         <div class="card-info">
-                            <div class="card-tags">
-                                <span class="tag">Tam: ${prod.tamanho}</span>
-                                <span class="tag tag-etiqueta">Etiqueta ${prod.etiqueta}</span>
-                            </div>
-                            <h4>${prod.nome}</h4>
+                            <div class="card-meta"><span>Tam ${prod.tamanho}</span> &bull; <span>Linha ${prod.etiqueta}</span></div>
+                            <h3>${prod.nome}</h3>
                             <p>${prod.descricao}</p>
-                            <div class="card-price">R$ ${prod.preco.toFixed(2).replace('.', ',')}</div>
-                            <button class="btn" onclick="adicionarAoCarrinho(${prod.id}, '${prod.nome}', ${prod.preco}, '${prod.tamanho}')">Adicionar à Sacola</button>
+                            <div class="price-row">
+                                <span class="price">R$ ${prod.preco.toFixed(2)}</span>
+                                <button class="btn-add" onclick="adicionarAoCarrinho(${prod.id}, '${prod.nome}', ${prod.preco}, '${prod.tamanho}')"><i data-lucide="plus" style="width: 20px; height: 20px;"></i></button>
+                            </div>
                         </div>
                     </div>`;
             });
+            lucide.createIcons();
         }
 
         function adicionarAoCarrinho(id, nome, preco, tamanho) {
@@ -127,11 +142,11 @@
             carrinho.forEach(item => {
                 total += item.preco * item.quantidade;
                 divItems.innerHTML += `<div class="cart-item">
-                        <div><strong>${item.quantidade}x ${item.nome}</strong><br><span style="font-size: 12px; color: #6b7280;">Tam: ${item.tamanho}</span></div>
-                        <strong>R$ ${(item.preco * item.quantidade).toFixed(2).replace('.', ',')}</strong>
+                        <div><div style="font-weight: 500;">${item.quantidade}x ${item.nome}</div><div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Tamanho: ${item.tamanho}</div></div>
+                        <div style="font-weight: 500;">R$ ${(item.preco * item.quantidade).toFixed(2)}</div>
                     </div>`;
             });
-            document.getElementById('cart-total').innerText = total.toFixed(2).replace('.', ',');
+            document.getElementById('cart-total').innerText = total.toFixed(2);
         }
 
         function toggleCart(forceOpen = false) {
@@ -141,11 +156,11 @@
 
         async function enviarWhatsApp() {
             const nome = document.getElementById('nomeCliente').value;
-            if(!nome || carrinho.length === 0) return alert("Preencha seu nome e adicione itens.");
+            if(!nome || carrinho.length === 0) return alert("Por favor, informe o seu nome e adicione artigos à sacola.");
             const resposta = await fetch('/api/comprar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cliente_nome: nome, telefone: "", itens: carrinho }) });
             const dados = await resposta.json();
             if(dados.status === "sucesso") window.location.href = dados.whatsapp_url;
-            else alert("Ops! Algum item esgotou.");
+            else alert("Lamentamos, algum artigo do seu pedido esgotou.");
         }
         
         carregarProdutos();
