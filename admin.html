@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>ERP | Marli Lingerie</title>
+    <title>ERP | Gestão Avançada</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -40,8 +40,9 @@
         label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #475569; }
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; font-family: 'Inter'; transition: 0.2s; }
         input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-        .file-box { border: 2px dashed #cbd5e1; padding: 40px; text-align: center; border-radius: 12px; cursor: pointer; margin-bottom: 24px; color: #64748b; font-weight: 500; }
+        .file-box { border: 2px dashed #cbd5e1; padding: 40px; text-align: center; border-radius: 12px; cursor: pointer; margin-bottom: 24px; color: #64748b; font-weight: 500; display: block; }
         .btn-primary { background: var(--primary); color: #fff; border: none; padding: 14px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; }
+        .btn-primary:hover { background: #1d4ed8; }
         
         .aba { display: none; }
         .aba.ativa { display: block; animation: fadeIn 0.3s; }
@@ -51,7 +52,7 @@
 <body>
 
     <div class="sidebar">
-        <div class="brand"><i data-lucide="layout-dashboard"></i> ERP Marli</div>
+        <div class="brand"><i data-lucide="layout-dashboard"></i> Painel ERP</div>
         <div class="menu">
             <div class="menu-item active" onclick="mudarAba('aba-estoque', this)"><i data-lucide="package"></i> Gestão de Estoque</div>
             <div class="menu-item" onclick="mudarAba('aba-cadastrar', this)"><i data-lucide="plus-circle"></i> Novo Produto</div>
@@ -61,35 +62,33 @@
 
     <div class="content">
         <div id="aba-estoque" class="aba ativa">
-            <div class="header">
-                <h1>Gestão de Estoque & Promoções</h1>
-            </div>
-            <div class="card" style="padding: 0;">
+            <div class="header"><h1>Inventário & Ofertas</h1></div>
+            <div class="card" style="padding: 0; overflow: hidden;">
                 <table>
-                    <thead><tr><th>Produto</th><th>Categoria/Etiqueta</th><th>Preço</th><th>Status</th><th>Ações</th></tr></thead>
+                    <thead><tr><th>Produto</th><th>Detalhes</th><th>Preço</th><th>Status</th><th>Gerenciar</th></tr></thead>
                     <tbody id="lista-estoque"></tbody>
                 </table>
             </div>
         </div>
 
         <div id="aba-cadastrar" class="aba">
-            <div class="header"><h1>Adicionar ao Catálogo</h1></div>
+            <div class="header"><h1>Adicionar ao Sistema</h1></div>
             <div class="card">
                 <label class="file-box" id="file-label">
-                    <i data-lucide="camera" style="width: 32px; height: 32px; margin-bottom: 8px;"></i><br>
-                    Clique para anexar foto
+                    <i data-lucide="image" style="width: 32px; height: 32px; margin-bottom: 8px;"></i><br>
+                    Clique para selecionar a imagem
                     <input type="file" style="display: none;" accept="image/*" onchange="processarImagem(event)">
                 </label>
                 <div class="grid-form">
-                    <div><label>Nome do Produto</label><input type="text" id="nome"></div>
-                    <div><label>Categoria</label><select id="categoria"><option>Calcinha</option><option>Sutiã</option><option>Conjunto</option><option>Baby Doll</option><option>Cueca</option></select></div>
+                    <div><label>Designação (Nome)</label><input type="text" id="nome"></div>
+                    <div><label>Categoria Principal</label><select id="categoria"><option>Calcinha</option><option>Sutiã</option><option>Conjunto</option><option>Baby Doll</option><option>Cueca</option></select></div>
                     <div><label>Preço Base (R$)</label><input type="number" id="preco"></div>
-                    <div><label>Estoque</label><input type="number" id="estoque"></div>
-                    <div><label>Tamanho</label><input type="text" id="tamanho" placeholder="P, M, G, GG"></div>
-                    <div><label>Cor da Etiqueta</label><select id="etiqueta"><option>Prata</option><option>Cinza</option><option>Roxa</option><option>Dourada</option></select></div>
+                    <div><label>Quantidade Inicial</label><input type="number" id="estoque"></div>
+                    <div><label>Grade / Tamanho</label><input type="text" id="tamanho" placeholder="P, M, G, GG"></div>
+                    <div><label>Cor / Etiqueta</label><select id="etiqueta"><option>Prata</option><option>Cinza</option><option>Roxa</option><option>Dourada</option></select></div>
                 </div>
-                <div style="margin-top: 20px;"><label>Descrição</label><textarea id="descricao" rows="2"></textarea></div>
-                <button class="btn-primary" style="margin-top: 24px;" onclick="cadastrarProduto()">Salvar Produto</button>
+                <div style="margin-top: 20px;"><label>Descrição Técnica</label><textarea id="descricao" rows="2"></textarea></div>
+                <button class="btn-primary" style="margin-top: 24px;" onclick="cadastrarProduto()">Gravar no Sistema</button>
             </div>
         </div>
     </div>
@@ -108,42 +107,59 @@
         function processarImagem(event) {
             const file = event.target.files[0];
             if(!file) return;
-            document.getElementById('file-label').innerHTML = `<b style='color:#2563eb;'>${file.name} adicionada!</b>`;
+            document.getElementById('file-label').innerHTML = `<b style='color:#2563eb;'><i data-lucide="check-circle" style="vertical-align: middle;"></i> ${file.name} carregada!</b>`;
+            lucide.createIcons();
             const r = new FileReader(); r.onload = e => imgBase64 = e.target.result; r.readAsDataURL(file);
         }
 
         async function cadastrarProduto() {
+            if(!imgBase64 || !document.getElementById('nome').value) {
+                alert("Nome e Imagem são obrigatórios.");
+                return;
+            }
             const dados = {
-                nome: document.getElementById('nome').value, preco: parseFloat(document.getElementById('preco').value),
-                estoque: parseInt(document.getElementById('estoque').value), imagem_url: imgBase64,
+                nome: document.getElementById('nome').value, preco: parseFloat(document.getElementById('preco').value || 0),
+                estoque: parseInt(document.getElementById('estoque').value || 0), imagem_url: imgBase64,
                 descricao: document.getElementById('descricao').value, tamanho: document.getElementById('tamanho').value,
                 cor: document.getElementById('etiqueta').value, categoria: document.getElementById('categoria').value,
                 etiqueta: document.getElementById('etiqueta').value
             };
+            const btn = document.querySelector('.btn-primary');
+            btn.innerText = "A guardar...";
             await fetch('/api/produtos', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(dados) });
-            alert("Produto Salvo!"); mudarAba('aba-estoque', document.querySelector('.menu-item'));
+            alert("Operação concluída!"); 
+            btn.innerText = "Gravar no Sistema";
+            mudarAba('aba-estoque', document.querySelector('.menu-item'));
         }
 
         async function carregarEstoque() {
             const resp = await fetch('/api/admin/produtos');
+            if(resp.status === 401) { window.location.href = '/login'; return; }
+            
             const produtos = await resp.json();
             const lista = document.getElementById('lista-estoque');
             lista.innerHTML = '';
+            
+            if(produtos.length === 0) {
+                lista.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #94a3b8;">Nenhum produto cadastrado.</td></tr>';
+                return;
+            }
+            
             produtos.forEach(p => {
                 const tr = document.createElement('tr');
-                const visivel = p.ativo ? '<span style="color:#10b981;">👁️ Visível na Loja</span>' : '<span style="color:#ef4444;">🚫 Oculto</span>';
-                const precoInfo = p.em_promocao ? `<s style="color:#94a3b8;font-size:12px;">R$ ${p.preco}</s><br><b style="color:#ef4444;">R$ ${p.preco_promocao}</b> <span class="badge promo">Promo</span>` : `<b>R$ ${p.preco}</b>`;
+                const visivel = p.ativo ? '<span style="color:#10b981; font-weight: 500;">👁️ Na Loja</span>' : '<span style="color:#ef4444; font-weight: 500;">🚫 Oculto</span>';
+                const precoInfo = p.em_promocao ? `<s style="color:#94a3b8;font-size:12px;">R$ ${p.preco.toFixed(2)}</s><br><b style="color:#ef4444;">R$ ${p.preco_promocao.toFixed(2)}</b> <span class="badge promo">Promo</span>` : `<b>R$ ${p.preco.toFixed(2)}</b>`;
                 
                 tr.innerHTML = `
-                    <td><div style="display:flex; gap:12px; align-items:center;"><img src="${p.imagem_url}" class="img-mini"><div><b>${p.nome}</b><div style="font-size:12px;color:#64748b;">Tam: ${p.tamanho} | Estq: ${p.estoque}</div></div></div></td>
-                    <td><span class="badge">${p.categoria}</span><br><span style="font-size:11px;color:#64748b;">Etiq. ${p.etiqueta}</span></td>
+                    <td><div style="display:flex; gap:12px; align-items:center;"><img src="${p.imagem_url}" class="img-mini"><div><b style="color:#0f172a;">${p.nome}</b><div style="font-size:12px;color:#64748b;">Tam: ${p.tamanho} | Estq: ${p.estoque}</div></div></div></td>
+                    <td><span class="badge">${p.categoria}</span><br><span style="font-size:11px;color:#64748b;">Linha ${p.etiqueta}</span></td>
                     <td>${precoInfo}</td>
                     <td>${visivel}</td>
                     <td>
                         <div class="action-group">
-                            <button class="btn-icon" title="Ocultar/Mostrar" onclick="toggleStatus(${p.id})"><i data-lucide="${p.ativo ? 'eye-off' : 'eye'}" style="width:16px;"></i></button>
-                            <button class="btn-icon promo" title="Gerenciar Promoção" onclick="gerirPromo(${p.id}, ${p.em_promocao}, ${p.preco})"><i data-lucide="tag" style="width:16px;"></i></button>
-                            <button class="btn-icon danger" title="Excluir Definitivamente" onclick="excluir(${p.id})"><i data-lucide="trash-2" style="width:16px;"></i></button>
+                            <button class="btn-icon" title="Ocultar/Mostrar na loja" onclick="toggleStatus(${p.id})"><i data-lucide="${p.ativo ? 'eye-off' : 'eye'}" style="width:16px;"></i></button>
+                            <button class="btn-icon promo" title="Configurar Promoção" onclick="gerirPromo(${p.id}, ${p.em_promocao}, ${p.preco})"><i data-lucide="tag" style="width:16px;"></i></button>
+                            <button class="btn-icon danger" title="Apagar Definitivamente" onclick="excluir(${p.id})"><i data-lucide="trash-2" style="width:16px;"></i></button>
                         </div>
                     </td>
                 `;
@@ -157,19 +173,19 @@
         }
         
         async function excluir(id) {
-            if(confirm("Tem certeza que deseja excluir este produto para sempre?")) {
+            if(confirm("ATENÇÃO: Deseja apagar este produto permanentemente?")) {
                 await fetch(`/api/produtos/${id}`, { method: 'DELETE' }); carregarEstoque();
             }
         }
 
         async function gerirPromo(id, em_promo, preco_base) {
             if(em_promo) {
-                if(confirm("Deseja remover este produto da promoção?")) {
+                if(confirm("Terminar promoção deste produto e voltar ao preço original?")) {
                     await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: false}) });
                     carregarEstoque();
                 }
             } else {
-                let novoPreco = prompt(`O preço base é R$ ${preco_base}.\nDigite o NOVO PREÇO promocional:`);
+                let novoPreco = prompt(`O preço base atual é R$ ${preco_base.toFixed(2)}.\nDigite o valor da PROMOÇÃO:`);
                 if(novoPreco) {
                     await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: true, preco_promocao: parseFloat(novoPreco.replace(',','.'))}) });
                     carregarEstoque();

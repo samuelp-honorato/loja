@@ -10,6 +10,12 @@ from pydantic import BaseModel
 from typing import List, Optional
 import urllib.parse
 
+NOME_LOJA = os.getenv("NOME_LOJA", "Marli Lingerie")
+WHATSAPP_LOJA = os.getenv("WHATSAPP_LOJA", "5511999999999")
+ADMIN_USER = os.getenv("ADMIN_USER", "admin")
+ADMIN_PASS = os.getenv("ADMIN_PASS", "marli123")
+SECRET_KEY = os.getenv("SECRET_KEY", "chave_mestre_super_secreta_marli_pro")
+
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./loja.db")
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
@@ -25,7 +31,7 @@ class ProdutoDB(Base):
     preco = Column(Float)
     preco_promocao = Column(Float, nullable=True)
     em_promocao = Column(Boolean, default=False)
-    ativo = Column(Boolean, default=True) 
+    ativo = Column(Boolean, default=True)
     estoque = Column(Integer, default=1)
     imagem_url = Column(String)
     descricao = Column(String)
@@ -44,7 +50,7 @@ class PedidoDB(Base):
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Marli ERP")
+app = FastAPI(title=f"Plataforma - {NOME_LOJA}")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 def get_db():
@@ -52,7 +58,6 @@ def get_db():
     try: yield db
     finally: db.close()
 
-SECRET_KEY = os.getenv("SECRET_KEY", "chave_mestre_super_secreta")
 ALGORITHM = "HS256"
 
 def verificar_admin(request: Request):
@@ -60,22 +65,18 @@ def verificar_admin(request: Request):
     if not token: raise HTTPException(status_code=401, detail="Não autorizado")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        if payload.get("sub") != "admin": raise HTTPException(status_code=401)
+        if payload.get("sub") != ADMIN_USER: raise HTTPException(status_code=401)
     except: raise HTTPException(status_code=401, detail="Sessão inválida")
     return True
 
 class ProdutoCreate(BaseModel):
     nome: str; preco: float; estoque: int; imagem_url: str; descricao: str; tamanho: str; cor: str; categoria: str; etiqueta: str
-
 class ItemCarrinho(BaseModel):
     produto_id: int; quantidade: int; nome: str; preco: float; tamanho: str
-
 class PedidoCreate(BaseModel):
     cliente_nome: str; telefone: str; itens: List[ItemCarrinho]
-
 class PromocaoUpdate(BaseModel):
-    em_promocao: bool
-    preco_promocao: Optional[float] = None
+    em_promocao: bool; preco_promocao: Optional[float] = None
 
 @app.get("/")
 def abrir_loja(): return FileResponse("index.html")
@@ -85,7 +86,7 @@ def tela_login(): return FileResponse("login.html")
 
 @app.post("/api/login")
 def fazer_login(response: Response, usuario: str = Form(...), senha: str = Form(...)):
-    if usuario == "admin" and senha == "marli123":
+    if usuario == ADMIN_USER and senha == ADMIN_PASS:
         exp = datetime.utcnow() + timedelta(hours=12)
         token = jwt.encode({"sub": usuario, "exp": exp}, SECRET_KEY, algorithm=ALGORITHM)
         redirect = RedirectResponse(url="/painel", status_code=303)
@@ -95,11 +96,8 @@ def fazer_login(response: Response, usuario: str = Form(...), senha: str = Form(
 
 @app.get("/painel")
 def abrir_painel(request: Request):
-    try:
-        verificar_admin(request)
-        return FileResponse("admin.html")
-    except HTTPException:
-        return RedirectResponse(url="/login")
+    try: verificar_admin(request); return FileResponse("admin.html")
+    except HTTPException: return RedirectResponse(url="/login")
 
 @app.get("/api/logout")
 def sair():
@@ -107,12 +105,13 @@ def sair():
     redirect.delete_cookie("session_token")
     return redirect
 
+@app.get("/api/config")
+def pegar_configuracoes():
+    return {"whatsapp": WHATSAPP_LOJA, "nome_loja": NOME_LOJA}
+
 @app.post("/api/produtos")
 def cadastrar_produto(produto: ProdutoCreate, db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
-    novo = ProdutoDB(**produto.dict())
-    db.add(novo)
-    db.commit()
-    return novo
+    novo = ProdutoDB(**produto.dict()); db.add(novo); db.commit(); return novo
 
 @app.get("/api/produtos")
 def listar_produtos(db: Session = Depends(get_db)):
@@ -125,26 +124,20 @@ def listar_estoque_admin(db: Session = Depends(get_db), admin: bool = Depends(ve
 @app.delete("/api/produtos/{id}")
 def excluir_produto(id: int, db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
     produto = db.query(ProdutoDB).filter(ProdutoDB.id == id).first()
-    if produto:
-        db.delete(produto)
-        db.commit()
+    if produto: db.delete(produto); db.commit()
     return {"status": "ok"}
 
 @app.patch("/api/produtos/{id}/status")
 def alterar_status(id: int, db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
     produto = db.query(ProdutoDB).filter(ProdutoDB.id == id).first()
-    if produto:
-        produto.ativo = not produto.ativo
-        db.commit()
+    if produto: produto.ativo = not produto.ativo; db.commit()
     return {"status": "ok", "ativo": produto.ativo}
 
 @app.patch("/api/produtos/{id}/promocao")
 def aplicar_promocao(id: int, promo: PromocaoUpdate, db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
     produto = db.query(ProdutoDB).filter(ProdutoDB.id == id).first()
     if produto:
-        produto.em_promocao = promo.em_promocao
-        produto.preco_promocao = promo.preco_promocao
-        db.commit()
+        produto.em_promocao = promo.em_promocao; produto.preco_promocao = promo.preco_promocao; db.commit()
     return {"status": "ok"}
 
 @app.post("/api/comprar")
@@ -155,17 +148,14 @@ def finalizar_compra(pedido: PedidoCreate, db: Session = Depends(get_db)):
         if not produto or produto.estoque < item.quantidade:
             raise HTTPException(status_code=400, detail=f"Estoque insuficiente: {item.nome}")
         produto.estoque -= item.quantidade
-        
         preco_real = produto.preco_promocao if produto.em_promocao else produto.preco
         total_compra += (preco_real * item.quantidade)
         resumo_itens.append(f"{item.quantidade}x {item.nome} ({item.tamanho}) - R$ {preco_real:.2f}")
     
     texto_resumo = "\n- ".join(resumo_itens)
     novo_pedido = PedidoDB(cliente_nome=pedido.cliente_nome, telefone=pedido.telefone, resumo_pedido=texto_resumo, total=total_compra)
-    db.add(novo_pedido)
-    db.commit()
+    db.add(novo_pedido); db.commit()
 
-    MEU_NUMERO = "5511982902294" 
     mensagem = f"Olá! Sou {pedido.cliente_nome}.\n\n*Novo Pedido:*\n- {texto_resumo}\n\n*Total: R$ {total_compra:.2f}*"
-    link_whatsapp = f"https://wa.me/{MEU_NUMERO}?text={urllib.parse.quote(mensagem)}"
+    link_whatsapp = f"https://wa.me/{WHATSAPP_LOJA}?text={urllib.parse.quote(mensagem)}"
     return {"status": "sucesso", "whatsapp_url": link_whatsapp}
