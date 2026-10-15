@@ -2,69 +2,114 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Catálogo</title>
+    <title>Catálogo Oficial</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #0d1117; color: #e5e7eb; margin: 0; }
-        header { padding: 30px; text-align: center; border-bottom: 1px solid #30363d; background: #161b22; }
-        header h2 { margin: 0; font-weight: 300; letter-spacing: 2px; color: #fff; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f3f4f6; color: #1f2937; margin: 0; }
+        header { padding: 30px; text-align: center; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 50; }
+        header h2 { margin: 0; font-weight: 600; letter-spacing: 2px; color: #111827; }
+        
+        .category-filter { display: flex; justify-content: center; gap: 10px; margin: 20px auto 0; flex-wrap: wrap; max-width: 800px; }
+        .filter-btn { padding: 8px 16px; border-radius: 20px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; font-size: 13px; font-weight: 500; transition: 0.2s; color: #4b5563; }
+        .filter-btn:hover, .filter-btn.active { background: #111827; color: #fff; border-color: #111827; }
+
         .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
-        .card { background: #161b22; border-radius: 8px; overflow: hidden; border: 1px solid #30363d; display: flex; flex-direction: column; }
+        
+        .card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column; transition: transform 0.2s; border: 1px solid #f3f4f6; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
         .card img { width: 100%; height: 350px; object-fit: cover; }
-        .card-info { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
-        .card-tags { display: flex; gap: 8px; margin-bottom: 12px; }
-        .tag { background: #21262d; padding: 4px 8px; border-radius: 4px; font-size: 11px; border: 1px solid #30363d; color: #8b949e; }
-        .card h4 { margin: 0 0 8px 0; font-size: 18px; color: #fff; }
-        .card p { margin: 0 0 15px 0; color: #8b949e; font-size: 13px; line-height: 1.5; flex-grow: 1; }
-        .card-price { font-size: 20px; font-weight: bold; color: #fff; margin-bottom: 15px; }
-        .btn { background: #fff; color: #000; border: none; padding: 12px; width: 100%; font-weight: bold; border-radius: 4px; cursor: pointer; }
-        .cart-btn { position: fixed; bottom: 30px; right: 30px; background: #fff; color: #000; padding: 15px 25px; border-radius: 30px; cursor: pointer; font-weight: bold; z-index: 100; border: none; }
-        .sidebar { position: fixed; top: 0; right: -400px; width: 350px; height: 100vh; background: #161b22; border-left: 1px solid #30363d; transition: 0.3s; padding: 25px; box-sizing: border-box; z-index: 1000; display: flex; flex-direction: column; }
-        .sidebar.open { right: 0; box-shadow: -10px 0 30px rgba(0,0,0,0.5); }
-        .close-btn { text-align: right; cursor: pointer; color: #8b949e; margin-bottom: 20px; }
+        .card-info { padding: 25px; display: flex; flex-direction: column; flex-grow: 1; }
+        .card-tags { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .tag { background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-size: 11px; color: #4b5563; font-weight: 600; text-transform: uppercase; }
+        .tag-etiqueta { background: #e5e7eb; border-left: 3px solid #111827; }
+        
+        .card h4 { margin: 0 0 8px 0; font-size: 18px; color: #111827; }
+        .card p { margin: 0 0 15px 0; color: #6b7280; font-size: 13px; line-height: 1.5; flex-grow: 1; }
+        .card-price { font-size: 22px; font-weight: bold; color: #111827; margin-bottom: 20px; }
+        
+        .btn { background: #111827; color: #fff; border: none; padding: 14px; width: 100%; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .btn:hover { background: #374151; }
+        
+        .cart-btn { position: fixed; bottom: 30px; right: 30px; background: #111827; color: #fff; padding: 15px 25px; border-radius: 30px; cursor: pointer; font-weight: bold; z-index: 100; border: none; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
+        .sidebar { position: fixed; top: 0; right: -400px; width: 350px; height: 100vh; background: #fff; border-left: 1px solid #e5e7eb; transition: 0.3s; padding: 25px; box-sizing: border-box; z-index: 1000; display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.1); }
+        .sidebar.open { right: 0; }
+        .close-btn { text-align: right; cursor: pointer; color: #6b7280; margin-bottom: 20px; font-weight: bold; }
         .cart-items { flex-grow: 1; overflow-y: auto; }
-        .cart-item { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #30363d; padding-bottom: 15px; font-size: 14px; }
-        .sidebar input { width: 100%; padding: 12px; margin-bottom: 15px; background: #0d1117; border: 1px solid #30363d; color: #fff; border-radius: 6px; box-sizing: border-box; }
-        .btn-whatsapp { background: #238636; color: #fff; padding: 15px; width: 100%; border: none; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .cart-item { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #f3f4f6; padding-bottom: 15px; font-size: 14px; }
+        .sidebar input { width: 100%; padding: 12px; margin-bottom: 15px; background: #f9fafb; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; }
+        .btn-whatsapp { background: #10b981; color: #fff; padding: 15px; width: 100%; border: none; font-weight: bold; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <header><h2>C A T Á L O G O</h2></header>
+    <header>
+        <h2>C A T Á L O G O</h2>
+        <div class="category-filter" id="filtros">
+            <button class="filter-btn active" onclick="filtrar('Todas')">Todas as Peças</button>
+            <button class="filter-btn" onclick="filtrar('Calcinha')">Calcinhas</button>
+            <button class="filter-btn" onclick="filtrar('Sutiã')">Sutiãs</button>
+            <button class="filter-btn" onclick="filtrar('Cueca')">Cuecas</button>
+            <button class="filter-btn" onclick="filtrar('Baby Doll')">Baby Doll</button>
+            <button class="filter-btn" onclick="filtrar('Conjunto')">Conjuntos</button>
+        </div>
+    </header>
+
     <div class="container"><div class="grid" id="catalogo"></div></div>
-    <button class="cart-btn" onclick="toggleCart()">Meu Pedido (<span id="cart-count">0</span>)</button>
+    
+    <button class="cart-btn" onclick="toggleCart()">Sacola (<span id="cart-count">0</span>)</button>
 
     <div class="sidebar" id="sidebar">
         <div class="close-btn" onclick="toggleCart()">✕ Fechar</div>
-        <h3 style="margin-top: 0;">Resumo da Compra</h3>
+        <h3 style="margin-top: 0;">Seu Pedido</h3>
         <div class="cart-items" id="cart-items"></div>
-        <div style="margin-top: 20px; border-top: 1px solid #30363d; padding-top: 20px;">
+        <div style="margin-top: 20px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
             <h3 style="display: flex; justify-content: space-between; margin-bottom: 20px;"><span>Total:</span> <span>R$ <span id="cart-total">0,00</span></span></h3>
-            <input type="text" id="nomeCliente" placeholder="Como devemos te chamar?">
+            <input type="text" id="nomeCliente" placeholder="Qual o seu nome?">
             <button class="btn-whatsapp" onclick="enviarWhatsApp()">Enviar pedido para WhatsApp</button>
         </div>
     </div>
 
     <script>
         let carrinho = [];
-        
+        let todosProdutos = [];
+
         async function carregarProdutos() {
-            const resposta = await fetch('/api/produtos'); 
-            const produtos = await resposta.json();
+            const resposta = await fetch('/api/produtos');
+            todosProdutos = await resposta.json();
+            renderizarCatalogo(todosProdutos);
+        }
+
+        function filtrar(categoria) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if(categoria === 'Todas') {
+                renderizarCatalogo(todosProdutos);
+            } else {
+                const filtrados = todosProdutos.filter(p => p.categoria === categoria);
+                renderizarCatalogo(filtrados);
+            }
+        }
+
+        function renderizarCatalogo(produtos) {
             const catalogo = document.getElementById('catalogo');
-            
             if(produtos.length === 0) {
-                catalogo.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #8b949e;'>Nenhuma peça disponível no momento.</p>";
+                catalogo.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #6b7280;'>Nenhuma peça desta categoria no momento.</p>";
                 return;
             }
+            catalogo.innerHTML = '';
             produtos.forEach(prod => {
                 catalogo.innerHTML += `
                     <div class="card">
                         <img src="${prod.imagem_url}">
                         <div class="card-info">
-                            <div class="card-tags"><span class="tag">Tam: ${prod.tamanho}</span><span class="tag">Cor: ${prod.cor}</span></div>
-                            <h4>${prod.nome}</h4><p>${prod.descricao}</p>
+                            <div class="card-tags">
+                                <span class="tag">Tam: ${prod.tamanho}</span>
+                                <span class="tag tag-etiqueta">Etiqueta ${prod.etiqueta}</span>
+                            </div>
+                            <h4>${prod.nome}</h4>
+                            <p>${prod.descricao}</p>
                             <div class="card-price">R$ ${prod.preco.toFixed(2).replace('.', ',')}</div>
-                            <button class="btn" onclick="adicionarAoCarrinho(${prod.id}, '${prod.nome}', ${prod.preco}, '${prod.tamanho}')">Adicionar ao Carrinho</button>
+                            <button class="btn" onclick="adicionarAoCarrinho(${prod.id}, '${prod.nome}', ${prod.preco}, '${prod.tamanho}')">Adicionar à Sacola</button>
                         </div>
                     </div>`;
             });
@@ -82,7 +127,7 @@
             carrinho.forEach(item => {
                 total += item.preco * item.quantidade;
                 divItems.innerHTML += `<div class="cart-item">
-                        <div><strong>${item.quantidade}x ${item.nome}</strong><br><span style="font-size: 12px; color: #8b949e;">Tam: ${item.tamanho}</span></div>
+                        <div><strong>${item.quantidade}x ${item.nome}</strong><br><span style="font-size: 12px; color: #6b7280;">Tam: ${item.tamanho}</span></div>
                         <strong>R$ ${(item.preco * item.quantidade).toFixed(2).replace('.', ',')}</strong>
                     </div>`;
             });
@@ -97,16 +142,12 @@
         async function enviarWhatsApp() {
             const nome = document.getElementById('nomeCliente').value;
             if(!nome || carrinho.length === 0) return alert("Preencha seu nome e adicione itens.");
-
-            const resposta = await fetch('/api/comprar', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cliente_nome: nome, telefone: "", itens: carrinho })
-            });
-
+            const resposta = await fetch('/api/comprar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cliente_nome: nome, telefone: "", itens: carrinho }) });
             const dados = await resposta.json();
             if(dados.status === "sucesso") window.location.href = dados.whatsapp_url;
-            else alert("Ops! Algum item do seu carrinho acabou de esgotar.");
+            else alert("Ops! Algum item esgotou.");
         }
+        
         carregarProdutos();
     </script>
 </body>
