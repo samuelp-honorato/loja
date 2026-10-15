@@ -3,166 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marli | Coleção Exclusiva</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>Marli | A Sua Essência</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        :root { --bg: #ffffff; --surface: #f9fafb; --text: #111827; --muted: #6b7280; --border: #e5e7eb; --brand: #000000; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; -webkit-font-smoothing: antialiased; }
+        :root { --bg: #ffffff; --text: #171717; --muted: #737373; --border: #e5e5e5; --brand: #000000; --promo: #ef4444; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; -webkit-font-smoothing: antialiased; }
         
-        header { padding: 40px 20px; text-align: center; border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 40; }
-        header h1 { margin: 0; font-size: 28px; font-weight: 400; letter-spacing: 4px; text-transform: uppercase; }
-        
-        .filtros { display: flex; justify-content: center; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
-        .btn-filtro { padding: 8px 20px; border-radius: 30px; border: 1px solid var(--border); background: var(--bg); color: var(--muted); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; }
-        .btn-filtro:hover, .btn-filtro.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 40; }
+        .logo { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 600; letter-spacing: 2px; }
+        .menu-top button { background: none; border: none; font-size: 14px; font-weight: 500; margin-left: 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); transition: 0.2s; }
+        .menu-top button:hover, .menu-top button.active { color: var(--brand); border-bottom: 2px solid var(--brand); }
+
+        .hero { background: #f5f5f5; padding: 80px 20px; text-align: center; }
+        .hero h1 { font-family: 'Playfair Display', serif; font-size: 48px; margin: 0 0 16px 0; }
+        .hero p { color: var(--muted); font-size: 18px; max-width: 600px; margin: 0 auto; }
 
         .container { max-width: 1200px; margin: 60px auto; padding: 0 24px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 40px; }
-        .card { display: flex; flex-direction: column; cursor: pointer; }
-        .card-img-wrapper { overflow: hidden; position: relative; border-radius: 4px; background: var(--surface); aspect-ratio: 3/4; }
-        .card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
-        .card:hover img { transform: scale(1.05); }
-        .card-info { padding: 20px 0; }
-        .card-meta { display: flex; gap: 12px; margin-bottom: 8px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-        .card h3 { margin: 0 0 4px 0; font-size: 16px; font-weight: 500; }
-        .card p { margin: 0 0 16px 0; font-size: 14px; color: var(--muted); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .price-row { display: flex; justify-content: space-between; align-items: center; }
-        .price { font-size: 18px; font-weight: 500; }
-        .btn-add { background: var(--surface); border: 1px solid var(--border); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; color: var(--text); }
-        .card:hover .btn-add { background: var(--brand); color: #fff; border-color: var(--brand); }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 32px; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 40px; display: flex; align-items: center; gap: 12px; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 40px; }
+        .card { cursor: pointer; }
+        .img-wrap { overflow: hidden; position: relative; aspect-ratio: 3/4; background: #fafafa; border-radius: 8px; margin-bottom: 16px; }
+        .img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+        .card:hover .img-wrap img { transform: scale(1.05); }
+        
+        .badge-promo { position: absolute; top: 12px; left: 12px; background: var(--promo); color: white; padding: 4px 12px; font-size: 11px; font-weight: 600; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px; z-index: 10; }
+        
+        .card-info h3 { margin: 0 0 8px 0; font-size: 16px; font-weight: 500; }
+        .card-meta { font-size: 12px; color: var(--muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .price-box { display: flex; justify-content: space-between; align-items: center; }
+        .price-normal { font-size: 18px; font-weight: 600; }
+        .price-old { font-size: 14px; color: var(--muted); text-decoration: line-through; margin-right: 8px; }
+        .price-new { font-size: 18px; font-weight: 600; color: var(--promo); }
+        
+        .btn-add { background: var(--brand); color: #fff; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-add:hover { transform: scale(1.1); }
 
-        .fab-wa { position: fixed; bottom: 32px; left: 32px; background: #25D366; color: white; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4); z-index: 50; transition: transform 0.3s; text-decoration: none; animation: pulse 2s infinite; }
-        .fab-wa:hover { transform: scale(1.1); }
+        .fab-wa { position: fixed; bottom: 32px; left: 32px; background: #25D366; color: white; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4); z-index: 50; animation: pulse 2s infinite; text-decoration: none; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); } }
-
-        .cart-trigger { position: fixed; bottom: 32px; right: 32px; background: var(--brand); color: #fff; padding: 16px 32px; border-radius: 30px; cursor: pointer; font-size: 14px; font-weight: 500; z-index: 50; border: none; box-shadow: 0 8px 24px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px; transition: 0.2s; }
-        .cart-trigger:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.2); }
-        .sidebar-cart { position: fixed; top: 0; right: -100%; width: 100%; max-width: 400px; height: 100vh; background: var(--bg); border-left: 1px solid var(--border); transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 100; display: flex; flex-direction: column; box-shadow: -10px 0 40px rgba(0,0,0,0.1); }
+        
+        .cart-trigger { position: fixed; bottom: 32px; right: 32px; background: var(--brand); color: #fff; padding: 16px 32px; border-radius: 30px; cursor: pointer; font-size: 14px; font-weight: 500; z-index: 50; border: none; box-shadow: 0 8px 24px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px; }
+        .sidebar-cart { position: fixed; top: 0; right: -100%; width: 100%; max-width: 400px; height: 100vh; background: var(--bg); border-left: 1px solid var(--border); transition: 0.4s; z-index: 100; display: flex; flex-direction: column; }
         .sidebar-cart.open { right: 0; }
-        .cart-header { padding: 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .cart-header h2 { margin: 0; font-size: 18px; font-weight: 500; }
-        .btn-close { background: none; border: none; cursor: pointer; color: var(--muted); padding: 0; }
+        .cart-header { padding: 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
         .cart-body { padding: 32px; flex-grow: 1; overflow-y: auto; }
-        .cart-item { display: flex; justify-content: space-between; margin-bottom: 24px; font-size: 14px; align-items: center; }
-        .cart-footer { padding: 32px; border-top: 1px solid var(--border); background: var(--surface); }
-        .cart-total { display: flex; justify-content: space-between; font-size: 18px; font-weight: 500; margin-bottom: 24px; }
-        .input-dark { width: 100%; padding: 16px; margin-bottom: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; font-family: 'Inter'; font-size: 14px; box-sizing: border-box; }
-        .input-dark:focus { border-color: var(--brand); outline: none; }
-        .btn-checkout { background: var(--brand); color: #fff; padding: 18px; width: 100%; border: none; font-weight: 500; border-radius: 8px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: 0.2s; }
-        .btn-checkout:hover { background: #1f2937; }
+        .cart-item { margin-bottom: 24px; font-size: 14px; display: flex; justify-content: space-between; }
+        .cart-footer { padding: 32px; border-top: 1px solid var(--border); background: #fafafa; }
+        .cart-total { display: flex; justify-content: space-between; font-size: 18px; font-weight: 600; margin-bottom: 24px; }
+        .input-dark { width: 100%; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; }
+        .btn-checkout { background: var(--brand); color: #fff; padding: 16px; width: 100%; border: none; font-weight: 500; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
+
     <header>
-        <h1>M A R L I</h1>
-        <div class="filtros" id="filtros">
-            <button class="btn-filtro active" onclick="filtrar('Todas')">A Coleção</button>
-            <button class="btn-filtro" onclick="filtrar('Sutiã')">Sutiãs</button>
-            <button class="btn-filtro" onclick="filtrar('Calcinha')">Calcinhas</button>
-            <button class="btn-filtro" onclick="filtrar('Conjunto')">Conjuntos</button>
+        <div class="logo">MARLI</div>
+        <div class="menu-top" id="menus">
+            <button class="active" onclick="mudarSessao('tudo')">A Coleção</button>
+            <button onclick="mudarSessao('novidades')">Lançamentos</button>
+            <button onclick="mudarSessao('promocoes')" style="color: var(--promo);">Ofertas Exclusivas</button>
         </div>
     </header>
 
-    <div class="container"><div class="grid" id="catalogo"></div></div>
-    
-    <a href="https://wa.me/5511999999999?text=Olá!%20Estou%20no%20site%20e%20gostaria%20de%20tirar%20uma%20dúvida." class="fab-wa" target="_blank">
-        <i data-lucide="message-circle" style="width: 28px; height: 28px;"></i>
-    </a>
+    <div class="hero">
+        <h1>Descubra a Sua Essência</h1>
+        <p>Peças pensadas para o conforto e a elegância do seu dia a dia. Explore a nossa nova curadoria de moda íntima.</p>
+    </div>
 
-    <!-- Botão de Carrinho (À direita) -->
-    <button class="cart-trigger" onclick="toggleCart()">
-        <i data-lucide="shopping-bag" style="width: 18px; height: 18px;"></i> Sacola (<span id="cart-count">0</span>)
-    </button>
+    <div class="container">
+        <h2 class="section-title" id="titulo-secao"><i data-lucide="sparkles"></i> Catálogo Completo</h2>
+        <div class="grid" id="catalogo"></div>
+    </div>
+
+    <a href="https://wa.me/5511999999999?text=Olá!" class="fab-wa" target="_blank"><i data-lucide="message-circle"></i></a>
+    <button class="cart-trigger" onclick="toggleCart()"><i data-lucide="shopping-bag" style="width: 18px;"></i> Sacola (<span id="cart-count">0</span>)</button>
 
     <div class="sidebar-cart" id="sidebar">
-        <div class="cart-header">
-            <h2>A Sua Seleção</h2>
-            <button class="btn-close" onclick="toggleCart()"><i data-lucide="x"></i></button>
-        </div>
+        <div class="cart-header"><h2>A Sua Sacola</h2><button onclick="toggleCart()" style="background:none;border:none;cursor:pointer;"><i data-lucide="x"></i></button></div>
         <div class="cart-body" id="cart-items"></div>
         <div class="cart-footer">
-            <div class="cart-total"><span>Subtotal</span> <span>R$ <span id="cart-total">0.00</span></span></div>
-            <input type="text" id="nomeCliente" class="input-dark" placeholder="O seu nome para contacto">
-            <button class="btn-checkout" onclick="enviarWhatsApp()"><i data-lucide="send"></i> Concluir via WhatsApp</button>
+            <div class="cart-total"><span>Total</span> <span>R$ <span id="cart-total">0.00</span></span></div>
+            <input type="text" id="nomeCliente" class="input-dark" placeholder="Como devemos chamá-la?">
+            <button class="btn-checkout" onclick="enviarWhatsApp()">Enviar Pedido</button>
         </div>
     </div>
 
     <script>
         lucide.createIcons();
-        let carrinho = [];
-        let todosProdutos = [];
+        let carrinho = []; let todosProdutos = [];
 
         async function carregarProdutos() {
-            const resposta = await fetch('/api/produtos');
-            todosProdutos = await resposta.json();
-            renderizarCatalogo(todosProdutos);
+            const res = await fetch('/api/produtos');
+            todosProdutos = await res.json();
+            mudarSessao('tudo');
         }
 
-        function filtrar(categoria) {
-            document.querySelectorAll('.btn-filtro').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            renderizarCatalogo(categoria === 'Todas' ? todosProdutos : todosProdutos.filter(p => p.categoria === categoria));
+        function mudarSessao(tipo) {
+            document.querySelectorAll('.menu-top button').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            let filtro = [];
+            if(tipo === 'tudo') { filtro = todosProdutos; document.getElementById('titulo-secao').innerHTML = '<i data-lucide="layers"></i> Catálogo Completo'; }
+            if(tipo === 'novidades') { filtro = todosProdutos.slice(0, 8); document.getElementById('titulo-secao').innerHTML = '<i data-lucide="sparkles"></i> Últimos Lançamentos'; }
+            if(tipo === 'promocoes') { filtro = todosProdutos.filter(p => p.em_promocao); document.getElementById('titulo-secao').innerHTML = '<i data-lucide="tag" style="color:red;"></i> Ofertas Exclusivas'; }
+            
+            renderizar(filtro);
+            lucide.createIcons();
         }
 
-        function renderizarCatalogo(produtos) {
+        function renderizar(produtos) {
             const catalogo = document.getElementById('catalogo');
-            if(produtos.length === 0) {
-                catalogo.innerHTML = "<div style='grid-column: 1/-1; text-align: center; padding: 100px 0; color: var(--muted);'>Coleção atualmente indisponível.</div>";
-                return;
-            }
+            if(produtos.length === 0) { catalogo.innerHTML = "<p style='color:#737373;'>Nenhuma peça encontrada.</p>"; return; }
+            
             catalogo.innerHTML = '';
-            produtos.forEach(prod => {
+            produtos.forEach(p => {
+                const badge = p.em_promocao ? `<div class="badge-promo">PROMOÇÃO</div>` : '';
+                const priceHTML = p.em_promocao 
+                    ? `<span class="price-old">R$ ${p.preco.toFixed(2)}</span><span class="price-new">R$ ${p.preco_promocao.toFixed(2)}</span>` 
+                    : `<span class="price-normal">R$ ${p.preco.toFixed(2)}</span>`;
+                const precoReal = p.em_promocao ? p.preco_promocao : p.preco;
+
                 catalogo.innerHTML += `
                     <div class="card">
-                        <div class="card-img-wrapper"><img src="${prod.imagem_url}"></div>
+                        <div class="img-wrap">${badge}<img src="${p.imagem_url}"></div>
                         <div class="card-info">
-                            <div class="card-meta"><span>Tam ${prod.tamanho}</span> &bull; <span>Linha ${prod.etiqueta}</span></div>
-                            <h3>${prod.nome}</h3>
-                            <p>${prod.descricao}</p>
-                            <div class="price-row">
-                                <span class="price">R$ ${prod.preco.toFixed(2)}</span>
-                                <button class="btn-add" onclick="adicionarAoCarrinho(${prod.id}, '${prod.nome}', ${prod.preco}, '${prod.tamanho}')"><i data-lucide="plus" style="width: 20px; height: 20px;"></i></button>
+                            <div class="card-meta">Tam ${p.tamanho} • ${p.categoria}</div>
+                            <h3>${p.nome}</h3>
+                            <div class="price-box">
+                                <div>${priceHTML}</div>
+                                <button class="btn-add" onclick="addCart(${p.id}, '${p.nome}', ${precoReal}, '${p.tamanho}')"><i data-lucide="plus" style="width:18px;"></i></button>
                             </div>
                         </div>
                     </div>`;
             });
-            lucide.createIcons();
         }
 
-        function adicionarAoCarrinho(id, nome, preco, tamanho) {
+        function addCart(id, nome, preco, tam) {
             const item = carrinho.find(i => i.produto_id === id);
-            if (item) item.quantidade++; else carrinho.push({ produto_id: id, nome, preco, tamanho, quantidade: 1 });
-            atualizarSidebar(); toggleCart(true);
+            if (item) item.quantidade++; else carrinho.push({ produto_id: id, nome, preco, tamanho: tam, quantidade: 1 });
+            atualizarCart(); toggleCart(true);
         }
 
-        function atualizarSidebar() {
-            document.getElementById('cart-count').innerText = carrinho.reduce((sum, item) => sum + item.quantidade, 0);
-            const divItems = document.getElementById('cart-items'); divItems.innerHTML = ''; let total = 0;
-            carrinho.forEach(item => {
-                total += item.preco * item.quantidade;
-                divItems.innerHTML += `<div class="cart-item">
-                        <div><div style="font-weight: 500;">${item.quantidade}x ${item.nome}</div><div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Tamanho: ${item.tamanho}</div></div>
-                        <div style="font-weight: 500;">R$ ${(item.preco * item.quantidade).toFixed(2)}</div>
-                    </div>`;
+        function atualizarCart() {
+            document.getElementById('cart-count').innerText = carrinho.reduce((sum, i) => sum + i.quantidade, 0);
+            const div = document.getElementById('cart-items'); div.innerHTML = ''; let total = 0;
+            carrinho.forEach(i => {
+                total += i.preco * i.quantidade;
+                div.innerHTML += `<div class="cart-item"><div><b>${i.quantidade}x ${i.nome}</b><br><span style="font-size:12px;color:#737373;">Tam: ${i.tamanho}</span></div><b>R$ ${(i.preco * i.quantidade).toFixed(2)}</b></div>`;
             });
             document.getElementById('cart-total').innerText = total.toFixed(2);
         }
 
-        function toggleCart(forceOpen = false) {
-            const sidebar = document.getElementById('sidebar');
-            if(forceOpen) sidebar.classList.add('open'); else sidebar.classList.toggle('open');
+        function toggleCart(force = false) {
+            const s = document.getElementById('sidebar');
+            force ? s.classList.add('open') : s.classList.toggle('open');
         }
 
         async function enviarWhatsApp() {
             const nome = document.getElementById('nomeCliente').value;
-            if(!nome || carrinho.length === 0) return alert("Por favor, informe o seu nome e adicione artigos à sacola.");
-            const resposta = await fetch('/api/comprar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cliente_nome: nome, telefone: "", itens: carrinho }) });
-            const dados = await resposta.json();
+            if(!nome || carrinho.length===0) return alert("Preencha o nome e adicione peças.");
+            const res = await fetch('/api/comprar', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({cliente_nome:nome, telefone:"", itens:carrinho}) });
+            const dados = await res.json();
             if(dados.status === "sucesso") window.location.href = dados.whatsapp_url;
-            else alert("Lamentamos, algum artigo do seu pedido esgotou.");
         }
-        
         carregarProdutos();
     </script>
 </body>

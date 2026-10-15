@@ -2,174 +2,181 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workspace | Gestão</title>
-    <!-- Tipografia e Ícones Premium -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>ERP | Marli Lingerie</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        :root { --bg: #09090b; --surface: #18181b; --border: #27272a; --text: #fafafa; --muted: #a1a1aa; --accent: #ffffff; --accent-hover: #e4e4e7; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        :root { --sidebar: #0f172a; --bg: #f1f5f9; --card: #ffffff; --text: #334155; --primary: #2563eb; --danger: #ef4444; --success: #10b981; --border: #e2e8f0; }
+        body { font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); }
         
-        .sidebar { width: 280px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .brand { padding: 32px 24px; font-size: 14px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
-        .nav-menu { padding: 24px 12px; flex-grow: 1; }
-        .nav-item { padding: 12px 16px; margin-bottom: 8px; cursor: pointer; color: var(--muted); border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; }
-        .nav-item:hover, .nav-item.active { background: #27272a; color: var(--text); }
-        .logout { padding: 24px; border-top: 1px solid var(--border); }
-        .logout a { color: #ef4444; text-decoration: none; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
-        .logout a:hover { color: #dc2626; }
+        .sidebar { width: 260px; background: var(--sidebar); color: #fff; display: flex; flex-direction: column; }
+        .brand { padding: 24px; font-size: 20px; font-weight: 700; border-bottom: 1px solid #1e293b; display: flex; align-items: center; gap: 12px; }
+        .menu { padding: 20px 10px; flex-grow: 1; }
+        .menu-item { padding: 12px 16px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; transition: 0.2s; color: #94a3b8; }
+        .menu-item:hover, .menu-item.active { background: #1e293b; color: #fff; }
+        .logout { padding: 20px; border-top: 1px solid #1e293b; }
+        .logout a { color: #f87171; text-decoration: none; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 10px; }
         
-        .main-content { flex-grow: 1; overflow-y: auto; padding: 48px; }
-        .header h1 { margin: 0 0 32px 0; font-size: 24px; font-weight: 400; letter-spacing: -0.5px; }
+        .content { flex-grow: 1; overflow-y: auto; padding: 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h1 { margin: 0; font-size: 24px; color: #0f172a; }
         
-        .card-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; }
-        .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
-        input, select, textarea { width: 100%; padding: 14px; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-family: 'Inter', sans-serif; transition: border 0.2s; }
-        input:focus, select:focus { border-color: #52525b; outline: none; }
-        
-        .file-upload { border: 1px dashed #52525b; padding: 40px; text-align: center; border-radius: 8px; cursor: pointer; background: rgba(39,39,42,0.3); margin-bottom: 24px; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 12px; transition: all 0.2s; }
-        .file-upload:hover { background: var(--border); color: var(--text); }
-        input[type="file"] { display: none; }
-        
-        .btn-salvar { background: var(--accent); color: var(--bg); border: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 24px; transition: 0.2s; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-salvar:hover { background: var(--accent-hover); }
+        .card { background: var(--card); padding: 30px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 16px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 12px; text-transform: uppercase; font-weight: 500; letter-spacing: 0.5px; }
-        td { padding: 16px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 14px; }
-        .img-thumb { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; }
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: var(--bg); border: 1px solid var(--border); color: var(--muted); text-transform: uppercase; }
+        th { text-align: left; padding: 16px; border-bottom: 2px solid var(--border); color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 600; }
+        td { padding: 16px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+        .img-mini { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #f1f5f9; color: #475569; }
+        .badge.promo { background: #fef3c7; color: #d97706; }
         
-        .aba { display: none; animation: fadeIn 0.3s ease; }
-        .aba.ativa { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .action-group { display: flex; gap: 8px; }
+        .btn-icon { background: var(--bg); border: 1px solid var(--border); width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text); transition: 0.2s; }
+        .btn-icon:hover { background: #e2e8f0; }
+        .btn-icon.danger:hover { background: #fee2e2; color: var(--danger); border-color: #fca5a5; }
+        .btn-icon.promo:hover { background: #fef3c7; color: #d97706; border-color: #fcd34d; }
+        
+        .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #475569; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; font-family: 'Inter'; transition: 0.2s; }
+        input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .file-box { border: 2px dashed #cbd5e1; padding: 40px; text-align: center; border-radius: 12px; cursor: pointer; margin-bottom: 24px; color: #64748b; font-weight: 500; }
+        .btn-primary { background: var(--primary); color: #fff; border: none; padding: 14px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; }
+        
+        .aba { display: none; }
+        .aba.ativa { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
+
     <div class="sidebar">
-        <div class="brand"><i data-lucide="layers"></i> Marli Studio</div>
-        <div class="nav-menu">
-            <div class="nav-item active" onclick="mudarAba('aba-cadastrar', this)"><i data-lucide="plus-circle"></i> Novo Artigo</div>
-            <div class="nav-item" onclick="mudarAba('aba-estoque', this)"><i data-lucide="package"></i> Inventário</div>
+        <div class="brand"><i data-lucide="layout-dashboard"></i> ERP Marli</div>
+        <div class="menu">
+            <div class="menu-item active" onclick="mudarAba('aba-estoque', this)"><i data-lucide="package"></i> Gestão de Estoque</div>
+            <div class="menu-item" onclick="mudarAba('aba-cadastrar', this)"><i data-lucide="plus-circle"></i> Novo Produto</div>
         </div>
-        <div class="logout"><a href="/api/logout"><i data-lucide="log-out"></i> Terminar Sessão</a></div>
+        <div class="logout"><a href="/api/logout"><i data-lucide="log-out"></i> Sair</a></div>
     </div>
 
-    <div class="main-content">
-        <div id="aba-cadastrar" class="aba ativa">
-            <div class="header"><h1>Novo Artigo</h1></div>
-            <div class="card-panel">
-                <label class="file-upload">
-                    <i data-lucide="image" style="width: 32px; height: 32px;"></i>
-                    <span id="file-label">Carregar imagem de alta resolução (PNG, JPG)</span>
-                    <input type="file" id="imagemFile" accept=".png, .jpg, .jpeg" onchange="processarImagem(event)">
-                </label>
-                <div class="grid-form">
-                    <div class="form-group"><label>Designação</label><input type="text" id="nome" placeholder="Ex: Conjunto Essencial"></div>
-                    <div class="form-group">
-                        <label>Categoria</label>
-                        <select id="categoria">
-                            <option>Calcinha</option><option>Sutiã</option><option>Cueca</option>
-                            <option>Baby Doll</option><option>Conjunto</option><option>Outros</option>
-                        </select>
-                    </div>
-                    <div class="form-group"><label>Preço (R$)</label><input type="number" id="preco" placeholder="0.00"></div>
-                    <div class="form-group"><label>Stock Disponível</label><input type="number" id="estoque" placeholder="0"></div>
-                    <div class="form-group"><label>Tamanho</label><input type="text" id="tamanho" placeholder="S, M, L, XL"></div>
-                    <div class="form-group">
-                        <label>Etiqueta / Linha</label>
-                        <select id="etiqueta">
-                            <option>Prata</option><option>Cinza</option><option>Roxa</option><option>Dourada</option><option>Premium</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group" style="margin-top: 8px;">
-                    <label>Notas de Coleção</label>
-                    <textarea id="descricao" rows="3" placeholder="Detalhes de material e caimento..."></textarea>
-                </div>
-                <div style="text-align: right;">
-                    <button class="btn-salvar" onclick="cadastrarProduto()"><i data-lucide="check"></i> Publicar no Catálogo</button>
-                </div>
+    <div class="content">
+        <div id="aba-estoque" class="aba ativa">
+            <div class="header">
+                <h1>Gestão de Estoque & Promoções</h1>
+            </div>
+            <div class="card" style="padding: 0;">
+                <table>
+                    <thead><tr><th>Produto</th><th>Categoria/Etiqueta</th><th>Preço</th><th>Status</th><th>Ações</th></tr></thead>
+                    <tbody id="lista-estoque"></tbody>
+                </table>
             </div>
         </div>
 
-        <div id="aba-estoque" class="aba">
-            <div class="header"><h1>Inventário Geral</h1></div>
-            <div class="card-panel" style="padding: 0; overflow: hidden;">
-                <table>
-                    <thead><tr><th>Artigo</th><th>Detalhes</th><th>Preço</th><th>Estado</th></tr></thead>
-                    <tbody id="lista-estoque"></tbody>
-                </table>
+        <div id="aba-cadastrar" class="aba">
+            <div class="header"><h1>Adicionar ao Catálogo</h1></div>
+            <div class="card">
+                <label class="file-box" id="file-label">
+                    <i data-lucide="camera" style="width: 32px; height: 32px; margin-bottom: 8px;"></i><br>
+                    Clique para anexar foto
+                    <input type="file" style="display: none;" accept="image/*" onchange="processarImagem(event)">
+                </label>
+                <div class="grid-form">
+                    <div><label>Nome do Produto</label><input type="text" id="nome"></div>
+                    <div><label>Categoria</label><select id="categoria"><option>Calcinha</option><option>Sutiã</option><option>Conjunto</option><option>Baby Doll</option><option>Cueca</option></select></div>
+                    <div><label>Preço Base (R$)</label><input type="number" id="preco"></div>
+                    <div><label>Estoque</label><input type="number" id="estoque"></div>
+                    <div><label>Tamanho</label><input type="text" id="tamanho" placeholder="P, M, G, GG"></div>
+                    <div><label>Cor da Etiqueta</label><select id="etiqueta"><option>Prata</option><option>Cinza</option><option>Roxa</option><option>Dourada</option></select></div>
+                </div>
+                <div style="margin-top: 20px;"><label>Descrição</label><textarea id="descricao" rows="2"></textarea></div>
+                <button class="btn-primary" style="margin-top: 24px;" onclick="cadastrarProduto()">Salvar Produto</button>
             </div>
         </div>
     </div>
 
     <script>
         lucide.createIcons();
-        function mudarAba(idAba, elemento) {
+        function mudarAba(id, el) {
             document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(idAba).classList.add('ativa');
-            elemento.classList.add('active');
-            if(idAba === 'aba-estoque') carregarEstoque();
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.getElementById(id).classList.add('ativa');
+            el.classList.add('active');
+            if(id === 'aba-estoque') carregarEstoque();
         }
 
-        let imagemBase64 = "";
+        let imgBase64 = "";
         function processarImagem(event) {
             const file = event.target.files[0];
-            if (!file) return;
-            document.getElementById('file-label').innerText = file.name;
-            document.getElementById('file-label').style.color = "#fff";
-            const reader = new FileReader();
-            reader.onload = e => imagemBase64 = e.target.result;
-            reader.readAsDataURL(file);
+            if(!file) return;
+            document.getElementById('file-label').innerHTML = `<b style='color:#2563eb;'>${file.name} adicionada!</b>`;
+            const r = new FileReader(); r.onload = e => imgBase64 = e.target.result; r.readAsDataURL(file);
         }
 
         async function cadastrarProduto() {
-            if(!imagemBase64 || !document.getElementById('nome').value) return alert("Preencha a designação e carregue uma imagem.");
-            const btn = document.querySelector('.btn-salvar');
-            btn.innerHTML = '<i data-lucide="loader"></i> A processar...';
-            lucide.createIcons();
-
             const dados = {
                 nome: document.getElementById('nome').value, preco: parseFloat(document.getElementById('preco').value),
-                estoque: parseInt(document.getElementById('estoque').value), imagem_url: imagemBase64,
+                estoque: parseInt(document.getElementById('estoque').value), imagem_url: imgBase64,
                 descricao: document.getElementById('descricao').value, tamanho: document.getElementById('tamanho').value,
                 cor: document.getElementById('etiqueta').value, categoria: document.getElementById('categoria').value,
                 etiqueta: document.getElementById('etiqueta').value
             };
-
-            const resp = await fetch('/api/produtos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados) });
-            if (resp.status === 401) { window.location.href = '/login'; return; }
-            alert('Artigo publicado com sucesso.');
-            window.location.reload();
+            await fetch('/api/produtos', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(dados) });
+            alert("Produto Salvo!"); mudarAba('aba-estoque', document.querySelector('.menu-item'));
         }
 
         async function carregarEstoque() {
-            const resposta = await fetch('/api/admin/produtos');
-            if (resposta.status === 401) { window.location.href = '/login'; return; }
-            const produtos = await resposta.json();
+            const resp = await fetch('/api/admin/produtos');
+            const produtos = await resp.json();
             const lista = document.getElementById('lista-estoque');
-            
-            if (produtos.length === 0) {
-                lista.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: var(--muted);">Sem inventário registado.</td></tr>';
-                return;
-            }
             lista.innerHTML = '';
             produtos.forEach(p => {
-                const corStatus = p.estoque > 0 ? '#10b981' : '#ef4444';
-                lista.innerHTML += `
-                    <tr>
-                        <td><div style="display: flex; gap: 16px; align-items: center;"><img src="${p.imagem_url}" class="img-thumb"><div><div style="font-weight: 500;">${p.nome}</div><div style="font-size: 12px; color: var(--muted);">Tam: ${p.tamanho}</div></div></div></td>
-                        <td><span class="badge">${p.categoria}</span> <span class="badge">Linha ${p.etiqueta}</span></td>
-                        <td style="font-weight: 500;">R$ ${p.preco.toFixed(2)}</td>
-                        <td><div style="display: flex; align-items: center; gap: 6px; color: ${corStatus}; font-weight: 600; font-size: 13px;"><div style="width: 8px; height: 8px; border-radius: 50%; background: ${corStatus};"></div>${p.estoque > 0 ? p.estoque + ' Em stock' : 'Esgotado'}</div></td>
-                    </tr>`;
+                const tr = document.createElement('tr');
+                const visivel = p.ativo ? '<span style="color:#10b981;">👁️ Visível na Loja</span>' : '<span style="color:#ef4444;">🚫 Oculto</span>';
+                const precoInfo = p.em_promocao ? `<s style="color:#94a3b8;font-size:12px;">R$ ${p.preco}</s><br><b style="color:#ef4444;">R$ ${p.preco_promocao}</b> <span class="badge promo">Promo</span>` : `<b>R$ ${p.preco}</b>`;
+                
+                tr.innerHTML = `
+                    <td><div style="display:flex; gap:12px; align-items:center;"><img src="${p.imagem_url}" class="img-mini"><div><b>${p.nome}</b><div style="font-size:12px;color:#64748b;">Tam: ${p.tamanho} | Estq: ${p.estoque}</div></div></div></td>
+                    <td><span class="badge">${p.categoria}</span><br><span style="font-size:11px;color:#64748b;">Etiq. ${p.etiqueta}</span></td>
+                    <td>${precoInfo}</td>
+                    <td>${visivel}</td>
+                    <td>
+                        <div class="action-group">
+                            <button class="btn-icon" title="Ocultar/Mostrar" onclick="toggleStatus(${p.id})"><i data-lucide="${p.ativo ? 'eye-off' : 'eye'}" style="width:16px;"></i></button>
+                            <button class="btn-icon promo" title="Gerenciar Promoção" onclick="gerirPromo(${p.id}, ${p.em_promocao}, ${p.preco})"><i data-lucide="tag" style="width:16px;"></i></button>
+                            <button class="btn-icon danger" title="Excluir Definitivamente" onclick="excluir(${p.id})"><i data-lucide="trash-2" style="width:16px;"></i></button>
+                        </div>
+                    </td>
+                `;
+                lista.appendChild(tr);
             });
+            lucide.createIcons();
         }
+
+        async function toggleStatus(id) {
+            await fetch(`/api/produtos/${id}/status`, { method: 'PATCH' }); carregarEstoque();
+        }
+        
+        async function excluir(id) {
+            if(confirm("Tem certeza que deseja excluir este produto para sempre?")) {
+                await fetch(`/api/produtos/${id}`, { method: 'DELETE' }); carregarEstoque();
+            }
+        }
+
+        async function gerirPromo(id, em_promo, preco_base) {
+            if(em_promo) {
+                if(confirm("Deseja remover este produto da promoção?")) {
+                    await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: false}) });
+                    carregarEstoque();
+                }
+            } else {
+                let novoPreco = prompt(`O preço base é R$ ${preco_base}.\nDigite o NOVO PREÇO promocional:`);
+                if(novoPreco) {
+                    await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: true, preco_promocao: parseFloat(novoPreco.replace(',','.'))}) });
+                    carregarEstoque();
+                }
+            }
+        }
+        carregarEstoque();
     </script>
 </body>
 </html>
