@@ -2,16 +2,18 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ERP | Gestão Avançada</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        * { box-sizing: border-box; }
         :root { --sidebar: #0f172a; --bg: #f1f5f9; --card: #ffffff; --text: #334155; --primary: #2563eb; --danger: #ef4444; --success: #10b981; --border: #e2e8f0; }
-        body { font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); }
+        body { font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); overflow: hidden; }
         
-        .sidebar { width: 260px; background: var(--sidebar); color: #fff; display: flex; flex-direction: column; }
+        .sidebar { width: 260px; background: var(--sidebar); color: #fff; display: flex; flex-direction: column; flex-shrink: 0; }
         .brand { padding: 24px; font-size: 20px; font-weight: 700; border-bottom: 1px solid #1e293b; display: flex; align-items: center; gap: 12px; }
-        .menu { padding: 20px 10px; flex-grow: 1; }
+        .menu { padding: 20px 10px; flex-grow: 1; overflow-y: auto; }
         .menu-item { padding: 12px 16px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; transition: 0.2s; color: #94a3b8; }
         .menu-item:hover, .menu-item.active { background: #1e293b; color: #fff; }
         .logout { padding: 20px; border-top: 1px solid #1e293b; }
@@ -23,30 +25,43 @@
         
         .card { background: var(--card); padding: 30px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         
-        table { width: 100%; border-collapse: collapse; }
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { text-align: left; padding: 16px; border-bottom: 2px solid var(--border); color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 600; }
         td { padding: 16px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
-        .img-mini { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); }
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #f1f5f9; color: #475569; }
+        .img-mini { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #f1f5f9; color: #475569; white-space: nowrap; }
         .badge.promo { background: #fef3c7; color: #d97706; }
         
         .action-group { display: flex; gap: 8px; }
-        .btn-icon { background: var(--bg); border: 1px solid var(--border); width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text); transition: 0.2s; }
+        .btn-icon { background: var(--bg); border: 1px solid var(--border); width: 40px; height: 40px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text); transition: 0.2s; }
         .btn-icon:hover { background: #e2e8f0; }
-        .btn-icon.danger:hover { background: #fee2e2; color: var(--danger); border-color: #fca5a5; }
-        .btn-icon.promo:hover { background: #fef3c7; color: #d97706; border-color: #fcd34d; }
         
         .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #475569; }
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; font-family: 'Inter'; transition: 0.2s; }
-        input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-        .file-box { border: 2px dashed #cbd5e1; padding: 40px; text-align: center; border-radius: 12px; cursor: pointer; margin-bottom: 24px; color: #64748b; font-weight: 500; display: block; }
-        .btn-primary { background: var(--primary); color: #fff; border: none; padding: 14px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; }
-        .btn-primary:hover { background: #1d4ed8; }
+        input, select, textarea { width: 100%; height: 48px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Inter'; font-size: 14px; }
+        textarea { height: auto; padding: 12px; }
+        .file-box { border: 2px dashed #cbd5e1; padding: 40px 20px; text-align: center; border-radius: 12px; cursor: pointer; margin-bottom: 24px; color: #64748b; font-weight: 500; display: block; }
+        .btn-primary { background: var(--primary); color: #fff; border: none; height: 50px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; font-size: 15px; }
         
         .aba { display: none; }
         .aba.ativa { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; overflow: auto; }
+            .sidebar { width: 100%; height: auto; border-right: none; padding-bottom: 0; }
+            .brand { padding: 16px; font-size: 18px; }
+            .menu { display: flex; flex-direction: row; overflow-x: auto; padding: 10px; border-bottom: 1px solid #1e293b; }
+            .menu-item { margin-bottom: 0; margin-right: 10px; white-space: nowrap; }
+            .logout { display: none; /* Pode criar um item no menu se preferir */ }
+            
+            .content { padding: 20px; overflow-y: visible; }
+            .header h1 { font-size: 20px; margin-bottom: 20px; }
+            .card { padding: 16px; }
+            
+            .grid-form { grid-template-columns: 1fr; gap: 16px; }
+        }
     </style>
 </head>
 <body>
@@ -54,20 +69,22 @@
     <div class="sidebar">
         <div class="brand"><i data-lucide="layout-dashboard"></i> Painel ERP</div>
         <div class="menu">
-            <div class="menu-item active" onclick="mudarAba('aba-estoque', this)"><i data-lucide="package"></i> Gestão de Estoque</div>
-            <div class="menu-item" onclick="mudarAba('aba-cadastrar', this)"><i data-lucide="plus-circle"></i> Novo Produto</div>
+            <div class="menu-item active" onclick="mudarAba('aba-estoque', this)"><i data-lucide="package"></i> Gestão</div>
+            <div class="menu-item" onclick="mudarAba('aba-cadastrar', this)"><i data-lucide="plus-circle"></i> Cadastrar</div>
+            <div class="menu-item" onclick="window.location.href='/api/logout'"><i data-lucide="log-out"></i> Sair</div>
         </div>
-        <div class="logout"><a href="/api/logout"><i data-lucide="log-out"></i> Sair</a></div>
     </div>
 
     <div class="content">
         <div id="aba-estoque" class="aba ativa">
             <div class="header"><h1>Inventário & Ofertas</h1></div>
-            <div class="card" style="padding: 0; overflow: hidden;">
-                <table>
-                    <thead><tr><th>Produto</th><th>Detalhes</th><th>Preço</th><th>Status</th><th>Gerenciar</th></tr></thead>
-                    <tbody id="lista-estoque"></tbody>
-                </table>
+            <div class="card" style="padding: 0;">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Produto</th><th>Detalhes</th><th>Preço</th><th>Status</th><th>Gerenciar</th></tr></thead>
+                        <tbody id="lista-estoque"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -76,18 +93,18 @@
             <div class="card">
                 <label class="file-box" id="file-label">
                     <i data-lucide="image" style="width: 32px; height: 32px; margin-bottom: 8px;"></i><br>
-                    Clique para selecionar a imagem
+                    Toque para selecionar a imagem
                     <input type="file" style="display: none;" accept="image/*" onchange="processarImagem(event)">
                 </label>
                 <div class="grid-form">
-                    <div><label>Designação (Nome)</label><input type="text" id="nome"></div>
+                    <div><label>Nome / Designação</label><input type="text" id="nome"></div>
                     <div><label>Categoria Principal</label><select id="categoria"><option>Calcinha</option><option>Sutiã</option><option>Conjunto</option><option>Baby Doll</option><option>Cueca</option></select></div>
                     <div><label>Preço Base (R$)</label><input type="number" id="preco"></div>
-                    <div><label>Quantidade Inicial</label><input type="number" id="estoque"></div>
-                    <div><label>Grade / Tamanho</label><input type="text" id="tamanho" placeholder="P, M, G, GG"></div>
+                    <div><label>Quantidade</label><input type="number" id="estoque"></div>
+                    <div><label>Tamanho</label><input type="text" id="tamanho" placeholder="P, M, G, GG"></div>
                     <div><label>Cor / Etiqueta</label><select id="etiqueta"><option>Prata</option><option>Cinza</option><option>Roxa</option><option>Dourada</option></select></div>
                 </div>
-                <div style="margin-top: 20px;"><label>Descrição Técnica</label><textarea id="descricao" rows="2"></textarea></div>
+                <div style="margin-top: 20px;"><label>Descrição Técnica</label><textarea id="descricao" rows="3"></textarea></div>
                 <button class="btn-primary" style="margin-top: 24px;" onclick="cadastrarProduto()">Gravar no Sistema</button>
             </div>
         </div>
@@ -107,15 +124,14 @@
         function processarImagem(event) {
             const file = event.target.files[0];
             if(!file) return;
-            document.getElementById('file-label').innerHTML = `<b style='color:#2563eb;'><i data-lucide="check-circle" style="vertical-align: middle;"></i> ${file.name} carregada!</b>`;
+            document.getElementById('file-label').innerHTML = `<b style='color:#2563eb;'><i data-lucide="check-circle" style="vertical-align: middle;"></i> Imagem Carregada!</b>`;
             lucide.createIcons();
             const r = new FileReader(); r.onload = e => imgBase64 = e.target.result; r.readAsDataURL(file);
         }
 
         async function cadastrarProduto() {
             if(!imgBase64 || !document.getElementById('nome').value) {
-                alert("Nome e Imagem são obrigatórios.");
-                return;
+                alert("Nome e Imagem são obrigatórios."); return;
             }
             const dados = {
                 nome: document.getElementById('nome').value, preco: parseFloat(document.getElementById('preco').value || 0),
@@ -129,37 +145,33 @@
             await fetch('/api/produtos', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(dados) });
             alert("Operação concluída!"); 
             btn.innerText = "Gravar no Sistema";
-            mudarAba('aba-estoque', document.querySelector('.menu-item'));
+            mudarAba('aba-estoque', document.querySelectorAll('.menu-item')[0]);
         }
 
         async function carregarEstoque() {
             const resp = await fetch('/api/admin/produtos');
             if(resp.status === 401) { window.location.href = '/login'; return; }
-            
             const produtos = await resp.json();
             const lista = document.getElementById('lista-estoque');
             lista.innerHTML = '';
             
-            if(produtos.length === 0) {
-                lista.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #94a3b8;">Nenhum produto cadastrado.</td></tr>';
-                return;
-            }
+            if(produtos.length === 0) { lista.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #94a3b8;">Nenhum produto cadastrado.</td></tr>'; return; }
             
             produtos.forEach(p => {
                 const tr = document.createElement('tr');
-                const visivel = p.ativo ? '<span style="color:#10b981; font-weight: 500;">👁️ Na Loja</span>' : '<span style="color:#ef4444; font-weight: 500;">🚫 Oculto</span>';
-                const precoInfo = p.em_promocao ? `<s style="color:#94a3b8;font-size:12px;">R$ ${p.preco.toFixed(2)}</s><br><b style="color:#ef4444;">R$ ${p.preco_promocao.toFixed(2)}</b> <span class="badge promo">Promo</span>` : `<b>R$ ${p.preco.toFixed(2)}</b>`;
+                const visivel = p.ativo ? '<span style="color:#10b981; font-weight: 600;">👁️ Na Loja</span>' : '<span style="color:#ef4444; font-weight: 600;">🚫 Oculto</span>';
+                const precoInfo = p.em_promocao ? `<s style="color:#94a3b8;font-size:12px;">R$ ${p.preco.toFixed(2)}</s><br><b style="color:#ef4444;">R$ ${p.preco_promocao.toFixed(2)}</b>` : `<b>R$ ${p.preco.toFixed(2)}</b>`;
                 
                 tr.innerHTML = `
-                    <td><div style="display:flex; gap:12px; align-items:center;"><img src="${p.imagem_url}" class="img-mini"><div><b style="color:#0f172a;">${p.nome}</b><div style="font-size:12px;color:#64748b;">Tam: ${p.tamanho} | Estq: ${p.estoque}</div></div></div></td>
+                    <td><div style="display:flex; gap:12px; align-items:center;"><img src="${p.imagem_url}" class="img-mini"><div><b style="color:#0f172a; white-space:nowrap;">${p.nome}</b><div style="font-size:12px;color:#64748b;">Tam: ${p.tamanho} | Estq: ${p.estoque}</div></div></div></td>
                     <td><span class="badge">${p.categoria}</span><br><span style="font-size:11px;color:#64748b;">Linha ${p.etiqueta}</span></td>
                     <td>${precoInfo}</td>
                     <td>${visivel}</td>
                     <td>
                         <div class="action-group">
-                            <button class="btn-icon" title="Ocultar/Mostrar na loja" onclick="toggleStatus(${p.id})"><i data-lucide="${p.ativo ? 'eye-off' : 'eye'}" style="width:16px;"></i></button>
-                            <button class="btn-icon promo" title="Configurar Promoção" onclick="gerirPromo(${p.id}, ${p.em_promocao}, ${p.preco})"><i data-lucide="tag" style="width:16px;"></i></button>
-                            <button class="btn-icon danger" title="Apagar Definitivamente" onclick="excluir(${p.id})"><i data-lucide="trash-2" style="width:16px;"></i></button>
+                            <button class="btn-icon" onclick="toggleStatus(${p.id})"><i data-lucide="${p.ativo ? 'eye-off' : 'eye'}" style="width:18px;"></i></button>
+                            <button class="btn-icon" style="color:#d97706;" onclick="gerirPromo(${p.id}, ${p.em_promocao}, ${p.preco})"><i data-lucide="tag" style="width:18px;"></i></button>
+                            <button class="btn-icon" style="color:#ef4444;" onclick="excluir(${p.id})"><i data-lucide="trash-2" style="width:18px;"></i></button>
                         </div>
                     </td>
                 `;
@@ -168,28 +180,14 @@
             lucide.createIcons();
         }
 
-        async function toggleStatus(id) {
-            await fetch(`/api/produtos/${id}/status`, { method: 'PATCH' }); carregarEstoque();
-        }
-        
-        async function excluir(id) {
-            if(confirm("ATENÇÃO: Deseja apagar este produto permanentemente?")) {
-                await fetch(`/api/produtos/${id}`, { method: 'DELETE' }); carregarEstoque();
-            }
-        }
-
+        async function toggleStatus(id) { await fetch(`/api/produtos/${id}/status`, { method: 'PATCH' }); carregarEstoque(); }
+        async function excluir(id) { if(confirm("Apagar permanentemente?")) { await fetch(`/api/produtos/${id}`, { method: 'DELETE' }); carregarEstoque(); } }
         async function gerirPromo(id, em_promo, preco_base) {
             if(em_promo) {
-                if(confirm("Terminar promoção deste produto e voltar ao preço original?")) {
-                    await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: false}) });
-                    carregarEstoque();
-                }
+                if(confirm("Terminar promoção?")) { await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: false}) }); carregarEstoque(); }
             } else {
-                let novoPreco = prompt(`O preço base atual é R$ ${preco_base.toFixed(2)}.\nDigite o valor da PROMOÇÃO:`);
-                if(novoPreco) {
-                    await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: true, preco_promocao: parseFloat(novoPreco.replace(',','.'))}) });
-                    carregarEstoque();
-                }
+                let novoPreco = prompt(`Preço base: R$ ${preco_base.toFixed(2)}.\nDigite o PREÇO DE PROMOÇÃO:`);
+                if(novoPreco) { await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: true, preco_promocao: parseFloat(novoPreco.replace(',','.'))}) }); carregarEstoque(); }
             }
         }
         carregarEstoque();
