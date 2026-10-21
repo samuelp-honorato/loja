@@ -8,14 +8,16 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         * { box-sizing: border-box; }
-        :root { --sidebar: #0f172a; --bg: #f1f5f9; --card: #ffffff; --text: #334155; --primary: #2563eb; --danger: #ef4444; --success: #10b981; --border: #e2e8f0; }
+        :root { --sidebar: #0f172a; --bg: #f1f5f9; --card: #ffffff; --text: #334155; --primary: #2563eb; --danger: #ef4444; --success: #10b981; --warning: #f59e0b; --border: #e2e8f0; }
         body { font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); overflow: hidden; }
         
         .sidebar { width: 260px; background: var(--sidebar); color: #fff; display: flex; flex-direction: column; flex-shrink: 0; }
         .brand { padding: 24px; font-size: 20px; font-weight: 700; border-bottom: 1px solid #1e293b; display: flex; align-items: center; gap: 12px; }
         .menu { padding: 20px 10px; flex-grow: 1; overflow-y: auto; }
-        .menu-item { padding: 12px 16px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; transition: 0.2s; color: #94a3b8; }
+        .menu-label { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1px; font-weight: 700; margin: 16px 12px 8px; }
+        .menu-item { padding: 12px 16px; margin-bottom: 4px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; transition: 0.2s; color: #94a3b8; }
         .menu-item:hover, .menu-item.active { background: #1e293b; color: #fff; }
+        .menu-item.active { border-left: 3px solid var(--primary); border-radius: 0 6px 6px 0; }
         .logout { padding: 20px; border-top: 1px solid #1e293b; }
         .logout a { color: #f87171; text-decoration: none; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 10px; }
         
@@ -23,65 +25,133 @@
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         .header h1 { margin: 0; font-size: 24px; color: #0f172a; }
         
-        .card { background: var(--card); padding: 30px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border); }
+        .card { background: var(--card); padding: 30px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border); margin-bottom: 24px; }
         
-        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px; }
+        .kpi-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .kpi-title { font-size: 13px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; display: flex; justify-content: space-between; }
+        .kpi-value { font-size: 28px; font-weight: 700; color: #0f172a; }
+        
+        .table-responsive { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { text-align: left; padding: 16px; border-bottom: 2px solid var(--border); color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 600; }
-        td { padding: 16px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+        td { padding: 16px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; color: #334155; }
         .img-mini { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #f1f5f9; color: #475569; white-space: nowrap; }
-        .badge.promo { background: #fef3c7; color: #d97706; }
         
-        .action-group { display: flex; gap: 8px; }
-        .btn-icon { background: var(--bg); border: 1px solid var(--border); width: 40px; height: 40px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text); transition: 0.2s; }
-        .btn-icon:hover { background: #e2e8f0; }
-        
+        .pill { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; white-space: nowrap; }
+        .pill.pago { background: #d1fae5; color: #047857; }
+        .pill.pendente { background: #fef3c7; color: #b45309; }
+        .pill.neutro { background: #f1f5f9; color: #475569; }
+
+        .cadastro-layout { display: grid; grid-template-columns: 1fr 320px; gap: 30px; }
         .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #475569; }
-        input, select, textarea { width: 100%; height: 48px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Inter'; font-size: 14px; }
+        input, select, textarea { width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Inter'; font-size: 14px; transition: 0.2s; }
         textarea { height: auto; padding: 12px; }
-        .file-box { border: 2px dashed #cbd5e1; padding: 40px 20px; text-align: center; border-radius: 12px; cursor: pointer; margin-bottom: 24px; color: #64748b; font-weight: 500; display: block; }
-        .btn-primary { background: var(--primary); color: #fff; border: none; height: 50px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; font-size: 15px; }
+        input:focus, select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .btn-primary { background: var(--primary); color: #fff; border: none; height: 48px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; font-size: 14px; transition: 0.2s; }
+        .btn-primary:hover { background: #1d4ed8; }
         
+        .btn-action { background: #fff; border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text); }
+        .btn-action:hover { background: #f8fafc; }
+        .btn-action.success { background: var(--success); color: #fff; border: none; }
+
+        .preview-box { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .preview-img { width: 100%; height: 350px; object-fit: cover; background: #f8fafc; }
+        .preview-info { padding: 20px; }
+        .preview-title { font-size: 16px; font-weight: 600; margin: 0 0 8px 0; color: #0f172a; }
+        .preview-tags { display: flex; gap: 8px; margin-bottom: 12px; }
+        .preview-tag { background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #475569; }
+        .preview-price { font-size: 18px; font-weight: 700; color: #0f172a; }
+
         .aba { display: none; }
         .aba.ativa { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
+        
         @media (max-width: 768px) {
             body { flex-direction: column; overflow: auto; }
-            .sidebar { width: 100%; height: auto; border-right: none; padding-bottom: 0; }
-            .brand { padding: 16px; font-size: 18px; }
-            .menu { display: flex; flex-direction: row; overflow-x: auto; padding: 10px; border-bottom: 1px solid #1e293b; }
-            .menu-item { margin-bottom: 0; margin-right: 10px; white-space: nowrap; }
-            .logout { display: none; /* Pode criar um item no menu se preferir */ }
-            
+            .sidebar { width: 100%; height: auto; }
+            .menu { display: flex; overflow-x: auto; padding: 10px; border-bottom: 1px solid #1e293b; }
+            .menu-label { display: none; }
+            .menu-item { white-space: nowrap; }
+            .cadastro-layout { grid-template-columns: 1fr; }
+            .grid-form { grid-template-columns: 1fr; }
             .content { padding: 20px; overflow-y: visible; }
-            .header h1 { font-size: 20px; margin-bottom: 20px; }
-            .card { padding: 16px; }
-            
-            .grid-form { grid-template-columns: 1fr; gap: 16px; }
         }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <div class="brand"><i data-lucide="layout-dashboard"></i> Painel ERP</div>
+        <div class="brand"><i data-lucide="layout-dashboard"></i> ERP Gestão</div>
         <div class="menu">
-            <div class="menu-item active" onclick="mudarAba('aba-estoque', this)"><i data-lucide="package"></i> Gestão</div>
-            <div class="menu-item" onclick="mudarAba('aba-cadastrar', this)"><i data-lucide="plus-circle"></i> Cadastrar</div>
-            <div class="menu-item" onclick="window.location.href='/api/logout'"><i data-lucide="log-out"></i> Sair</div>
+            <div class="menu-label">Performance</div>
+            <div class="menu-item active" onclick="mudarAba('aba-dashboard', this)"><i data-lucide="bar-chart-2"></i> Visão Geral</div>
+            <div class="menu-item" onclick="mudarAba('aba-pedidos', this)"><i data-lucide="shopping-cart"></i> Pedidos</div>
+            
+            <div class="menu-label">Catálogo</div>
+            <div class="menu-item" onclick="mudarAba('aba-estoque', this)"><i data-lucide="package"></i> Estoque</div>
+            <div class="menu-item" onclick="mudarAba('aba-cadastrar', this)"><i data-lucide="plus-circle"></i> Novo Produto</div>
+            
+            <div class="menu-label">Relatórios</div>
+            <div class="menu-item" onclick="mudarAba('aba-clientes', this)"><i data-lucide="users"></i> Clientes</div>
         </div>
+        <div class="logout"><a href="/api/logout"><i data-lucide="log-out"></i> Sair do Sistema</a></div>
     </div>
 
     <div class="content">
-        <div id="aba-estoque" class="aba ativa">
-            <div class="header"><h1>Inventário & Ofertas</h1></div>
+        
+        <div id="aba-dashboard" class="aba ativa">
+            <div class="header"><h1>Visão Geral Financeira</h1></div>
+            
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-title">Faturamento Hoje <i data-lucide="dollar-sign" style="color:var(--success)"></i></div>
+                    <div class="kpi-value" id="kpi-hoje">R$ 0,00</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Faturamento no Mês <i data-lucide="trending-up" style="color:var(--primary)"></i></div>
+                    <div class="kpi-value" id="kpi-mes">R$ 0,00</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Pedidos Pendentes <i data-lucide="clock" style="color:var(--warning)"></i></div>
+                    <div class="kpi-value" id="kpi-pendentes" style="color:var(--warning)">0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Total de Vendas <i data-lucide="shopping-bag"></i></div>
+                    <div class="kpi-value" id="kpi-total">0</div>
+                </div>
+            </div>
+
+            <div class="card" style="padding: 0;">
+                <div style="padding: 20px; border-bottom: 1px solid var(--border); font-weight: 600;">Últimos Pedidos</div>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Data</th><th>Cliente</th><th>Resumo</th><th>Total</th><th>Status</th></tr></thead>
+                        <tbody id="feed-resumo"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="aba-pedidos" class="aba">
+            <div class="header"><h1>Histórico de Pedidos</h1></div>
             <div class="card" style="padding: 0;">
                 <div class="table-responsive">
                     <table>
-                        <thead><tr><th>Produto</th><th>Detalhes</th><th>Preço</th><th>Status</th><th>Gerenciar</th></tr></thead>
+                        <thead><tr><th>ID</th><th>Cliente / Tel</th><th>Itens</th><th>Total</th><th>Status</th><th>Ação</th></tr></thead>
+                        <tbody id="lista-pedidos"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="aba-estoque" class="aba">
+            <div class="header"><h1>Gestão de Estoque</h1></div>
+            <div class="card" style="padding: 0;">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Produto</th><th>Detalhes</th><th>Preço</th><th>Estoque / Status</th><th>Gerenciar</th></tr></thead>
                         <tbody id="lista-estoque"></tbody>
                     </table>
                 </div>
@@ -89,108 +159,165 @@
         </div>
 
         <div id="aba-cadastrar" class="aba">
-            <div class="header"><h1>Adicionar ao Sistema</h1></div>
-            <div class="card">
-                <label class="file-box" id="file-label">
-                    <i data-lucide="image" style="width: 32px; height: 32px; margin-bottom: 8px;"></i><br>
-                    Toque para selecionar a imagem
-                    <input type="file" style="display: none;" accept="image/*" onchange="processarImagem(event)">
-                </label>
-                <div class="grid-form">
-                    <div><label>Nome / Designação</label><input type="text" id="nome"></div>
-                    <div><label>Categoria Principal</label><select id="categoria"><option>Calcinha</option><option>Sutiã</option><option>Conjunto</option><option>Baby Doll</option><option>Cueca</option></select></div>
-                    <div><label>Preço Base (R$)</label><input type="number" id="preco"></div>
-                    <div><label>Quantidade</label><input type="number" id="estoque"></div>
-                    <div><label>Tamanho</label><input type="text" id="tamanho" placeholder="P, M, G, GG"></div>
-                    <div><label>Cor / Etiqueta</label><select id="etiqueta"><option>Prata</option><option>Cinza</option><option>Roxa</option><option>Dourada</option></select></div>
+            <div class="header"><h1>Cadastrar Nova Peça</h1></div>
+            
+            <div class="cadastro-layout">
+                <div class="card">
+                    <div style="margin-bottom: 20px;">
+                        <label>Link da Imagem (Drive / URL)</label>
+                        <input type="text" id="drive-url" placeholder="Cole o link do Google Drive aqui..." oninput="processarDriveURL()">
+                        <div style="font-size: 11px; color: #64748b; margin-top: 6px;">Ou escolha um arquivo: <input type="file" accept="image/*" onchange="processarArquivo(event)"></div>
+                    </div>
+
+                    <div class="grid-form">
+                        <div><label>Nome da Peça</label><input type="text" id="nome" placeholder="Sutiã Renda" oninput="atualizarPreview()"></div>
+                        <div><label>Categoria</label><select id="categoria" onchange="atualizarPreview()"><option>Sutiã</option><option>Calcinha</option><option>Conjunto</option><option>Baby Doll</option><option>Outros</option></select></div>
+                        <div><label>Preço (R$)</label><input type="number" id="preco" placeholder="59.90" oninput="atualizarPreview()"></div>
+                        <div><label>Estoque Atual</label><input type="number" id="estoque" value="10"></div>
+                        <div><label>Tamanho</label><input type="text" id="tamanho" placeholder="M" oninput="atualizarPreview()"></div>
+                        <div><label>Etiqueta / Linha</label><select id="etiqueta" onchange="atualizarPreview()"><option>Padrão</option><option>Prata</option><option>Dourada</option></select></div>
+                    </div>
+                    <div style="margin-top: 20px;"><label>Descrição Breve</label><textarea id="descricao" rows="2" placeholder="Detalhes do tecido..." oninput="atualizarPreview()"></textarea></div>
+                    <button class="btn-primary" style="margin-top: 24px;" onclick="cadastrarProduto()">Salvar Produto</button>
                 </div>
-                <div style="margin-top: 20px;"><label>Descrição Técnica</label><textarea id="descricao" rows="3"></textarea></div>
-                <button class="btn-primary" style="margin-top: 24px;" onclick="cadastrarProduto()">Gravar no Sistema</button>
+
+                <div>
+                    <label>Pré-visualização (Como o cliente verá)</label>
+                    <div class="preview-box">
+                        <img id="prev-img" src="https://via.placeholder.com/300x400?text=Sua+Foto" class="preview-img">
+                        <div class="preview-info">
+                            <div class="preview-tags"><span class="preview-tag" id="prev-tam">TAM: M</span><span class="preview-tag" id="prev-cat">SUTIÃ</span></div>
+                            <h3 class="preview-title" id="prev-nome">Nome da Peça</h3>
+                            <div style="font-size: 13px; color: #64748b; margin-bottom: 12px;" id="prev-desc">A descrição aparecerá aqui.</div>
+                            <div class="preview-price" id="prev-preco">R$ 0,00</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <div id="aba-clientes" class="aba">
+            <div class="header"><h1>Meus Clientes</h1></div>
+            <div class="card" style="padding: 0;">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Nome do Cliente</th><th>Telefone</th><th>Total Gasto na Loja</th></tr></thead>
+                        <tbody id="lista-clientes"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
         lucide.createIcons();
+        let imgBase64 = "";
+
         function mudarAba(id, el) {
             document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             document.getElementById(id).classList.add('ativa');
             el.classList.add('active');
+
+            if(id === 'aba-dashboard') carregarDashboard();
+            if(id === 'aba-pedidos') carregarPedidos();
             if(id === 'aba-estoque') carregarEstoque();
+            if(id === 'aba-clientes') carregarClientes();
         }
 
-        let imgBase64 = "";
-        function processarImagem(event) {
+        function processarDriveURL() {
+            let url = document.getElementById('drive-url').value.trim();
+            if(url.includes('drive.google.com')) {
+                const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+                if(match && match[1]) url = `https://lh3.googleusercontent.com/d/${match[1]}`;
+            }
+            imgBase64 = url;
+            document.getElementById('prev-img').src = imgBase64 || "https://via.placeholder.com/300x400?text=Sua+Foto";
+        }
+
+        function processarArquivo(event) {
             const file = event.target.files[0];
             if(!file) return;
-            document.getElementById('file-label').innerHTML = `<b style='color:#2563eb;'><i data-lucide="check-circle" style="vertical-align: middle;"></i> Imagem Carregada!</b>`;
-            lucide.createIcons();
-            const r = new FileReader(); r.onload = e => imgBase64 = e.target.result; r.readAsDataURL(file);
+            const r = new FileReader();
+            r.onload = e => { imgBase64 = e.target.result; document.getElementById('prev-img').src = imgBase64; };
+            r.readAsDataURL(file);
+        }
+
+        function atualizarPreview() {
+            document.getElementById('prev-nome').innerText = document.getElementById('nome').value || "Nome da Peça";
+            document.getElementById('prev-desc').innerText = document.getElementById('descricao').value || "A descrição aparecerá aqui.";
+            document.getElementById('prev-tam').innerText = "TAM: " + (document.getElementById('tamanho').value || "M").toUpperCase();
+            document.getElementById('prev-cat').innerText = (document.getElementById('categoria').value || "SUTIÃ").toUpperCase();
+            document.getElementById('prev-preco').innerText = `R$ ${(parseFloat(document.getElementById('preco').value)||0).toFixed(2).replace('.',',')}`;
         }
 
         async function cadastrarProduto() {
-            if(!imgBase64 || !document.getElementById('nome').value) {
-                alert("Nome e Imagem são obrigatórios."); return;
-            }
+            if(!imgBase64 || !document.getElementById('nome').value) return alert("Preencha Nome e Imagem!");
             const dados = {
-                nome: document.getElementById('nome').value, preco: parseFloat(document.getElementById('preco').value || 0),
-                estoque: parseInt(document.getElementById('estoque').value || 0), imagem_url: imgBase64,
+                nome: document.getElementById('nome').value, preco: parseFloat(document.getElementById('preco').value||0),
+                estoque: parseInt(document.getElementById('estoque').value||0), imagem_url: imgBase64,
                 descricao: document.getElementById('descricao').value, tamanho: document.getElementById('tamanho').value,
                 cor: document.getElementById('etiqueta').value, categoria: document.getElementById('categoria').value,
                 etiqueta: document.getElementById('etiqueta').value
             };
-            const btn = document.querySelector('.btn-primary');
-            btn.innerText = "A guardar...";
             await fetch('/api/produtos', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(dados) });
-            alert("Operação concluída!"); 
-            btn.innerText = "Gravar no Sistema";
-            mudarAba('aba-estoque', document.querySelectorAll('.menu-item')[0]);
+            alert("Produto cadastrado!"); window.location.reload();
+        }
+
+        async function carregarDashboard() {
+            const res = await fetch('/api/admin/indicadores');
+            const data = await res.json();
+            document.getElementById('kpi-hoje').innerText = `R$ ${data.faturamento_hoje.toFixed(2).replace('.',',')}`;
+            document.getElementById('kpi-mes').innerText = `R$ ${data.faturamento_mes.toFixed(2).replace('.',',')}`;
+            document.getElementById('kpi-pendentes').innerText = data.pedidos_pendentes;
+            document.getElementById('kpi-total').innerText = data.total_pedidos;
+
+            const resPed = await fetch('/api/admin/pedidos');
+            const pedidos = await resPed.json();
+            const feed = document.getElementById('feed-resumo'); feed.innerHTML = '';
+            pedidos.slice(0,5).forEach(p => {
+                const dataFormatada = new Date(p.data_criacao).toLocaleDateString();
+                const pill = p.status === 'Pago' ? '<span class="pill pago">Pago</span>' : '<span class="pill pendente">Pendente</span>';
+                feed.innerHTML += `<tr><td>${dataFormatada}</td><td><b>${p.cliente_nome}</b></td><td><div style="font-size:12px;color:#64748b;">${p.resumo_pedido.replace(/\n/g, '<br>')}</div></td><td><b>R$ ${p.total.toFixed(2)}</b></td><td>${pill}</td></tr>`;
+            });
+        }
+
+        async function carregarPedidos() {
+            const res = await fetch('/api/admin/pedidos');
+            const pedidos = await res.json();
+            const body = document.getElementById('lista-pedidos'); body.innerHTML = '';
+            pedidos.forEach(p => {
+                const pill = p.status === 'Pago' ? '<span class="pill pago">Pago</span>' : '<span class="pill pendente">Pendente</span>';
+                const action = p.status === 'Pendente' ? `<button class="btn-action success" onclick="mudarStatusPedido(${p.id}, 'Pago')">Confirmar Pagamento</button>` : `<span style="font-size:13px;color:var(--success);font-weight:600;">Concluído</span>`;
+                body.innerHTML += `<tr><td>#${p.id}</td><td><b>${p.cliente_nome}</b><br><span style="font-size:12px;color:#64748b;">${p.telefone||'Sem Tel'}</span></td><td><div style="font-size:12px;color:#64748b;">${p.resumo_pedido.replace(/\n/g, '<br>')}</div></td><td><b>R$ ${p.total.toFixed(2)}</b></td><td>${pill}</td><td>${action}</td></tr>`;
+            });
+        }
+        async function mudarStatusPedido(id, status) {
+            const fd = new FormData(); fd.append('status_novo', status);
+            await fetch(`/api/admin/pedidos/${id}/status`, { method: 'PATCH', body: fd });
+            carregarPedidos(); carregarDashboard();
         }
 
         async function carregarEstoque() {
-            const resp = await fetch('/api/admin/produtos');
-            if(resp.status === 401) { window.location.href = '/login'; return; }
-            const produtos = await resp.json();
-            const lista = document.getElementById('lista-estoque');
-            lista.innerHTML = '';
-            
-            if(produtos.length === 0) { lista.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #94a3b8;">Nenhum produto cadastrado.</td></tr>'; return; }
-            
+            const res = await fetch('/api/admin/produtos'); const produtos = await res.json();
+            const body = document.getElementById('lista-estoque'); body.innerHTML = '';
             produtos.forEach(p => {
-                const tr = document.createElement('tr');
-                const visivel = p.ativo ? '<span style="color:#10b981; font-weight: 600;">👁️ Na Loja</span>' : '<span style="color:#ef4444; font-weight: 600;">🚫 Oculto</span>';
-                const precoInfo = p.em_promocao ? `<s style="color:#94a3b8;font-size:12px;">R$ ${p.preco.toFixed(2)}</s><br><b style="color:#ef4444;">R$ ${p.preco_promocao.toFixed(2)}</b>` : `<b>R$ ${p.preco.toFixed(2)}</b>`;
-                
-                tr.innerHTML = `
-                    <td><div style="display:flex; gap:12px; align-items:center;"><img src="${p.imagem_url}" class="img-mini"><div><b style="color:#0f172a; white-space:nowrap;">${p.nome}</b><div style="font-size:12px;color:#64748b;">Tam: ${p.tamanho} | Estq: ${p.estoque}</div></div></div></td>
-                    <td><span class="badge">${p.categoria}</span><br><span style="font-size:11px;color:#64748b;">Linha ${p.etiqueta}</span></td>
-                    <td>${precoInfo}</td>
-                    <td>${visivel}</td>
-                    <td>
-                        <div class="action-group">
-                            <button class="btn-icon" onclick="toggleStatus(${p.id})"><i data-lucide="${p.ativo ? 'eye-off' : 'eye'}" style="width:18px;"></i></button>
-                            <button class="btn-icon" style="color:#d97706;" onclick="gerirPromo(${p.id}, ${p.em_promocao}, ${p.preco})"><i data-lucide="tag" style="width:18px;"></i></button>
-                            <button class="btn-icon" style="color:#ef4444;" onclick="excluir(${p.id})"><i data-lucide="trash-2" style="width:18px;"></i></button>
-                        </div>
-                    </td>
-                `;
-                lista.appendChild(tr);
+                const visivel = p.ativo ? '<span style="color:var(--success);font-weight:600;font-size:12px;">👁️ Visível</span>' : '<span style="color:var(--danger);font-weight:600;font-size:12px;">🚫 Oculto</span>';
+                body.innerHTML += `<tr><td><div style="display:flex;gap:12px;align-items:center;"><img src="${p.imagem_url}" class="img-mini"><div><b style="color:#0f172a;">${p.nome}</b><div style="font-size:12px;color:#64748b;">Tam: ${p.tamanho}</div></div></div></td><td><span class="pill neutro">${p.categoria}</span></td><td><b>R$ ${p.preco.toFixed(2)}</b></td><td><b style="color:${p.estoque>0?'var(--primary)':'var(--danger)'};">${p.estoque} un</b><br>${visivel}</td><td><button class="btn-action" style="color:var(--danger);" onclick="excluir(${p.id})">Excluir</button></td></tr>`;
             });
-            lucide.createIcons();
+        }
+        async function excluir(id) { if(confirm("Apagar?")) { await fetch(`/api/produtos/${id}`, { method: 'DELETE' }); carregarEstoque(); } }
+
+        async function carregarClientes() {
+            const res = await fetch('/api/admin/pedidos'); const pedidos = await res.json();
+            const cli = {};
+            pedidos.forEach(p => { if(!cli[p.cliente_nome]) cli[p.cliente_nome]={t:p.telefone, val:0}; cli[p.cliente_nome].val += p.total; });
+            const body = document.getElementById('lista-clientes'); body.innerHTML = '';
+            Object.keys(cli).forEach(nome => { body.innerHTML += `<tr><td><b>${nome}</b></td><td>${cli[nome].t}</td><td><b style="color:var(--primary);">R$ ${cli[nome].val.toFixed(2)}</b></td></tr>`; });
         }
 
-        async function toggleStatus(id) { await fetch(`/api/produtos/${id}/status`, { method: 'PATCH' }); carregarEstoque(); }
-        async function excluir(id) { if(confirm("Apagar permanentemente?")) { await fetch(`/api/produtos/${id}`, { method: 'DELETE' }); carregarEstoque(); } }
-        async function gerirPromo(id, em_promo, preco_base) {
-            if(em_promo) {
-                if(confirm("Terminar promoção?")) { await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: false}) }); carregarEstoque(); }
-            } else {
-                let novoPreco = prompt(`Preço base: R$ ${preco_base.toFixed(2)}.\nDigite o PREÇO DE PROMOÇÃO:`);
-                if(novoPreco) { await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: true, preco_promocao: parseFloat(novoPreco.replace(',','.'))}) }); carregarEstoque(); }
-            }
-        }
-        carregarEstoque();
+        carregarDashboard();
     </script>
 </body>
 </html>
