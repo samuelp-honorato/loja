@@ -45,6 +45,7 @@
         .pill { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; white-space: nowrap; }
         .pill.pago { background: #d1fae5; color: #047857; }
         .pill.pendente { background: #fef3c7; color: #b45309; }
+        .pill.cancelado { background: #fee2e2; color: #991b1b; } /* NOVO FORMATO CANCELADO */
         .pill.neutro { background: #f1f5f9; color: #475569; }
 
         .cadastro-layout { display: grid; grid-template-columns: 1fr 320px; gap: 30px; }
@@ -120,7 +121,7 @@
                 <div class="kpi-card"><div class="kpi-title">Faturamento Hoje <i data-lucide="dollar-sign" style="color:var(--success)"></i></div><div class="kpi-value" id="kpi-hoje">R$ 0,00</div></div>
                 <div class="kpi-card"><div class="kpi-title">Faturamento Mês <i data-lucide="trending-up" style="color:var(--primary)"></i></div><div class="kpi-value" id="kpi-mes">R$ 0,00</div></div>
                 <div class="kpi-card"><div class="kpi-title">Pedidos Pendentes <i data-lucide="clock" style="color:var(--warning)"></i></div><div class="kpi-value" id="kpi-pendentes" style="color:var(--warning)">0</div></div>
-                <div class="kpi-card"><div class="kpi-title">Total de Vendas <i data-lucide="shopping-bag"></i></div><div class="kpi-value" id="kpi-total">0</div></div>
+                <div class="kpi-card"><div class="kpi-title">Total de Pedidos <i data-lucide="shopping-bag"></i></div><div class="kpi-value" id="kpi-total">0</div></div>
             </div>
             <div class="card" style="padding: 0;">
                 <div style="padding: 20px; border-bottom: 1px solid var(--border); font-weight: 600;">Últimos Pedidos</div>
@@ -332,24 +333,46 @@
             const resPed = await fetch('/api/admin/pedidos'); const pedidos = await resPed.json();
             const feed = document.getElementById('feed-resumo'); feed.innerHTML = '';
             pedidos.slice(0,5).forEach(p => {
-                const pill = p.status === 'Pago' ? '<span class="pill pago">Pago</span>' : '<span class="pill pendente">Pendente</span>';
+                let pill = '';
+                if(p.status === 'Pago') pill = '<span class="pill pago">Pago</span>';
+                else if(p.status === 'Cancelado') pill = '<span class="pill cancelado">Cancelado</span>';
+                else pill = '<span class="pill pendente">Pendente</span>';
+                
                 feed.innerHTML += `<tr><td>${new Date(p.data_criacao).toLocaleDateString()}</td><td><b>${p.cliente_nome}</b></td><td><div style="font-size:12px;color:#64748b;">${p.resumo_pedido.replace(/\n/g, '<br>')}</div></td><td><b>R$ ${p.total.toFixed(2)}</b></td><td>${pill}</td></tr>`;
             });
         }
 
         async function carregarPedidos() {
             verificarNotificacoes(); 
-
             const res = await fetch('/api/admin/pedidos'); const pedidos = await res.json();
             const body = document.getElementById('lista-pedidos'); body.innerHTML = '';
             pedidos.forEach(p => {
-                const pill = p.status === 'Pago' ? '<span class="pill pago">Pago</span>' : '<span class="pill pendente">Pendente</span>';
-                const action = p.status === 'Pendente' ? `<button class="btn-action success" onclick="mudarStatusPedido(${p.id}, 'Pago')">Confirmar Pgto</button>` : `<span style="font-size:13px;color:var(--success);font-weight:600;">Concluído</span>`;
+                let pill = '';
+                if(p.status === 'Pago') pill = '<span class="pill pago">Pago</span>';
+                else if(p.status === 'Cancelado') pill = '<span class="pill cancelado">Cancelado</span>';
+                else pill = '<span class="pill pendente">Pendente</span>';
+
+                let action = '';
+                if(p.status === 'Pendente') {
+                    action = `
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn-action success" onclick="mudarStatusPedido(${p.id}, 'Pago')">Confirmar</button>
+                            <button class="btn-action" style="color:var(--danger); border-color:var(--danger);" onclick="mudarStatusPedido(${p.id}, 'Cancelado')">Cancelar</button>
+                        </div>
+                    `;
+                } else if(p.status === 'Pago') {
+                    action = `<span style="font-size:13px;color:var(--success);font-weight:600;">✔ Concluído</span>`;
+                } else {
+                    action = `<span style="font-size:13px;color:var(--danger);font-weight:600;">✖ Cancelado</span>`;
+                }
+
                 body.innerHTML += `<tr><td>#${p.id}</td><td><b>${p.cliente_nome}</b><br><span style="font-size:12px;color:#64748b;">${p.telefone||'Sem Tel'}</span></td><td><div style="font-size:12px;color:#64748b;">${p.resumo_pedido.replace(/\n/g, '<br>')}</div></td><td><b>R$ ${p.total.toFixed(2)}</b></td><td>${pill}</td><td>${action}</td></tr>`;
             });
         }
         
         async function mudarStatusPedido(id, status) { 
+            if (status === 'Cancelado' && !confirm("Tem certeza que deseja cancelar este pedido? O estoque não será afetado.")) return;
+            
             const fd = new FormData(); fd.append('status_novo', status); 
             await fetch(`/api/admin/pedidos/${id}/status`, { method: 'PATCH', body: fd }); 
             carregarPedidos(); 
@@ -371,7 +394,12 @@
         async function carregarClientes() {
             const res = await fetch('/api/admin/pedidos'); const pedidos = await res.json();
             const cli = {};
-            pedidos.forEach(p => { if(!cli[p.cliente_nome]) cli[p.cliente_nome]={t:p.telefone, val:0}; cli[p.cliente_nome].val += p.total; });
+            pedidos.forEach(p => { 
+                if(p.status === 'Cancelado') return; 
+                
+                if(!cli[p.cliente_nome]) cli[p.cliente_nome]={t:p.telefone, val:0}; 
+                cli[p.cliente_nome].val += p.total; 
+            });
             const body = document.getElementById('lista-clientes'); body.innerHTML = '';
             Object.keys(cli).forEach(nome => { body.innerHTML += `<tr><td><b>${nome}</b></td><td>${cli[nome].t}</td><td><b style="color:var(--primary);">R$ ${cli[nome].val.toFixed(2)}</b></td></tr>`; });
         }
