@@ -1,5 +1,6 @@
 import os
 import jwt
+import json
 from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException, Depends, Request, Response, Form
 from fastapi.responses import FileResponse, RedirectResponse
@@ -45,11 +46,12 @@ class ProdutoDB(Base):
     etiqueta = Column(String)
 
 class PedidoDB(Base):
-    __tablename__ = "pedidos_v4"
+    __tablename__ = "pedidos_v5" 
     id = Column(Integer, primary_key=True, index=True)
     cliente_nome = Column(String)
     telefone = Column(String)
     resumo_pedido = Column(String)
+    itens_json = Column(String) 
     total = Column(Float)
     status = Column(String, default="Pendente")
     data_criacao = Column(DateTime, default=datetime.utcnow)
@@ -146,7 +148,25 @@ def listar_pedidos_admin(db: Session = Depends(get_db), admin: bool = Depends(ve
 @app.patch("/api/admin/pedidos/{id}/status")
 def atualizar_status_pedido(id: int, status_novo: str = Form(...), db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
     pedido = db.query(PedidoDB).filter(PedidoDB.id == id).first()
-    if pedido: pedido.status = status_novo; db.commit()
+    if pedido:
+        if status_novo == "Pago" and pedido.status != "Pago":
+            try:
+                itens = json.loads(pedido.itens_json)
+                for item in itens:
+                    produto = db.query(ProdutoDB).filter(ProdutoDB.id == item["produto_id"]).first()
+                    if produto: produto.estoque -= item["quantidade"]
+            except: pass
+            
+        elif pedido.status == "Pago" and status_novo != "Pago":
+            try:
+                itens = json.loads(pedido.itens_json)
+                for item in itens:
+                    produto = db.query(ProdutoDB).filter(ProdutoDB.id == item["produto_id"]).first()
+                    if produto: produto.estoque += item["quantidade"]
+            except: pass
+
+        pedido.status = status_novo
+        db.commit()
     return {"status": "sucesso"}
 
 @app.post("/api/produtos")
@@ -182,16 +202,19 @@ def aplicar_promocao(id: int, promo: PromocaoUpdate, db: Session = Depends(get_d
 @app.post("/api/comprar")
 def finalizar_compra(pedido: PedidoCreate, db: Session = Depends(get_db)):
     total_compra = 0; resumo_itens = []
+    
     for item in pedido.itens:
         produto = db.query(ProdutoDB).filter(ProdutoDB.id == item.produto_id).first()
-        if not produto or produto.estoque < item.quantidade: raise HTTPException(status_code=400, detail="Estoque insuficiente.")
-        produto.estoque -= item.quantidade
+        if not produto or produto.estoque < item.quantidade: raise HTTPException(status_code=400, detail="Estoque insuficiente no momento.")
+        
         preco_real = produto.preco_promocao if produto.em_promocao else produto.preco
         total_compra += (preco_real * item.quantidade)
         resumo_itens.append(f"{item.quantidade}x {item.nome} ({item.tamanho}) - R$ {preco_real:.2f}")
     
     texto_resumo = "\n- ".join(resumo_itens)
-    novo_pedido = PedidoDB(cliente_nome=pedido.cliente_nome, telefone=pedido.telefone, resumo_pedido=texto_resumo, total=total_compra)
+    itens_dump = json.dumps([i.dict() for i in pedido.itens])
+
+    novo_pedido = PedidoDB(cliente_nome=pedido.cliente_nome, telefone=pedido.telefone, resumo_pedido=texto_resumo, itens_json=itens_dump, total=total_compra)
     db.add(novo_pedido); db.commit()
 
     mensagem = f"Olá! Sou {pedido.cliente_nome}.\n\n*Novo Pedido #{novo_pedido.id}:*\n- {texto_resumo}\n\n*Total: R$ {total_compra:.2f}*"
