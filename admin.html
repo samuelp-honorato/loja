@@ -61,7 +61,7 @@
         .upload-area span { display: block; font-size: 12px; color: #94a3b8; margin-top: 4px; }
 
         .preview-box { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .preview-img { width: 100%; height: 350px; object-fit: cover; background: #f8fafc; }
+        .preview-img { width: 100%; aspect-ratio: 1 / 1; height: auto; object-fit: contain; transform: scale(1.15); background: #f8fafc; padding: 10px; }
         .preview-info { padding: 20px; }
         .preview-title { font-size: 16px; font-weight: 600; margin: 0 0 8px 0; color: #0f172a; }
         .preview-tags { display: flex; gap: 8px; margin-bottom: 12px; }
