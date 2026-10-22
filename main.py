@@ -17,12 +17,16 @@ ADMIN_PASS = os.getenv("ADMIN_PASS", "marli123")
 SECRET_KEY = os.getenv("SECRET_KEY", "chave_mestre_super_secreta_marli_pro")
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./loja.db")
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+if DATABASE_URL.startswith("postgres://"): DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+class CategoriaDB(Base):
+    __tablename__ = "categorias_v1"
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String, unique=True, index=True)
 
 class ProdutoDB(Base):
     __tablename__ = "produtos_v4"
@@ -47,7 +51,7 @@ class PedidoDB(Base):
     telefone = Column(String)
     resumo_pedido = Column(String)
     total = Column(Float)
-    status = Column(String, default="Pendente") # Pendente, Pago, Cancelado
+    status = Column(String, default="Pendente")
     data_criacao = Column(DateTime, default=datetime.utcnow)
 
 Base.metadata.create_all(bind=engine)
@@ -71,14 +75,11 @@ def verificar_admin(request: Request):
     except: raise HTTPException(status_code=401, detail="Sessão inválida")
     return True
 
-class ProdutoCreate(BaseModel):
-    nome: str; preco: float; estoque: int; imagem_url: str; descricao: str; tamanho: str; cor: str; categoria: str; etiqueta: str
-class ItemCarrinho(BaseModel):
-    produto_id: int; quantidade: int; nome: str; preco: float; tamanho: str
-class PedidoCreate(BaseModel):
-    cliente_nome: str; telefone: str; itens: List[ItemCarrinho]
-class PromocaoUpdate(BaseModel):
-    em_promocao: bool; preco_promocao: Optional[float] = None
+class CategoriaCreate(BaseModel): nome: str
+class ProdutoCreate(BaseModel): nome: str; preco: float; estoque: int; imagem_url: str; descricao: str; tamanho: str; cor: str; categoria: str; etiqueta: str
+class ItemCarrinho(BaseModel): produto_id: int; quantidade: int; nome: str; preco: float; tamanho: str
+class PedidoCreate(BaseModel): cliente_nome: str; telefone: str; itens: List[ItemCarrinho]
+class PromocaoUpdate(BaseModel): em_promocao: bool; preco_promocao: Optional[float] = None
 
 @app.get("/")
 def abrir_loja(): return FileResponse("index.html")
@@ -110,22 +111,33 @@ def sair():
 @app.get("/api/config")
 def pegar_configuracoes(): return {"whatsapp": WHATSAPP_LOJA, "nome_loja": NOME_LOJA}
 
+@app.get("/api/categorias")
+def listar_categorias(db: Session = Depends(get_db)):
+    return db.query(CategoriaDB).all()
+
+@app.post("/api/categorias")
+def criar_categoria(cat: CategoriaCreate, db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
+    existe = db.query(CategoriaDB).filter(CategoriaDB.nome == cat.nome).first()
+    if not existe:
+        nova = CategoriaDB(nome=cat.nome)
+        db.add(nova); db.commit()
+    return {"status": "ok"}
+
+@app.delete("/api/categorias/{id}")
+def excluir_categoria(id: int, db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
+    cat = db.query(CategoriaDB).filter(CategoriaDB.id == id).first()
+    if cat: db.delete(cat); db.commit()
+    return {"status": "ok"}
+
 @app.get("/api/admin/indicadores")
 def obter_indicadores(db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
     agora = datetime.utcnow()
     inicio_dia = datetime(agora.year, agora.month, agora.day)
     inicio_mes = datetime(agora.year, agora.month, 1)
-
     pedidos = db.query(PedidoDB).all()
     fat_hoje = sum(p.total for p in pedidos if p.status == "Pago" and p.data_criacao >= inicio_dia)
     fat_mes = sum(p.total for p in pedidos if p.status == "Pago" and p.data_criacao >= inicio_mes)
-    
-    return {
-        "faturamento_hoje": fat_hoje,
-        "faturamento_mes": fat_mes,
-        "total_pedidos": len(pedidos),
-        "pedidos_pendentes": len([p for p in pedidos if p.status == "Pendente"])
-    }
+    return {"faturamento_hoje": fat_hoje, "faturamento_mes": fat_mes, "total_pedidos": len(pedidos), "pedidos_pendentes": len([p for p in pedidos if p.status == "Pendente"])}
 
 @app.get("/api/admin/pedidos")
 def listar_pedidos_admin(db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
@@ -134,9 +146,7 @@ def listar_pedidos_admin(db: Session = Depends(get_db), admin: bool = Depends(ve
 @app.patch("/api/admin/pedidos/{id}/status")
 def atualizar_status_pedido(id: int, status_novo: str = Form(...), db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
     pedido = db.query(PedidoDB).filter(PedidoDB.id == id).first()
-    if pedido:
-        pedido.status = status_novo
-        db.commit()
+    if pedido: pedido.status = status_novo; db.commit()
     return {"status": "sucesso"}
 
 @app.post("/api/produtos")
@@ -175,7 +185,6 @@ def finalizar_compra(pedido: PedidoCreate, db: Session = Depends(get_db)):
     for item in pedido.itens:
         produto = db.query(ProdutoDB).filter(ProdutoDB.id == item.produto_id).first()
         if not produto or produto.estoque < item.quantidade: raise HTTPException(status_code=400, detail="Estoque insuficiente.")
-        
         produto.estoque -= item.quantidade
         preco_real = produto.preco_promocao if produto.em_promocao else produto.preco
         total_compra += (preco_real * item.quantidade)

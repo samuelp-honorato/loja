@@ -17,12 +17,12 @@
     <style>
         * { box-sizing: border-box; }
         :root { --bg: #ffffff; --text: #171717; --muted: #737373; --border: #e5e5e5; --brand: #000000; --promo: #ef4444; }
-        html, body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; width: 100%; -webkit-font-smoothing: antialiased; padding-bottom: 90px; /* Impede botoes flutuantes de cobrirem conteudo */ }
+        html, body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; width: 100%; -webkit-font-smoothing: antialiased; padding-bottom: 90px; }
         
         header { display: flex; flex-direction: row; justify-content: space-between; align-items: center; padding: 20px 40px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 40; }
         .logo { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 600; letter-spacing: 2px; }
         .menu-top { display: flex; align-items: center; }
-        .menu-top button { background: none; border: none; font-size: 14px; font-weight: 500; margin-left: 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); transition: 0.2s; min-height: 44px; /* Área de toque */ }
+        .menu-top button { background: none; border: none; font-size: 14px; font-weight: 500; margin-left: 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); transition: 0.2s; min-height: 44px; white-space: nowrap; }
         .menu-top button.active { color: var(--brand); border-bottom: 2px solid var(--brand); }
 
         .hero { background: #f5f5f5; padding: 80px 20px; text-align: center; }
@@ -72,9 +72,9 @@
             header { flex-direction: column; padding: 16px; gap: 16px; }
             .logo { font-size: 24px; }
             
-            .menu-top { width: 100%; overflow-x: auto; white-space: nowrap; padding-bottom: 4px; justify-content: flex-start; -webkit-overflow-scrolling: touch; }
+            .menu-top { width: 100%; overflow-x: auto; padding-bottom: 4px; justify-content: flex-start; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
             .menu-top::-webkit-scrollbar { display: none; }
-            .menu-top button { margin-left: 0; margin-right: 24px; padding: 0; }
+            .menu-top button { margin-left: 0; margin-right: 20px; padding: 0; }
 
             .hero { padding: 40px 16px; }
             .hero h1 { font-size: 32px; }
@@ -85,7 +85,7 @@
             
             .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
             
-            .card-info h3 { font-size: 14px; }
+            .card-info h3 { font-size: 14px; margin-bottom: 4px;}
             .card-meta { font-size: 11px; margin-bottom: 8px; }
             .price-normal, .price-new { font-size: 15px; }
             .price-old { font-size: 12px; }
@@ -101,11 +101,7 @@
 
     <header>
         <div class="logo" id="logo-loja">LOJA</div>
-        <div class="menu-top" id="menus">
-            <button class="active" onclick="mudarSessao('tudo')">A Coleção</button>
-            <button onclick="mudarSessao('novidades')">Lançamentos</button>
-            <button onclick="mudarSessao('promocoes')" style="color: var(--promo);">Ofertas Exclusivas</button>
-        </div>
+        <div class="menu-top" id="menus"></div>
     </header>
 
     <div class="hero">
@@ -149,23 +145,66 @@
         async function carregarProdutos() {
             const res = await fetch('/api/produtos');
             todosProdutos = await res.json();
+            gerarMenuDinamico();
             mudarSessao('tudo');
         }
 
+        function gerarMenuDinamico() {
+            const menuContainer = document.getElementById('menus');
+            let html = `
+                <button class="menu-btn active" onclick="mudarSessao('tudo')">A Coleção</button>
+                <button class="menu-btn" onclick="mudarSessao('novidades')">Lançamentos</button>
+                <button class="menu-btn" onclick="mudarSessao('promocoes')" style="color: var(--promo);">Ofertas Exclusivas</button>
+            `;
+            
+            const categoriasUnicas = [...new Set(todosProdutos.map(p => p.categoria))];
+            
+            categoriasUnicas.forEach(cat => {
+                if(cat && cat.trim() !== "") {
+                    html += `<button class="menu-btn" onclick="mudarSessao('${cat}')">${cat}</button>`;
+                }
+            });
+            
+            menuContainer.innerHTML = html;
+        }
+
         function mudarSessao(tipo) {
-            document.querySelectorAll('.menu-top button').forEach(b => b.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+            
+            if(window.event && window.event.currentTarget) {
+                window.event.currentTarget.classList.add('active');
+            } else {
+                const firstBtn = document.querySelector('.menu-btn');
+                if (firstBtn) firstBtn.classList.add('active');
+            }
+            
             let filtro = [];
-            if(tipo === 'tudo') { filtro = todosProdutos; document.getElementById('titulo-secao').innerHTML = '<i data-lucide="layers"></i> Catálogo'; }
-            if(tipo === 'novidades') { filtro = todosProdutos.slice(0, 8); document.getElementById('titulo-secao').innerHTML = '<i data-lucide="sparkles"></i> Lançamentos'; }
-            if(tipo === 'promocoes') { filtro = todosProdutos.filter(p => p.em_promocao); document.getElementById('titulo-secao').innerHTML = '<i data-lucide="tag" style="color:red;"></i> Ofertas'; }
-            renderizar(filtro); lucide.createIcons();
+            if(tipo === 'tudo') { 
+                filtro = todosProdutos; 
+                document.getElementById('titulo-secao').innerHTML = '<i data-lucide="layers"></i> Catálogo Completo'; 
+            }
+            else if(tipo === 'novidades') { 
+                filtro = todosProdutos.slice(0, 8); 
+                document.getElementById('titulo-secao').innerHTML = '<i data-lucide="sparkles"></i> Lançamentos'; 
+            }
+            else if(tipo === 'promocoes') { 
+                filtro = todosProdutos.filter(p => p.em_promocao); 
+                document.getElementById('titulo-secao').innerHTML = '<i data-lucide="tag" style="color:red;"></i> Ofertas Exclusivas'; 
+            }
+            else { 
+                filtro = todosProdutos.filter(p => p.categoria === tipo); 
+                document.getElementById('titulo-secao').innerHTML = `<i data-lucide="hash"></i> Linha ${tipo}`;
+            }
+            
+            renderizar(filtro);
+            lucide.createIcons();
         }
 
         function renderizar(produtos) {
             const catalogo = document.getElementById('catalogo');
             if(produtos.length === 0) { catalogo.innerHTML = "<p style='color:#737373; text-align:center; grid-column: 1/-1;'>Nenhuma peça encontrada.</p>"; return; }
             catalogo.innerHTML = '';
+            
             produtos.forEach(p => {
                 const badge = p.em_promocao ? `<div class="badge-promo">PROMO</div>` : '';
                 const priceHTML = p.em_promocao ? `<span class="price-old">R$ ${p.preco.toFixed(2)}</span><span class="price-new">R$ ${p.preco_promocao.toFixed(2)}</span>` : `<span class="price-normal">R$ ${p.preco.toFixed(2)}</span>`;
@@ -187,7 +226,7 @@
         }
 
         function addCart(id, nome, preco, tam) {
-            event.stopPropagation(); // Evita duplo clique
+            if(window.event) window.event.stopPropagation(); 
             const item = carrinho.find(i => i.produto_id === id);
             if (item) item.quantidade++; else carrinho.push({ produto_id: id, nome, preco, tamanho: tam, quantidade: 1 });
             atualizarCart(); toggleCart(true);
