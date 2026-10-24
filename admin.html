@@ -56,7 +56,8 @@
         input:focus, select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
         .btn-primary { background: var(--primary); color: #fff; border: none; height: 48px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; font-size: 14px; transition: 0.2s; }
         .btn-primary:hover { background: #1d4ed8; }
-        .btn-action { background: #fff; border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text); }
+        
+        .btn-action { background: #fff; border: 1px solid var(--border); padding: 8px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text); display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .btn-action:hover { background: #f8fafc; }
         .btn-action.success { background: var(--success); color: #fff; border: none; }
 
@@ -106,7 +107,6 @@
             <div class="menu-item" onclick="mudarAba('aba-estoque', this)"><i data-lucide="package"></i> Estoque</div>
             
             <div class="menu-item" onclick="abrirNovoProduto(this)"><i data-lucide="plus-circle"></i> Novo Produto</div>
-            
             <div class="menu-item" onclick="mudarAba('aba-categorias', this)"><i data-lucide="tags"></i> Categorias</div>
             
             <div class="menu-label">Relatórios</div>
@@ -166,7 +166,7 @@
                     <label class="upload-area" id="upload-label">
                         <i data-lucide="upload-cloud" style="width: 40px; height: 40px; color: var(--primary);"></i>
                         <p>Toque para escolher uma foto (PC ou Celular)</p>
-                        <span>No celular, você pode escolher direto da Galeria ou iCloud.</span>
+                        <span>No celular, você pode escolher direto da Galeria.</span>
                         <input type="file" style="display: none;" accept="image/*" onchange="processarArquivo(event)">
                     </label>
 
@@ -232,7 +232,7 @@
         lucide.createIcons();
         let imgBase64 = "";
         let produtoEditandoId = null; 
-        let arrayEstoqueCompleto = [];
+        let arrayEstoqueCompleto = []; 
 
         function mudarAba(id, el) {
             document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
@@ -319,22 +319,54 @@
             
             arrayEstoqueCompleto.forEach(p => {
                 const visivel = p.ativo ? '<span style="color:var(--success);font-weight:600;font-size:12px;">👁️ Visível</span>' : '<span style="color:var(--danger);font-weight:600;font-size:12px;">🚫 Oculto</span>';
+                
+                const precoInfo = p.em_promocao 
+                    ? `<s style="color:#94a3b8;font-size:12px;">R$ ${p.preco.toFixed(2)}</s><br><b style="color:var(--danger);">R$ ${p.preco_promocao.toFixed(2)}</b> <span style="background:var(--danger);color:#fff;font-size:9px;padding:2px 4px;border-radius:4px;vertical-align:top;">PROMO</span>` 
+                    : `<b>R$ ${p.preco.toFixed(2)}</b>`;
+
                 body.innerHTML += `<tr>
                     <td><div style="display:flex;gap:12px;align-items:center;"><img src="${p.imagem_url}" class="img-mini"><div><b style="color:#0f172a;">${p.nome}</b><div style="font-size:12px;color:#64748b;">Tam: ${p.tamanho}</div></div></div></td>
                     <td><span class="pill neutro">${p.categoria}</span></td>
-                    <td><b>R$ ${p.preco.toFixed(2)}</b></td>
+                    <td>${precoInfo}</td>
                     <td><b style="color:${p.estoque>0?'var(--primary)':'var(--danger)'};">${p.estoque} un</b><br>${visivel}</td>
                     <td>
-                        <div style="display:flex; gap:8px;">
-                            <button class="btn-action" style="color:var(--primary); border-color:var(--border);" onclick="abrirEdicao(${p.id})"><i data-lucide="edit" style="width:16px;"></i></button>
-                            <button class="btn-action" style="color:var(--danger); border-color:var(--border);" onclick="excluir(${p.id})"><i data-lucide="trash-2" style="width:16px;"></i></button>
+                        <div style="display:flex; gap:6px;">
+                            <!-- Botão Ocultar/Mostrar -->
+                            <button class="btn-action" title="Ocultar/Mostrar na Loja" onclick="toggleStatus(${p.id})"><i data-lucide="${p.ativo ? 'eye-off' : 'eye'}" style="width:16px;"></i></button>
+                            <!-- Botão Promoção -->
+                            <button class="btn-action" title="Ativar Promoção" style="color:var(--warning); border-color:var(--border);" onclick="gerirPromo(${p.id}, ${p.em_promocao}, ${p.preco})"><i data-lucide="tag" style="width:16px;"></i></button>
+                            <!-- Botão Editar -->
+                            <button class="btn-action" title="Editar Peça" style="color:var(--primary); border-color:var(--border);" onclick="abrirEdicao(${p.id})"><i data-lucide="edit" style="width:16px;"></i></button>
+                            <!-- Botão Excluir -->
+                            <button class="btn-action" title="Apagar Peça" style="color:var(--danger); border-color:var(--border);" onclick="excluir(${p.id})"><i data-lucide="trash-2" style="width:16px;"></i></button>
                         </div>
                     </td>
                 </tr>`;
             });
             lucide.createIcons();
         }
-        async function excluir(id) { if(confirm("Apagar?")) { await fetch(`/api/produtos/${id}`, { method: 'DELETE' }); carregarEstoque(); } }
+
+        async function toggleStatus(id) { 
+            await fetch(`/api/produtos/${id}/status`, { method: 'PATCH' }); 
+            carregarEstoque(); 
+        }
+
+        async function gerirPromo(id, em_promo, preco_base) {
+            if(em_promo) {
+                if(confirm("Deseja encerrar a promoção desta peça e voltar ao preço original?")) { 
+                    await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: false}) }); 
+                    carregarEstoque(); 
+                }
+            } else {
+                let novoPreco = prompt(`O Preço normal é: R$ ${preco_base.toFixed(2)}.\nQual será o NOVO PREÇO de Promoção? (Ex: 49.90)`);
+                if(novoPreco) { 
+                    await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: true, preco_promocao: parseFloat(novoPreco.replace(',','.'))}) }); 
+                    carregarEstoque(); 
+                }
+            }
+        }
+
+        async function excluir(id) { if(confirm("Tem certeza que deseja apagar essa peça do sistema permanentemente?")) { await fetch(`/api/produtos/${id}`, { method: 'DELETE' }); carregarEstoque(); } }
 
         function processarArquivo(event) {
             const file = event.target.files[0];
