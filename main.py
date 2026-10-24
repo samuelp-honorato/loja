@@ -46,12 +46,12 @@ class ProdutoDB(Base):
     etiqueta = Column(String)
 
 class PedidoDB(Base):
-    __tablename__ = "pedidos_v5" 
+    __tablename__ = "pedidos_v5"
     id = Column(Integer, primary_key=True, index=True)
     cliente_nome = Column(String)
     telefone = Column(String)
     resumo_pedido = Column(String)
-    itens_json = Column(String) 
+    itens_json = Column(String)
     total = Column(Float)
     status = Column(String, default="Pendente")
     data_criacao = Column(DateTime, default=datetime.utcnow)
@@ -173,6 +173,24 @@ def atualizar_status_pedido(id: int, status_novo: str = Form(...), db: Session =
 def cadastrar_produto(produto: ProdutoCreate, db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
     novo = ProdutoDB(**produto.dict()); db.add(novo); db.commit(); return novo
 
+@app.put("/api/produtos/{id}")
+def editar_produto(id: int, produto: ProdutoCreate, db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
+    prod = db.query(ProdutoDB).filter(ProdutoDB.id == id).first()
+    if not prod: raise HTTPException(status_code=404, detail="Produto não encontrado")
+    
+    prod.nome = produto.nome
+    prod.preco = produto.preco
+    prod.estoque = produto.estoque
+    prod.imagem_url = produto.imagem_url
+    prod.descricao = produto.descricao
+    prod.tamanho = produto.tamanho
+    prod.cor = produto.cor
+    prod.categoria = produto.categoria
+    prod.etiqueta = produto.etiqueta
+    
+    db.commit()
+    return {"status": "ok"}
+
 @app.get("/api/produtos")
 def listar_produtos(db: Session = Depends(get_db)):
     return db.query(ProdutoDB).filter(ProdutoDB.estoque > 0, ProdutoDB.ativo == True).order_by(ProdutoDB.id.desc()).all()
@@ -202,10 +220,9 @@ def aplicar_promocao(id: int, promo: PromocaoUpdate, db: Session = Depends(get_d
 @app.post("/api/comprar")
 def finalizar_compra(pedido: PedidoCreate, db: Session = Depends(get_db)):
     total_compra = 0; resumo_itens = []
-    
     for item in pedido.itens:
         produto = db.query(ProdutoDB).filter(ProdutoDB.id == item.produto_id).first()
-        if not produto or produto.estoque < item.quantidade: raise HTTPException(status_code=400, detail="Estoque insuficiente no momento.")
+        if not produto or produto.estoque < item.quantidade: raise HTTPException(status_code=400, detail="Estoque insuficiente.")
         
         preco_real = produto.preco_promocao if produto.em_promocao else produto.preco
         total_compra += (preco_real * item.quantidade)

@@ -45,7 +45,7 @@
         .pill { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; white-space: nowrap; }
         .pill.pago { background: #d1fae5; color: #047857; }
         .pill.pendente { background: #fef3c7; color: #b45309; }
-        .pill.cancelado { background: #fee2e2; color: #991b1b; } /* NOVO FORMATO CANCELADO */
+        .pill.cancelado { background: #fee2e2; color: #991b1b; }
         .pill.neutro { background: #f1f5f9; color: #475569; }
 
         .cadastro-layout { display: grid; grid-template-columns: 1fr 320px; gap: 30px; }
@@ -97,7 +97,6 @@
         <div class="menu">
             <div class="menu-label">Performance</div>
             <div class="menu-item active" onclick="mudarAba('aba-dashboard', this)"><i data-lucide="bar-chart-2"></i> Visão Geral</div>
-            
             <div class="menu-item" onclick="mudarAba('aba-pedidos', this)">
                 <i data-lucide="shopping-cart"></i> Pedidos 
                 <span id="badge-pedidos" class="badge-notificacao" style="display: none;">0</span>
@@ -105,7 +104,9 @@
             
             <div class="menu-label">Catálogo</div>
             <div class="menu-item" onclick="mudarAba('aba-estoque', this)"><i data-lucide="package"></i> Estoque</div>
-            <div class="menu-item" onclick="mudarAba('aba-cadastrar', this)"><i data-lucide="plus-circle"></i> Novo Produto</div>
+            
+            <div class="menu-item" onclick="abrirNovoProduto(this)"><i data-lucide="plus-circle"></i> Novo Produto</div>
+            
             <div class="menu-item" onclick="mudarAba('aba-categorias', this)"><i data-lucide="tags"></i> Categorias</div>
             
             <div class="menu-label">Relatórios</div>
@@ -159,7 +160,7 @@
         </div>
 
         <div id="aba-cadastrar" class="aba">
-            <div class="header"><h1>Cadastrar Nova Peça</h1></div>
+            <div class="header"><h1 id="titulo-form">Cadastrar Nova Peça</h1></div>
             <div class="cadastro-layout">
                 <div class="card">
                     <label class="upload-area" id="upload-label">
@@ -178,7 +179,8 @@
                         <div><label>Referência / Linha</label><input type="text" id="etiqueta" placeholder="Ex: REF 100, Prata..." oninput="atualizarPreview()"></div>
                     </div>
                     <div style="margin-top: 20px;"><label>Descrição Breve</label><textarea id="descricao" rows="2" placeholder="Detalhes do tecido..." oninput="atualizarPreview()"></textarea></div>
-                    <button class="btn-primary" style="margin-top: 24px;" onclick="cadastrarProduto()">Salvar Produto no Catálogo</button>
+                    
+                    <button class="btn-primary" id="btn-salvar-produto" style="margin-top: 24px;" onclick="salvarProduto()">Salvar Produto no Catálogo</button>
                 </div>
 
                 <div>
@@ -229,6 +231,8 @@
     <script>
         lucide.createIcons();
         let imgBase64 = "";
+        let produtoEditandoId = null; 
+        let arrayEstoqueCompleto = [];
 
         function mudarAba(id, el) {
             document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
@@ -243,28 +247,99 @@
             if(id === 'aba-categorias') carregarCategorias();
         }
 
-        async function verificarNotificacoes() {
-            try {
-                const res = await fetch('/api/admin/indicadores');
-                const data = await res.json();
-                const badge = document.getElementById('badge-pedidos');
-                
-                if (data.pedidos_pendentes > 0) {
-                    badge.innerText = data.pedidos_pendentes;
-                    badge.style.display = 'inline-block';
-                } else {
-                    badge.style.display = 'none';
-                }
-            } catch(e) { console.error("Erro ao checar notificações", e); }
+        function abrirNovoProduto(el) {
+            produtoEditandoId = null;
+            document.getElementById('nome').value = '';
+            document.getElementById('preco').value = '';
+            document.getElementById('estoque').value = '10';
+            document.getElementById('tamanho').value = '';
+            document.getElementById('etiqueta').value = '';
+            document.getElementById('descricao').value = '';
+            imgBase64 = '';
+            document.getElementById('prev-img').src = "https://via.placeholder.com/400x400?text=Aguardando+Foto";
+            
+            document.getElementById('titulo-form').innerText = "Cadastrar Nova Peça";
+            document.getElementById('btn-salvar-produto').innerText = "Salvar Produto no Catálogo";
+            document.getElementById('upload-label').innerHTML = `<i data-lucide="upload-cloud" style="width: 40px; height: 40px; color: var(--primary);"></i><p>Toque para escolher uma foto</p><span>No celular, você pode escolher direto da Galeria.</span><input type="file" style="display: none;" accept="image/*" onchange="processarArquivo(event)">`;
+            
+            mudarAba('aba-cadastrar', el);
+            lucide.createIcons();
+            atualizarPreview();
         }
 
-        verificarNotificacoes();
-        setInterval(verificarNotificacoes, 30000);
+        function abrirEdicao(id) {
+            const p = arrayEstoqueCompleto.find(x => x.id === id);
+            if(!p) return;
+            
+            produtoEditandoId = id;
+            document.getElementById('nome').value = p.nome;
+            document.getElementById('preco').value = p.preco;
+            document.getElementById('estoque').value = p.estoque;
+            document.getElementById('tamanho').value = p.tamanho;
+            document.getElementById('etiqueta').value = p.cor || p.etiqueta;
+            document.getElementById('descricao').value = p.descricao;
+            document.getElementById('categoria').value = p.categoria;
+            
+            imgBase64 = p.imagem_url;
+            document.getElementById('prev-img').src = imgBase64;
+            document.getElementById('upload-label').innerHTML = `<i data-lucide="check-circle" style="width: 40px; height: 40px; color: var(--primary);"></i><p style="color: var(--primary);">Foto Atual Carregada</p><span style="color: var(--primary);">Toque para substituir se necessário.</span><input type="file" style="display: none;" accept="image/*" onchange="processarArquivo(event)">`;
+            
+            document.getElementById('titulo-form').innerText = "Editar Peça #" + id;
+            document.getElementById('btn-salvar-produto').innerText = "Atualizar Produto";
+            
+            mudarAba('aba-cadastrar', document.querySelectorAll('.menu-item')[3]);
+            lucide.createIcons();
+            atualizarPreview();
+        }
+
+        async function salvarProduto() {
+            if(!imgBase64 || !document.getElementById('nome').value) return alert("Preencha Nome e adicione uma Foto!");
+            const dados = {
+                nome: document.getElementById('nome').value, preco: parseFloat(document.getElementById('preco').value||0),
+                estoque: parseInt(document.getElementById('estoque').value||0), imagem_url: imgBase64,
+                descricao: document.getElementById('descricao').value, tamanho: document.getElementById('tamanho').value,
+                cor: document.getElementById('etiqueta').value, categoria: document.getElementById('categoria').value,
+                etiqueta: document.getElementById('etiqueta').value
+            };
+            
+            if (produtoEditandoId) {
+                await fetch(`/api/produtos/${produtoEditandoId}`, { method: 'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(dados) });
+                alert("Produto atualizado com sucesso!"); 
+            } else {
+                await fetch('/api/produtos', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(dados) });
+                alert("Produto cadastrado!"); 
+            }
+            window.location.reload();
+        }
+
+        async function carregarEstoque() {
+            const res = await fetch('/api/admin/produtos'); 
+            arrayEstoqueCompleto = await res.json();
+            const body = document.getElementById('lista-estoque'); body.innerHTML = '';
+            
+            arrayEstoqueCompleto.forEach(p => {
+                const visivel = p.ativo ? '<span style="color:var(--success);font-weight:600;font-size:12px;">👁️ Visível</span>' : '<span style="color:var(--danger);font-weight:600;font-size:12px;">🚫 Oculto</span>';
+                body.innerHTML += `<tr>
+                    <td><div style="display:flex;gap:12px;align-items:center;"><img src="${p.imagem_url}" class="img-mini"><div><b style="color:#0f172a;">${p.nome}</b><div style="font-size:12px;color:#64748b;">Tam: ${p.tamanho}</div></div></div></td>
+                    <td><span class="pill neutro">${p.categoria}</span></td>
+                    <td><b>R$ ${p.preco.toFixed(2)}</b></td>
+                    <td><b style="color:${p.estoque>0?'var(--primary)':'var(--danger)'};">${p.estoque} un</b><br>${visivel}</td>
+                    <td>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn-action" style="color:var(--primary); border-color:var(--border);" onclick="abrirEdicao(${p.id})"><i data-lucide="edit" style="width:16px;"></i></button>
+                            <button class="btn-action" style="color:var(--danger); border-color:var(--border);" onclick="excluir(${p.id})"><i data-lucide="trash-2" style="width:16px;"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            lucide.createIcons();
+        }
+        async function excluir(id) { if(confirm("Apagar?")) { await fetch(`/api/produtos/${id}`, { method: 'DELETE' }); carregarEstoque(); } }
 
         function processarArquivo(event) {
             const file = event.target.files[0];
             if(!file) return;
-            document.getElementById('upload-label').innerHTML = `<i data-lucide="check-circle" style="width: 40px; height: 40px; color: var(--primary);"></i><p style="color: var(--primary);">Foto Carregada: ${file.name}</p>`;
+            document.getElementById('upload-label').innerHTML = `<i data-lucide="check-circle" style="width: 40px; height: 40px; color: var(--primary);"></i><p style="color: var(--primary);">Foto Carregada: ${file.name}</p><input type="file" style="display: none;" accept="image/*" onchange="processarArquivo(event)">`;
             lucide.createIcons();
             const r = new FileReader();
             r.onload = e => { imgBase64 = e.target.result; document.getElementById('prev-img').src = imgBase64; };
@@ -279,52 +354,20 @@
             document.getElementById('prev-preco').innerText = `R$ ${(parseFloat(document.getElementById('preco').value)||0).toFixed(2).replace('.',',')}`;
         }
 
-        async function cadastrarProduto() {
-            if(!imgBase64 || !document.getElementById('nome').value) return alert("Preencha Nome e adicione uma Foto!");
-            const dados = {
-                nome: document.getElementById('nome').value, preco: parseFloat(document.getElementById('preco').value||0),
-                estoque: parseInt(document.getElementById('estoque').value||0), imagem_url: imgBase64,
-                descricao: document.getElementById('descricao').value, tamanho: document.getElementById('tamanho').value,
-                cor: document.getElementById('etiqueta').value, categoria: document.getElementById('categoria').value,
-                etiqueta: document.getElementById('etiqueta').value
-            };
-            await fetch('/api/produtos', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(dados) });
-            alert("Produto cadastrado!"); window.location.reload();
+        async function verificarNotificacoes() {
+            try {
+                const res = await fetch('/api/admin/indicadores');
+                const data = await res.json();
+                const badge = document.getElementById('badge-pedidos');
+                if (data.pedidos_pendentes > 0) { badge.innerText = data.pedidos_pendentes; badge.style.display = 'inline-block'; } 
+                else { badge.style.display = 'none'; }
+            } catch(e) {}
         }
-
-        async function carregarCategorias() {
-            const res = await fetch('/api/categorias');
-            const categorias = await res.json();
-            
-            const select = document.getElementById('categoria'); select.innerHTML = '';
-            categorias.forEach(c => select.innerHTML += `<option value="${c.nome}">${c.nome}</option>`);
-            
-            const tbody = document.getElementById('lista-categorias-admin'); tbody.innerHTML = '';
-            categorias.forEach(c => {
-                tbody.innerHTML += `<tr><td><b>${c.nome}</b></td><td><button class="btn-action" style="color:var(--danger);" onclick="excluirCategoria(${c.id})"><i data-lucide="trash-2" style="width:16px;"></i></button></td></tr>`;
-            });
-            lucide.createIcons();
-            atualizarPreview(); 
-        }
-
-        async function criarCategoria() {
-            const nome = document.getElementById('nova-cat-nome').value.trim();
-            if(!nome) return;
-            await fetch('/api/categorias', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({nome}) });
-            document.getElementById('nova-cat-nome').value = '';
-            carregarCategorias();
-        }
-
-        async function excluirCategoria(id) {
-            if(confirm("Excluir esta categoria?")) {
-                await fetch(`/api/categorias/${id}`, { method: 'DELETE' });
-                carregarCategorias();
-            }
-        }
+        verificarNotificacoes();
+        setInterval(verificarNotificacoes, 30000);
 
         async function carregarDashboard() {
             verificarNotificacoes(); 
-            
             const res = await fetch('/api/admin/indicadores'); const data = await res.json();
             document.getElementById('kpi-hoje').innerText = `R$ ${data.faturamento_hoje.toFixed(2).replace('.',',')}`;
             document.getElementById('kpi-mes').innerText = `R$ ${data.faturamento_mes.toFixed(2).replace('.',',')}`;
@@ -337,7 +380,6 @@
                 if(p.status === 'Pago') pill = '<span class="pill pago">Pago</span>';
                 else if(p.status === 'Cancelado') pill = '<span class="pill cancelado">Cancelado</span>';
                 else pill = '<span class="pill pendente">Pendente</span>';
-                
                 feed.innerHTML += `<tr><td>${new Date(p.data_criacao).toLocaleDateString()}</td><td><b>${p.cliente_nome}</b></td><td><div style="font-size:12px;color:#64748b;">${p.resumo_pedido.replace(/\n/g, '<br>')}</div></td><td><b>R$ ${p.total.toFixed(2)}</b></td><td>${pill}</td></tr>`;
             });
         }
@@ -354,49 +396,46 @@
 
                 let action = '';
                 if(p.status === 'Pendente') {
-                    action = `
-                        <div style="display:flex; gap:8px;">
-                            <button class="btn-action success" onclick="mudarStatusPedido(${p.id}, 'Pago')">Confirmar</button>
-                            <button class="btn-action" style="color:var(--danger); border-color:var(--danger);" onclick="mudarStatusPedido(${p.id}, 'Cancelado')">Cancelar</button>
-                        </div>
-                    `;
+                    action = `<div style="display:flex; gap:8px;"><button class="btn-action success" onclick="mudarStatusPedido(${p.id}, 'Pago')">Confirmar</button><button class="btn-action" style="color:var(--danger); border-color:var(--danger);" onclick="mudarStatusPedido(${p.id}, 'Cancelado')">Cancelar</button></div>`;
                 } else if(p.status === 'Pago') {
                     action = `<span style="font-size:13px;color:var(--success);font-weight:600;">✔ Concluído</span>`;
                 } else {
                     action = `<span style="font-size:13px;color:var(--danger);font-weight:600;">✖ Cancelado</span>`;
                 }
-
                 body.innerHTML += `<tr><td>#${p.id}</td><td><b>${p.cliente_nome}</b><br><span style="font-size:12px;color:#64748b;">${p.telefone||'Sem Tel'}</span></td><td><div style="font-size:12px;color:#64748b;">${p.resumo_pedido.replace(/\n/g, '<br>')}</div></td><td><b>R$ ${p.total.toFixed(2)}</b></td><td>${pill}</td><td>${action}</td></tr>`;
             });
         }
         
         async function mudarStatusPedido(id, status) { 
             if (status === 'Cancelado' && !confirm("Tem certeza que deseja cancelar este pedido? O estoque não será afetado.")) return;
-            
             const fd = new FormData(); fd.append('status_novo', status); 
             await fetch(`/api/admin/pedidos/${id}/status`, { method: 'PATCH', body: fd }); 
-            carregarPedidos(); 
-            carregarDashboard(); 
-            verificarNotificacoes(); 
+            carregarPedidos(); carregarDashboard(); verificarNotificacoes(); 
         }
 
-        async function carregarEstoque() {
-            const res = await fetch('/api/admin/produtos'); const produtos = await res.json();
-            const body = document.getElementById('lista-estoque'); body.innerHTML = '';
-            produtos.forEach(p => {
-                const visivel = p.ativo ? '<span style="color:var(--success);font-weight:600;font-size:12px;">👁️ Visível</span>' : '<span style="color:var(--danger);font-weight:600;font-size:12px;">🚫 Oculto</span>';
-                body.innerHTML += `<tr><td><div style="display:flex;gap:12px;align-items:center;"><img src="${p.imagem_url}" class="img-mini"><div><b style="color:#0f172a;">${p.nome}</b><div style="font-size:12px;color:#64748b;">Tam: ${p.tamanho}</div></div></div></td><td><span class="pill neutro">${p.categoria}</span></td><td><b>R$ ${p.preco.toFixed(2)}</b></td><td><b style="color:${p.estoque>0?'var(--primary)':'var(--danger)'};">${p.estoque} un</b><br>${visivel}</td><td><button class="btn-action" style="color:var(--danger);" onclick="excluir(${p.id})"><i data-lucide="trash-2" style="width:16px;"></i></button></td></tr>`;
-            });
-            lucide.createIcons();
+        async function carregarCategorias() {
+            const res = await fetch('/api/categorias'); const categorias = await res.json();
+            const select = document.getElementById('categoria'); select.innerHTML = '';
+            categorias.forEach(c => select.innerHTML += `<option value="${c.nome}">${c.nome}</option>`);
+            const tbody = document.getElementById('lista-categorias-admin'); tbody.innerHTML = '';
+            categorias.forEach(c => { tbody.innerHTML += `<tr><td><b>${c.nome}</b></td><td><button class="btn-action" style="color:var(--danger);" onclick="excluirCategoria(${c.id})"><i data-lucide="trash-2" style="width:16px;"></i></button></td></tr>`; });
+            lucide.createIcons(); atualizarPreview(); 
         }
-        async function excluir(id) { if(confirm("Apagar?")) { await fetch(`/api/produtos/${id}`, { method: 'DELETE' }); carregarEstoque(); } }
+
+        async function criarCategoria() {
+            const nome = document.getElementById('nova-cat-nome').value.trim();
+            if(!nome) return;
+            await fetch('/api/categorias', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({nome}) });
+            document.getElementById('nova-cat-nome').value = '';
+            carregarCategorias();
+        }
+        async function excluirCategoria(id) { if(confirm("Excluir esta categoria?")) { await fetch(`/api/categorias/${id}`, { method: 'DELETE' }); carregarCategorias(); } }
 
         async function carregarClientes() {
             const res = await fetch('/api/admin/pedidos'); const pedidos = await res.json();
             const cli = {};
             pedidos.forEach(p => { 
                 if(p.status === 'Cancelado') return; 
-                
                 if(!cli[p.cliente_nome]) cli[p.cliente_nome]={t:p.telefone, val:0}; 
                 cli[p.cliente_nome].val += p.total; 
             });
