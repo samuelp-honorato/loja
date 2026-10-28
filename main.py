@@ -30,7 +30,7 @@ class CategoriaDB(Base):
     nome = Column(String, unique=True, index=True)
 
 class ProdutoDB(Base):
-    __tablename__ = "produtos_v4"
+    __tablename__ = "produtos_v5"
     id = Column(Integer, primary_key=True, index=True)
     nome = Column(String, index=True)
     preco = Column(Float)
@@ -39,6 +39,8 @@ class ProdutoDB(Base):
     ativo = Column(Boolean, default=True)
     estoque = Column(Integer, default=1)
     imagem_url = Column(String)
+    imagem_url_2 = Column(String, nullable=True) # Foto Extra 1
+    imagem_url_3 = Column(String, nullable=True) # Foto Extra 2
     descricao = Column(String)
     tamanho = Column(String)
     cor = Column(String)
@@ -78,7 +80,10 @@ def verificar_admin(request: Request):
     return True
 
 class CategoriaCreate(BaseModel): nome: str
-class ProdutoCreate(BaseModel): nome: str; preco: float; estoque: int; imagem_url: str; descricao: str; tamanho: str; cor: str; categoria: str; etiqueta: str
+class ProdutoCreate(BaseModel): 
+    nome: str; preco: float; estoque: int; imagem_url: str; 
+    imagem_url_2: Optional[str] = None; imagem_url_3: Optional[str] = None;
+    descricao: str; tamanho: str; cor: str; categoria: str; etiqueta: str
 class ItemCarrinho(BaseModel): produto_id: int; quantidade: int; nome: str; preco: float; tamanho: str
 class PedidoCreate(BaseModel): cliente_nome: str; telefone: str; itens: List[ItemCarrinho]
 class PromocaoUpdate(BaseModel): em_promocao: bool; preco_promocao: Optional[float] = None
@@ -114,15 +119,12 @@ def sair():
 def pegar_configuracoes(): return {"whatsapp": WHATSAPP_LOJA, "nome_loja": NOME_LOJA}
 
 @app.get("/api/categorias")
-def listar_categorias(db: Session = Depends(get_db)):
-    return db.query(CategoriaDB).all()
+def listar_categorias(db: Session = Depends(get_db)): return db.query(CategoriaDB).all()
 
 @app.post("/api/categorias")
 def criar_categoria(cat: CategoriaCreate, db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
     existe = db.query(CategoriaDB).filter(CategoriaDB.nome == cat.nome).first()
-    if not existe:
-        nova = CategoriaDB(nome=cat.nome)
-        db.add(nova); db.commit()
+    if not existe: db.add(CategoriaDB(nome=cat.nome)); db.commit()
     return {"status": "ok"}
 
 @app.delete("/api/categorias/{id}")
@@ -134,11 +136,9 @@ def excluir_categoria(id: int, db: Session = Depends(get_db), admin: bool = Depe
 @app.get("/api/admin/indicadores")
 def obter_indicadores(db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
     agora = datetime.utcnow()
-    inicio_dia = datetime(agora.year, agora.month, agora.day)
-    inicio_mes = datetime(agora.year, agora.month, 1)
     pedidos = db.query(PedidoDB).all()
-    fat_hoje = sum(p.total for p in pedidos if p.status == "Pago" and p.data_criacao >= inicio_dia)
-    fat_mes = sum(p.total for p in pedidos if p.status == "Pago" and p.data_criacao >= inicio_mes)
+    fat_hoje = sum(p.total for p in pedidos if p.status == "Pago" and p.data_criacao >= datetime(agora.year, agora.month, agora.day))
+    fat_mes = sum(p.total for p in pedidos if p.status == "Pago" and p.data_criacao >= datetime(agora.year, agora.month, 1))
     return {"faturamento_hoje": fat_hoje, "faturamento_mes": fat_mes, "total_pedidos": len(pedidos), "pedidos_pendentes": len([p for p in pedidos if p.status == "Pendente"])}
 
 @app.get("/api/admin/pedidos")
@@ -151,22 +151,17 @@ def atualizar_status_pedido(id: int, status_novo: str = Form(...), db: Session =
     if pedido:
         if status_novo == "Pago" and pedido.status != "Pago":
             try:
-                itens = json.loads(pedido.itens_json)
-                for item in itens:
+                for item in json.loads(pedido.itens_json):
                     produto = db.query(ProdutoDB).filter(ProdutoDB.id == item["produto_id"]).first()
                     if produto: produto.estoque -= item["quantidade"]
             except: pass
-            
         elif pedido.status == "Pago" and status_novo != "Pago":
             try:
-                itens = json.loads(pedido.itens_json)
-                for item in itens:
+                for item in json.loads(pedido.itens_json):
                     produto = db.query(ProdutoDB).filter(ProdutoDB.id == item["produto_id"]).first()
                     if produto: produto.estoque += item["quantidade"]
             except: pass
-
-        pedido.status = status_novo
-        db.commit()
+        pedido.status = status_novo; db.commit()
     return {"status": "sucesso"}
 
 @app.post("/api/produtos")
@@ -176,20 +171,12 @@ def cadastrar_produto(produto: ProdutoCreate, db: Session = Depends(get_db), adm
 @app.put("/api/produtos/{id}")
 def editar_produto(id: int, produto: ProdutoCreate, db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
     prod = db.query(ProdutoDB).filter(ProdutoDB.id == id).first()
-    if not prod: raise HTTPException(status_code=404, detail="Produto não encontrado")
-    
-    prod.nome = produto.nome
-    prod.preco = produto.preco
-    prod.estoque = produto.estoque
-    prod.imagem_url = produto.imagem_url
-    prod.descricao = produto.descricao
-    prod.tamanho = produto.tamanho
-    prod.cor = produto.cor
-    prod.categoria = produto.categoria
-    prod.etiqueta = produto.etiqueta
-    
-    db.commit()
-    return {"status": "ok"}
+    if not prod: raise HTTPException(status_code=404)
+    prod.nome = produto.nome; prod.preco = produto.preco; prod.estoque = produto.estoque
+    prod.imagem_url = produto.imagem_url; prod.imagem_url_2 = produto.imagem_url_2; prod.imagem_url_3 = produto.imagem_url_3
+    prod.descricao = produto.descricao; prod.tamanho = produto.tamanho; prod.cor = produto.cor
+    prod.categoria = produto.categoria; prod.etiqueta = produto.etiqueta
+    db.commit(); return {"status": "ok"}
 
 @app.get("/api/produtos")
 def listar_produtos(db: Session = Depends(get_db)):
@@ -223,17 +210,13 @@ def finalizar_compra(pedido: PedidoCreate, db: Session = Depends(get_db)):
     for item in pedido.itens:
         produto = db.query(ProdutoDB).filter(ProdutoDB.id == item.produto_id).first()
         if not produto or produto.estoque < item.quantidade: raise HTTPException(status_code=400, detail="Estoque insuficiente.")
-        
         preco_real = produto.preco_promocao if produto.em_promocao else produto.preco
         total_compra += (preco_real * item.quantidade)
         resumo_itens.append(f"{item.quantidade}x {item.nome} ({item.tamanho}) - R$ {preco_real:.2f}")
     
     texto_resumo = "\n- ".join(resumo_itens)
     itens_dump = json.dumps([i.dict() for i in pedido.itens])
-
     novo_pedido = PedidoDB(cliente_nome=pedido.cliente_nome, telefone=pedido.telefone, resumo_pedido=texto_resumo, itens_json=itens_dump, total=total_compra)
     db.add(novo_pedido); db.commit()
-
     mensagem = f"Olá! Sou {pedido.cliente_nome}.\n\n*Novo Pedido #{novo_pedido.id}:*\n- {texto_resumo}\n\n*Total: R$ {total_compra:.2f}*"
-    link_whatsapp = f"https://wa.me/{WHATSAPP_LOJA}?text={urllib.parse.quote(mensagem)}"
-    return {"status": "sucesso", "whatsapp_url": link_whatsapp}
+    return {"status": "sucesso", "whatsapp_url": f"https://wa.me/{WHATSAPP_LOJA}?text={urllib.parse.quote(mensagem)}"}

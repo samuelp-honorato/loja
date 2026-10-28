@@ -105,7 +105,6 @@
             
             <div class="menu-label">Catálogo</div>
             <div class="menu-item" onclick="mudarAba('aba-estoque', this)"><i data-lucide="package"></i> Estoque</div>
-            
             <div class="menu-item" onclick="abrirNovoProduto(this)"><i data-lucide="plus-circle"></i> Novo Produto</div>
             <div class="menu-item" onclick="mudarAba('aba-categorias', this)"><i data-lucide="tags"></i> Categorias</div>
             
@@ -165,9 +164,9 @@
                 <div class="card">
                     <label class="upload-area" id="upload-label">
                         <i data-lucide="upload-cloud" style="width: 40px; height: 40px; color: var(--primary);"></i>
-                        <p>Toque para escolher uma foto (PC ou Celular)</p>
-                        <span>No celular, você pode escolher direto da Galeria.</span>
-                        <input type="file" style="display: none;" accept="image/*" onchange="processarArquivo(event)">
+                        <p>Toque para escolher até 3 fotos</p>
+                        <span>No telemóvel, podes escolher direto da Galeria.</span>
+                        <input type="file" style="display: none;" accept="image/*" multiple onchange="processarArquivo(event)">
                     </label>
 
                     <div class="grid-form">
@@ -230,7 +229,7 @@
 
     <script>
         lucide.createIcons();
-        let imgBase64 = "";
+        let imgBase64 = ""; let imgBase64_2 = ""; let imgBase64_3 = "";
         let produtoEditandoId = null; 
         let arrayEstoqueCompleto = []; 
 
@@ -249,18 +248,15 @@
 
         function abrirNovoProduto(el) {
             produtoEditandoId = null;
-            document.getElementById('nome').value = '';
-            document.getElementById('preco').value = '';
-            document.getElementById('estoque').value = '10';
-            document.getElementById('tamanho').value = '';
-            document.getElementById('etiqueta').value = '';
-            document.getElementById('descricao').value = '';
-            imgBase64 = '';
+            document.getElementById('nome').value = ''; document.getElementById('preco').value = '';
+            document.getElementById('estoque').value = '10'; document.getElementById('tamanho').value = '';
+            document.getElementById('etiqueta').value = ''; document.getElementById('descricao').value = '';
+            imgBase64 = ''; imgBase64_2 = ''; imgBase64_3 = '';
             document.getElementById('prev-img').src = "https://via.placeholder.com/400x400?text=Aguardando+Foto";
             
             document.getElementById('titulo-form').innerText = "Cadastrar Nova Peça";
             document.getElementById('btn-salvar-produto').innerText = "Salvar Produto no Catálogo";
-            document.getElementById('upload-label').innerHTML = `<i data-lucide="upload-cloud" style="width: 40px; height: 40px; color: var(--primary);"></i><p>Toque para escolher uma foto</p><span>No celular, você pode escolher direto da Galeria.</span><input type="file" style="display: none;" accept="image/*" onchange="processarArquivo(event)">`;
+            document.getElementById('upload-label').innerHTML = `<i data-lucide="upload-cloud" style="width: 40px; height: 40px; color: var(--primary);"></i><p>Selecione até 3 fotos</p><span>No telemóvel, podes escolher direto da Galeria.</span><input type="file" style="display: none;" accept="image/*" multiple onchange="processarArquivo(event)">`;
             
             mudarAba('aba-cadastrar', el);
             lucide.createIcons();
@@ -272,17 +268,14 @@
             if(!p) return;
             
             produtoEditandoId = id;
-            document.getElementById('nome').value = p.nome;
-            document.getElementById('preco').value = p.preco;
-            document.getElementById('estoque').value = p.estoque;
-            document.getElementById('tamanho').value = p.tamanho;
-            document.getElementById('etiqueta').value = p.cor || p.etiqueta;
-            document.getElementById('descricao').value = p.descricao;
+            document.getElementById('nome').value = p.nome; document.getElementById('preco').value = p.preco;
+            document.getElementById('estoque').value = p.estoque; document.getElementById('tamanho').value = p.tamanho;
+            document.getElementById('etiqueta').value = p.cor || p.etiqueta; document.getElementById('descricao').value = p.descricao;
             document.getElementById('categoria').value = p.categoria;
             
-            imgBase64 = p.imagem_url;
+            imgBase64 = p.imagem_url; imgBase64_2 = p.imagem_url_2 || ""; imgBase64_3 = p.imagem_url_3 || "";
             document.getElementById('prev-img').src = imgBase64;
-            document.getElementById('upload-label').innerHTML = `<i data-lucide="check-circle" style="width: 40px; height: 40px; color: var(--primary);"></i><p style="color: var(--primary);">Foto Atual Carregada</p><span style="color: var(--primary);">Toque para substituir se necessário.</span><input type="file" style="display: none;" accept="image/*" onchange="processarArquivo(event)">`;
+            document.getElementById('upload-label').innerHTML = `<i data-lucide="check-circle" style="width: 40px; height: 40px; color: var(--primary);"></i><p style="color: var(--primary);">Fotos Atuais Carregadas</p><span style="color: var(--primary);">Toque para substituir se necessário.</span><input type="file" style="display: none;" accept="image/*" multiple onchange="processarArquivo(event)">`;
             
             document.getElementById('titulo-form').innerText = "Editar Peça #" + id;
             document.getElementById('btn-salvar-produto').innerText = "Atualizar Produto";
@@ -293,10 +286,11 @@
         }
 
         async function salvarProduto() {
-            if(!imgBase64 || !document.getElementById('nome').value) return alert("Preencha Nome e adicione uma Foto!");
+            if(!imgBase64 || !document.getElementById('nome').value) return alert("Preenche o Nome e adiciona pelo menos a foto principal!");
             const dados = {
                 nome: document.getElementById('nome').value, preco: parseFloat(document.getElementById('preco').value||0),
                 estoque: parseInt(document.getElementById('estoque').value||0), imagem_url: imgBase64,
+                imagem_url_2: imgBase64_2, imagem_url_3: imgBase64_3,
                 descricao: document.getElementById('descricao').value, tamanho: document.getElementById('tamanho').value,
                 cor: document.getElementById('etiqueta').value, categoria: document.getElementById('categoria').value,
                 etiqueta: document.getElementById('etiqueta').value
@@ -312,70 +306,24 @@
             window.location.reload();
         }
 
-        async function carregarEstoque() {
-            const res = await fetch('/api/admin/produtos'); 
-            arrayEstoqueCompleto = await res.json();
-            const body = document.getElementById('lista-estoque'); body.innerHTML = '';
-            
-            arrayEstoqueCompleto.forEach(p => {
-                const visivel = p.ativo ? '<span style="color:var(--success);font-weight:600;font-size:12px;">👁️ Visível</span>' : '<span style="color:var(--danger);font-weight:600;font-size:12px;">🚫 Oculto</span>';
-                
-                const precoInfo = p.em_promocao 
-                    ? `<s style="color:#94a3b8;font-size:12px;">R$ ${p.preco.toFixed(2)}</s><br><b style="color:var(--danger);">R$ ${p.preco_promocao.toFixed(2)}</b> <span style="background:var(--danger);color:#fff;font-size:9px;padding:2px 4px;border-radius:4px;vertical-align:top;">PROMO</span>` 
-                    : `<b>R$ ${p.preco.toFixed(2)}</b>`;
-
-                body.innerHTML += `<tr>
-                    <td><div style="display:flex;gap:12px;align-items:center;"><img src="${p.imagem_url}" class="img-mini"><div><b style="color:#0f172a;">${p.nome}</b><div style="font-size:12px;color:#64748b;">Tam: ${p.tamanho}</div></div></div></td>
-                    <td><span class="pill neutro">${p.categoria}</span></td>
-                    <td>${precoInfo}</td>
-                    <td><b style="color:${p.estoque>0?'var(--primary)':'var(--danger)'};">${p.estoque} un</b><br>${visivel}</td>
-                    <td>
-                        <div style="display:flex; gap:6px;">
-                            <!-- Botão Ocultar/Mostrar -->
-                            <button class="btn-action" title="Ocultar/Mostrar na Loja" onclick="toggleStatus(${p.id})"><i data-lucide="${p.ativo ? 'eye-off' : 'eye'}" style="width:16px;"></i></button>
-                            <!-- Botão Promoção -->
-                            <button class="btn-action" title="Ativar Promoção" style="color:var(--warning); border-color:var(--border);" onclick="gerirPromo(${p.id}, ${p.em_promocao}, ${p.preco})"><i data-lucide="tag" style="width:16px;"></i></button>
-                            <!-- Botão Editar -->
-                            <button class="btn-action" title="Editar Peça" style="color:var(--primary); border-color:var(--border);" onclick="abrirEdicao(${p.id})"><i data-lucide="edit" style="width:16px;"></i></button>
-                            <!-- Botão Excluir -->
-                            <button class="btn-action" title="Apagar Peça" style="color:var(--danger); border-color:var(--border);" onclick="excluir(${p.id})"><i data-lucide="trash-2" style="width:16px;"></i></button>
-                        </div>
-                    </td>
-                </tr>`;
-            });
-            lucide.createIcons();
-        }
-
-        async function toggleStatus(id) { 
-            await fetch(`/api/produtos/${id}/status`, { method: 'PATCH' }); 
-            carregarEstoque(); 
-        }
-
-        async function gerirPromo(id, em_promo, preco_base) {
-            if(em_promo) {
-                if(confirm("Deseja encerrar a promoção desta peça e voltar ao preço original?")) { 
-                    await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: false}) }); 
-                    carregarEstoque(); 
-                }
-            } else {
-                let novoPreco = prompt(`O Preço normal é: R$ ${preco_base.toFixed(2)}.\nQual será o NOVO PREÇO de Promoção? (Ex: 49.90)`);
-                if(novoPreco) { 
-                    await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: true, preco_promocao: parseFloat(novoPreco.replace(',','.'))}) }); 
-                    carregarEstoque(); 
-                }
-            }
-        }
-
-        async function excluir(id) { if(confirm("Tem certeza que deseja apagar essa peça do sistema permanentemente?")) { await fetch(`/api/produtos/${id}`, { method: 'DELETE' }); carregarEstoque(); } }
-
         function processarArquivo(event) {
-            const file = event.target.files[0];
-            if(!file) return;
-            document.getElementById('upload-label').innerHTML = `<i data-lucide="check-circle" style="width: 40px; height: 40px; color: var(--primary);"></i><p style="color: var(--primary);">Foto Carregada: ${file.name}</p><input type="file" style="display: none;" accept="image/*" onchange="processarArquivo(event)">`;
+            const files = event.target.files;
+            if(files.length === 0) return;
+            imgBase64 = ""; imgBase64_2 = ""; imgBase64_3 = "";
+            let count = Math.min(files.length, 3);
+            
+            document.getElementById('upload-label').innerHTML = `<i data-lucide="check-circle" style="width: 40px; height: 40px; color: var(--primary);"></i><p style="color: var(--primary);">${count} Foto(s) Carregada(s)</p><input type="file" style="display: none;" accept="image/*" multiple onchange="processarArquivo(event)">`;
             lucide.createIcons();
-            const r = new FileReader();
-            r.onload = e => { imgBase64 = e.target.result; document.getElementById('prev-img').src = imgBase64; };
-            r.readAsDataURL(file);
+
+            for(let i=0; i<count; i++) {
+                const r = new FileReader();
+                r.onload = e => {
+                    if(i===0) { imgBase64 = e.target.result; document.getElementById('prev-img').src = imgBase64; }
+                    if(i===1) imgBase64_2 = e.target.result;
+                    if(i===2) imgBase64_3 = e.target.result;
+                };
+                r.readAsDataURL(files[i]);
+            }
         }
 
         function atualizarPreview() {
@@ -416,6 +364,53 @@
             });
         }
 
+        async function carregarEstoque() {
+            const res = await fetch('/api/admin/produtos'); 
+            arrayEstoqueCompleto = await res.json();
+            const body = document.getElementById('lista-estoque'); body.innerHTML = '';
+            
+            arrayEstoqueCompleto.forEach(p => {
+                const visivel = p.ativo ? '<span style="color:var(--success);font-weight:600;font-size:12px;">👁️ Visível</span>' : '<span style="color:var(--danger);font-weight:600;font-size:12px;">🚫 Oculto</span>';
+                
+                const precoInfo = p.em_promocao 
+                    ? `<s style="color:#94a3b8;font-size:12px;">R$ ${p.preco.toFixed(2)}</s><br><b style="color:var(--danger);">R$ ${p.preco_promocao.toFixed(2)}</b> <span style="background:var(--danger);color:#fff;font-size:9px;padding:2px 4px;border-radius:4px;vertical-align:top;">PROMO</span>` 
+                    : `<b>R$ ${p.preco.toFixed(2)}</b>`;
+
+                body.innerHTML += `<tr>
+                    <td><div style="display:flex;gap:12px;align-items:center;"><img src="${p.imagem_url}" class="img-mini"><div><b style="color:#0f172a;">${p.nome}</b><div style="font-size:12px;color:#64748b;">Tam: ${p.tamanho}</div></div></div></td>
+                    <td><span class="pill neutro">${p.categoria}</span></td>
+                    <td>${precoInfo}</td>
+                    <td><b style="color:${p.estoque>0?'var(--primary)':'var(--danger)'};">${p.estoque} un</b><br>${visivel}</td>
+                    <td>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn-action" title="Ocultar/Mostrar na Loja" onclick="toggleStatus(${p.id})"><i data-lucide="${p.ativo ? 'eye-off' : 'eye'}" style="width:16px;"></i></button>
+                            <button class="btn-action" title="Ativar Promoção" style="color:var(--warning); border-color:var(--border);" onclick="gerirPromo(${p.id}, ${p.em_promocao}, ${p.preco})"><i data-lucide="tag" style="width:16px;"></i></button>
+                            <button class="btn-action" title="Editar Peça" style="color:var(--primary); border-color:var(--border);" onclick="abrirEdicao(${p.id})"><i data-lucide="edit" style="width:16px;"></i></button>
+                            <button class="btn-action" title="Apagar Peça" style="color:var(--danger); border-color:var(--border);" onclick="excluir(${p.id})"><i data-lucide="trash-2" style="width:16px;"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            lucide.createIcons();
+        }
+
+        async function toggleStatus(id) { await fetch(`/api/produtos/${id}/status`, { method: 'PATCH' }); carregarEstoque(); }
+        async function gerirPromo(id, em_promo, preco_base) {
+            if(em_promo) {
+                if(confirm("Deseja encerrar a promoção desta peça?")) { 
+                    await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: false}) }); 
+                    carregarEstoque(); 
+                }
+            } else {
+                let novoPreco = prompt(`O Preço normal é: R$ ${preco_base.toFixed(2)}.\nQual será o NOVO PREÇO de Promoção?`);
+                if(novoPreco) { 
+                    await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: true, preco_promocao: parseFloat(novoPreco.replace(',','.'))}) }); 
+                    carregarEstoque(); 
+                }
+            }
+        }
+        async function excluir(id) { if(confirm("Tens a certeza que desejas apagar essa peça permanentemente?")) { await fetch(`/api/produtos/${id}`, { method: 'DELETE' }); carregarEstoque(); } }
+
         async function carregarPedidos() {
             verificarNotificacoes(); 
             const res = await fetch('/api/admin/pedidos'); const pedidos = await res.json();
@@ -439,7 +434,7 @@
         }
         
         async function mudarStatusPedido(id, status) { 
-            if (status === 'Cancelado' && !confirm("Tem certeza que deseja cancelar este pedido? O estoque não será afetado.")) return;
+            if (status === 'Cancelado' && !confirm("Tens a certeza que desejas cancelar este pedido? O stock não será afetado.")) return;
             const fd = new FormData(); fd.append('status_novo', status); 
             await fetch(`/api/admin/pedidos/${id}/status`, { method: 'PATCH', body: fd }); 
             carregarPedidos(); carregarDashboard(); verificarNotificacoes(); 
@@ -461,7 +456,13 @@
             document.getElementById('nova-cat-nome').value = '';
             carregarCategorias();
         }
-        async function excluirCategoria(id) { if(confirm("Excluir esta categoria?")) { await fetch(`/api/categorias/${id}`, { method: 'DELETE' }); carregarCategorias(); } }
+
+        async function excluirCategoria(id) {
+            if(confirm("Excluir esta categoria?")) {
+                await fetch(`/api/categorias/${id}`, { method: 'DELETE' });
+                carregarCategorias();
+            }
+        }
 
         async function carregarClientes() {
             const res = await fetch('/api/admin/pedidos'); const pedidos = await res.json();
