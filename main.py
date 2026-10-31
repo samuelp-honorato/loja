@@ -1,15 +1,18 @@
 import os
 import jwt
 import json
+import uuid
+import urllib.parse
 from datetime import datetime, timedelta
-from fastapi import FastAPI, HTTPException, Depends, Request, Response, Form
+from fastapi import FastAPI, HTTPException, Depends, Request, Response, Form, UploadFile, File
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from pydantic import BaseModel
 from typing import List, Optional
-import urllib.parse
+from supabase import create_client, Client
+
 
 NOME_LOJA = os.getenv("NOME_LOJA", "Marli Lingerie")
 WHATSAPP_LOJA = os.getenv("WHATSAPP_LOJA", "5511999999999")
@@ -19,6 +22,14 @@ SECRET_KEY = os.getenv("SECRET_KEY", "chave_mestre_super_secreta_marli_pro")
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./loja.db")
 if DATABASE_URL.startswith("postgres://"): DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+SUPABASE_URL = os.getenv("https://vpzzucalzgtdymlmwnec.supabase.co/rest/v1/")
+SUPABASE_KEY = os.getenv("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwenp1Y2Fsemd0ZHltbG13bmVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MzMxMDE0NCwiZXhwIjoyMTA4ODg2MTQ0fQ.rWL9mFFr32Yu_A2DxSYA4UqM6ijGi9YHUCZ877xj8tQ")
+
+if SUPABASE_URL and SUPABASE_KEY:
+    supabase_client: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+else:
+    supabase_client = None
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -93,6 +104,30 @@ def abrir_loja(): return FileResponse("index.html")
 
 @app.get("/login")
 def tela_login(): return FileResponse("login.html")
+
+@app.post("/api/upload")
+async def upload_imagem(file: UploadFile = File(...)):
+    if not supabase_client:
+        return {"erro": "Supabase não configurado"}
+        
+    try:
+        file_bytes = await file.read()
+        
+        extensao = file.filename.split(".")[-1]
+        nome_unico = f"{uuid.uuid4()}.{extensao}"
+        
+        supabase_client.storage.from_("produtos").upload(
+            file=file_bytes,
+            path=nome_unico,
+            file_options={"content-type": file.content_type}
+        )
+        
+        link_publico = supabase_client.storage.from_("produtos").get_public_url(nome_unico)
+        
+        return {"url": link_publico}
+        
+    except Exception as e:
+        return {"erro": str(e)}
 
 @app.post("/api/login")
 def fazer_login(response: Response, usuario: str = Form(...), senha: str = Form(...)):

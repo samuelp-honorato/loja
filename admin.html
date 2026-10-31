@@ -166,7 +166,7 @@
                         <i data-lucide="upload-cloud" style="width: 40px; height: 40px; color: var(--primary);"></i>
                         <p>Toque para escolher até 3 fotos</p>
                         <span>No telemóvel, podes escolher direto da Galeria.</span>
-                        <input type="file" style="display: none;" accept="image/*" multiple onchange="processarArquivo(event)">
+                        <input type="file" id="foto-input" style="display: none;" accept="image/*" multiple onchange="processarArquivo(event)">
                     </label>
 
                     <div class="grid-form">
@@ -229,7 +229,7 @@
 
     <script>
         lucide.createIcons();
-        let imgBase64 = ""; let imgBase64_2 = ""; let imgBase64_3 = "";
+        let linkFoto_1 = ""; let linkFoto_2 = ""; let linkFoto_3 = "";
         let produtoEditandoId = null; 
         let arrayEstoqueCompleto = []; 
 
@@ -251,12 +251,13 @@
             document.getElementById('nome').value = ''; document.getElementById('preco').value = '';
             document.getElementById('estoque').value = '10'; document.getElementById('tamanho').value = '';
             document.getElementById('etiqueta').value = ''; document.getElementById('descricao').value = '';
-            imgBase64 = ''; imgBase64_2 = ''; imgBase64_3 = '';
+            linkFoto_1 = ''; linkFoto_2 = ''; linkFoto_3 = '';
+            document.getElementById('foto-input').value = '';
             document.getElementById('prev-img').src = "https://via.placeholder.com/400x400?text=Aguardando+Foto";
             
             document.getElementById('titulo-form').innerText = "Cadastrar Nova Peça";
             document.getElementById('btn-salvar-produto').innerText = "Salvar Produto no Catálogo";
-            document.getElementById('upload-label').innerHTML = `<i data-lucide="upload-cloud" style="width: 40px; height: 40px; color: var(--primary);"></i><p>Selecione até 3 fotos</p><span>No telemóvel, podes escolher direto da Galeria.</span><input type="file" style="display: none;" accept="image/*" multiple onchange="processarArquivo(event)">`;
+            document.getElementById('upload-label').innerHTML = `<i data-lucide="upload-cloud" style="width: 40px; height: 40px; color: var(--primary);"></i><p>Selecione até 3 fotos</p><span>No telemóvel, podes escolher direto da Galeria.</span><input type="file" id="foto-input" style="display: none;" accept="image/*" multiple onchange="processarArquivo(event)">`;
             
             mudarAba('aba-cadastrar', el);
             lucide.createIcons();
@@ -273,9 +274,9 @@
             document.getElementById('etiqueta').value = p.cor || p.etiqueta; document.getElementById('descricao').value = p.descricao;
             document.getElementById('categoria').value = p.categoria;
             
-            imgBase64 = p.imagem_url; imgBase64_2 = p.imagem_url_2 || ""; imgBase64_3 = p.imagem_url_3 || "";
-            document.getElementById('prev-img').src = imgBase64;
-            document.getElementById('upload-label').innerHTML = `<i data-lucide="check-circle" style="width: 40px; height: 40px; color: var(--primary);"></i><p style="color: var(--primary);">Fotos Atuais Carregadas</p><span style="color: var(--primary);">Toque para substituir se necessário.</span><input type="file" style="display: none;" accept="image/*" multiple onchange="processarArquivo(event)">`;
+            linkFoto_1 = p.imagem_url; linkFoto_2 = p.imagem_url_2 || ""; linkFoto_3 = p.imagem_url_3 || "";
+            document.getElementById('prev-img').src = linkFoto_1 || "https://via.placeholder.com/400x400?text=Foto+Temporaria";
+            document.getElementById('upload-label').innerHTML = `<i data-lucide="check-circle" style="width: 40px; height: 40px; color: var(--primary);"></i><p style="color: var(--primary);">Fotos Atuais Carregadas</p><span style="color: var(--primary);">Toque para substituir se necessário.</span><input type="file" id="foto-input" style="display: none;" accept="image/*" multiple onchange="processarArquivo(event)">`;
             
             document.getElementById('titulo-form').innerText = "Editar Peça #" + id;
             document.getElementById('btn-salvar-produto').innerText = "Atualizar Produto";
@@ -285,12 +286,63 @@
             atualizarPreview();
         }
 
+        async function enviarFotoParaNuvem(file) {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const resposta = await fetch("/api/upload", {
+                    method: "POST",
+                    body: formData
+                });
+                const dados = await resposta.json();
+                
+                if (dados.url) {
+                    return dados.url;
+                } else {
+                    alert("Erro ao enviar foto: " + dados.erro);
+                    return null;
+                }
+            } catch (erro) {
+                console.error("Erro na comunicação:", erro);
+                return null;
+            }
+        }
+
         async function salvarProduto() {
-            if(!imgBase64 || !document.getElementById('nome').value) return alert("Preenche o Nome e adiciona pelo menos a foto principal!");
+            if(!document.getElementById('nome').value) return alert("Preencha o Nome do produto!");
+            
+            const btn = document.getElementById('btn-salvar-produto');
+            const textoOriginal = btn.innerText;
+            btn.innerText = "A Enviar Fotos... Aguarde";
+            btn.disabled = true;
+
+            const inputFotos = document.getElementById('foto-input');
+            
+            if (inputFotos && inputFotos.files.length > 0) {
+                const limit = Math.min(inputFotos.files.length, 3);
+                for(let i=0; i<limit; i++) {
+                    const urlLeve = await enviarFotoParaNuvem(inputFotos.files[i]);
+                    if (urlLeve) {
+                        if(i===0) linkFoto_1 = urlLeve;
+                        if(i===1) linkFoto_2 = urlLeve;
+                        if(i===2) linkFoto_3 = urlLeve;
+                    }
+                }
+            }
+
+            if (!linkFoto_1 && !produtoEditandoId) {
+                btn.innerText = textoOriginal;
+                btn.disabled = false;
+                return alert("Adicione pelo menos a foto principal!");
+            }
+
             const dados = {
                 nome: document.getElementById('nome').value, preco: parseFloat(document.getElementById('preco').value||0),
-                estoque: parseInt(document.getElementById('estoque').value||0), imagem_url: imgBase64,
-                imagem_url_2: imgBase64_2, imagem_url_3: imgBase64_3,
+                estoque: parseInt(document.getElementById('estoque').value||0), 
+                imagem_url: linkFoto_1,
+                imagem_url_2: linkFoto_2, 
+                imagem_url_3: linkFoto_3,
                 descricao: document.getElementById('descricao').value, tamanho: document.getElementById('tamanho').value,
                 cor: document.getElementById('etiqueta').value, categoria: document.getElementById('categoria').value,
                 etiqueta: document.getElementById('etiqueta').value
@@ -309,21 +361,14 @@
         function processarArquivo(event) {
             const files = event.target.files;
             if(files.length === 0) return;
-            imgBase64 = ""; imgBase64_2 = ""; imgBase64_3 = "";
-            let count = Math.min(files.length, 3);
             
-            document.getElementById('upload-label').innerHTML = `<i data-lucide="check-circle" style="width: 40px; height: 40px; color: var(--primary);"></i><p style="color: var(--primary);">${count} Foto(s) Carregada(s)</p><input type="file" style="display: none;" accept="image/*" multiple onchange="processarArquivo(event)">`;
+            let count = Math.min(files.length, 3);
+            document.getElementById('upload-label').innerHTML = `<i data-lucide="check-circle" style="width: 40px; height: 40px; color: var(--primary);"></i><p style="color: var(--primary);">${count} Foto(s) Selecionada(s)</p><span style="color: var(--primary);">Clique em Salvar Produto para enviar.</span>`;
             lucide.createIcons();
 
-            for(let i=0; i<count; i++) {
-                const r = new FileReader();
-                r.onload = e => {
-                    if(i===0) { imgBase64 = e.target.result; document.getElementById('prev-img').src = imgBase64; }
-                    if(i===1) imgBase64_2 = e.target.result;
-                    if(i===2) imgBase64_3 = e.target.result;
-                };
-                r.readAsDataURL(files[i]);
-            }
+            const r = new FileReader();
+            r.onload = e => { document.getElementById('prev-img').src = e.target.result; };
+            r.readAsDataURL(files[0]);
         }
 
         function atualizarPreview() {
