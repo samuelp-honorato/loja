@@ -358,18 +358,25 @@
             window.location.reload();
         }
 
-        function processarArquivo(event) {
-            const files = event.target.files;
-            if(files.length === 0) return;
-            
-            let count = Math.min(files.length, 3);
-            document.getElementById('upload-label').innerHTML = `<i data-lucide="check-circle" style="width: 40px; height: 40px; color: var(--primary);"></i><p style="color: var(--primary);">${count} Foto(s) Selecionada(s)</p><span style="color: var(--primary);">Clique em Salvar Produto para enviar.</span>`;
-            lucide.createIcons();
+    function processarArquivo(event) {
+        const files = event.target.files;
+        if(files.length === 0) return;
+    
+        let count = Math.min(files.length, 3);
+    
+        const inputElement = document.getElementById('foto-input');
+    
+        const label = document.getElementById('upload-label');
+        label.innerHTML = `<i data-lucide="check-circle" style="width: 40px; height: 40px; color: var(--primary);"></i><p style="color: var(--primary);">${count} Foto(s) Selecionada(s)</p><span style="color: var(--primary);">Foto pronta! Clique em Atualizar Produto.</span>`;
+    
+        label.appendChild(inputElement);
+    
+        lucide.createIcons();
 
-            const r = new FileReader();
-            r.onload = e => { document.getElementById('prev-img').src = e.target.result; };
-            r.readAsDataURL(files[0]);
-        }
+        const r = new FileReader();
+        r.onload = e => { document.getElementById('prev-img').src = e.target.result; };
+        r.readAsDataURL(files[0]);
+    }
 
         function atualizarPreview() {
             document.getElementById('prev-nome').innerText = document.getElementById('nome').value || "Nome da Peça";
