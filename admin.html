@@ -355,7 +355,21 @@
                 await fetch('/api/produtos', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(dados) });
                 alert("Produto cadastrado!"); 
             }
-            window.location.reload();
+        document.getElementById('nome').value = '';
+        document.getElementById('preco').value = '';
+        document.getElementById('estoque').value = '1'; 
+        document.getElementById('descricao').value = '';
+        document.getElementById('tamanho').value = '';
+
+        document.getElementById('foto-input').value = '';
+
+        linkFoto_1 = null;
+        linkFoto_2 = null;
+        linkFoto_3 = null;
+        produtoEditandoId = null; 
+
+        btn.innerText = textoOriginal;
+        btn.disabled = false;
         }
 
     function processarArquivo(event) {
