@@ -23,11 +23,12 @@ SECRET_KEY = os.getenv("SECRET_KEY", "chave_mestre_super_secreta_marli_pro")
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./loja.db")
 if DATABASE_URL.startswith("postgres://"): DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-SUPABASE_URL = os.getenv("https://vpzzucalzgtdymlmwnec.supabase.co/rest/v1/")
-SUPABASE_KEY = os.getenv("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwenp1Y2Fsemd0ZHltbG13bmVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MzMxMDE0NCwiZXhwIjoyMTA4ODg2MTQ0fQ.rWL9mFFr32Yu_A2DxSYA4UqM6ijGi9YHUCZ877xj8tQ")
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 if SUPABASE_URL and SUPABASE_KEY:
-    supabase_client: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    clean_url = SUPABASE_URL.replace("/rest/v1/", "")
+    supabase_client: Client = create_client(clean_url, SUPABASE_KEY)
 else:
     supabase_client = None
 
