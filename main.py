@@ -280,7 +280,8 @@ def enviar_mensagem_whatsapp(telefone_destino: str, texto: str):
         "type": "text",
         "text": {"body": texto}
     }
-    requests.post(url, headers=headers, json=payload)
+    resposta = requests.post(url, headers=headers, json=payload)
+    print(f"[RESPOSTA META] Status: {resposta.status_code} | Detalhe: {resposta.text}")
 
 
 @app.get("/api/webhook/whatsapp")
