@@ -256,3 +256,55 @@ def finalizar_compra(pedido: PedidoCreate, db: Session = Depends(get_db)):
     db.add(novo_pedido); db.commit()
     mensagem = f"Olá! Sou {pedido.cliente_nome}.\n\n*Novo Pedido #{novo_pedido.id}:*\n- {texto_resumo}\n\n*Total: R$ {total_compra:.2f}*"
     return {"status": "sucesso", "whatsapp_url": f"https://wa.me/{WHATSAPP_LOJA}?text={urllib.parse.quote(mensagem)}"}
+
+
+WHATSAPP_VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN", "token_mestre_marli_123")
+
+@app.get("/api/webhook/whatsapp")
+async def verify_webhook(request: Request):
+    """
+    Passo 1: A Meta (Facebook) vai bater nesta rota uma única vez para 
+    verificar se o servidor pertence a nós.
+    """
+    mode = request.query_params.get("hub.mode")
+    token = request.query_params.get("hub.verify_token")
+    challenge = request.query_params.get("hub.challenge")
+
+    if mode == "subscribe" and token == WHATSAPP_VERIFY_TOKEN:
+        return Response(content=challenge, media_type="text/plain")
+    return {"erro": "Token de verificação inválido"}
+
+
+@app.post("/api/webhook/whatsapp")
+async def receive_whatsapp(request: Request):
+    """
+    Passo 2: Rota principal. Todas as mensagens de clientes (pedidos) 
+    e mensagens suas (cadastro de produtos) chegarão aqui em formato JSON.
+    """
+    try:
+        body = await request.json()
+        
+        entry = body.get("entry", [])[0]
+        changes = entry.get("changes", [])[0]
+        value = changes.get("value", {})
+        
+        if "messages" in value:
+            msg = value["messages"][0]
+            telefone_remetente = msg["from"]
+            
+            if msg["type"] == "text":
+                texto = msg["text"]["body"]
+                print(f"[WHATSAPP] Texto recebido de {telefone_remetente}: {texto}")
+                
+                
+            elif msg["type"] == "image":
+                imagem_id = msg["image"]["id"]
+                legenda = msg.get("image", {}).get("caption", "")
+                print(f"[WHATSAPP] Imagem recebida de {telefone_remetente}. ID: {imagem_id} | Legenda: {legenda}")
+                
+
+        return Response(content="EVENT_RECEIVED", status_code=200)
+
+    except Exception as e:
+        print(f"[ERRO WEBHOOK]: {e}")
+        return Response(content="ERROR", status_code=500)
