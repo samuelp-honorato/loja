@@ -48,12 +48,37 @@
         .pill.cancelado { background: #fee2e2; color: #991b1b; }
         .pill.neutro { background: #f1f5f9; color: #475569; }
 
+        .toolbar-estoque { display: flex; gap: 16px; margin-bottom: 24px; align-items: center; background: var(--card); padding: 16px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .toolbar-estoque .input-wrapper { flex-grow: 1; position: relative; }
+        .toolbar-estoque .input-wrapper i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 18px; }
+        .toolbar-estoque input { width: 100%; height: 44px; padding: 0 16px 0 44px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Inter'; font-size: 14px; transition: 0.2s; }
+        .toolbar-estoque select { width: 220px; height: 44px; padding: 0 16px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Inter'; font-size: 14px; }
+        .toolbar-estoque input:focus, .toolbar-estoque select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        
+        .view-toggles { display: flex; background: #f1f5f9; padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
+        .view-toggles button { background: transparent; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; color: #64748b; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .view-toggles button.active { background: #fff; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+        .estoque-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .card-produto-grid { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; position: relative; transition: 0.2s; display: flex; flex-direction: column; }
+        .card-produto-grid:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .card-produto-grid.alerta-estoque { border-color: var(--danger); box-shadow: 0 0 0 1px var(--danger); }
+        .card-produto-grid.alerta-estoque::before { content: 'ESTOQUE BAIXO'; position: absolute; top: 12px; right: 12px; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 20px; z-index: 10; letter-spacing: 0.5px; }
+        .grid-img { width: 100%; aspect-ratio: 1/1; object-fit: contain; border-bottom: 1px solid var(--border); background: #f8fafc; padding: 10px; }
+        .grid-info { padding: 16px; display: flex; flex-direction: column; flex-grow: 1; }
+        .grid-info-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+        .grid-nome { font-weight: 600; color: #0f172a; font-size: 15px; margin: 0; line-height: 1.3; }
+        .grid-tam { font-size: 12px; font-weight: 700; color: var(--primary); background: #eff6ff; padding: 2px 6px; border-radius: 4px; }
+        .grid-cat { font-size: 12px; color: #64748b; margin-bottom: 12px; }
+        .grid-preco { font-size: 16px; font-weight: 700; color: #0f172a; margin-top: auto; display: flex; align-items: center; justify-content: space-between; }
+        .grid-estoque { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .grid-acoes { display: flex; gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+        .grid-acoes .btn-action { flex: 1; }
+        .alerta-linha { background-color: #fef2f2 !important; }
+
         .cadastro-layout { display: grid; grid-template-columns: 1fr 320px; gap: 30px; }
         .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #475569; }
-        input, select, textarea { width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Inter'; font-size: 14px; transition: 0.2s; }
-        textarea { height: auto; padding: 12px; }
-        input:focus, select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
         .btn-primary { background: var(--primary); color: #fff; border: none; height: 48px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; font-size: 14px; transition: 0.2s; }
         .btn-primary:hover { background: #1d4ed8; }
         
@@ -88,6 +113,8 @@
             .cadastro-layout { grid-template-columns: 1fr; }
             .grid-form { grid-template-columns: 1fr; }
             .content { padding: 20px; overflow-y: visible; }
+            .toolbar-estoque { flex-direction: column; align-items: stretch; }
+            .toolbar-estoque select { width: 100%; }
         }
     </style>
 </head>
@@ -148,14 +175,24 @@
 
         <div id="aba-estoque" class="aba">
             <div class="header"><h1>Gestão de Estoque</h1></div>
-            <div class="card" style="padding: 0;">
-                <div class="table-responsive">
-                    <table>
-                        <thead><tr><th>Produto</th><th>Detalhes</th><th>Preço</th><th>Estoque / Status</th><th>Gerenciar</th></tr></thead>
-                        <tbody id="lista-estoque"></tbody>
-                    </table>
+            
+            <div class="toolbar-estoque">
+                <div class="input-wrapper">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="busca-estoque" placeholder="Buscar por nome, cor ou referência..." onkeyup="filtrarEstoque()">
+                </div>
+                
+                <select id="filtro-categoria-estoque" onchange="filtrarEstoque()">
+                    <option value="">Todas as Categorias</option>
+                </select>
+                
+                <div class="view-toggles">
+                    <button id="btn-view-lista" class="active" onclick="mudarViewEstoque('lista')" title="Visão em Lista"><i data-lucide="list"></i></button>
+                    <button id="btn-view-grid" onclick="mudarViewEstoque('grid')" title="Visão em Grade"><i data-lucide="layout-grid"></i></button>
                 </div>
             </div>
+
+            <div id="container-estoque"></div>
         </div>
 
         <div id="aba-cadastrar" class="aba">
@@ -232,6 +269,7 @@
         let linkFoto_1 = ""; let linkFoto_2 = ""; let linkFoto_3 = "";
         let produtoEditandoId = null; 
         let arrayEstoqueCompleto = []; 
+        let viewModeEstoque = 'lista'; 
 
         function mudarAba(id, el) {
             document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
@@ -289,60 +327,35 @@
         async function enviarFotoParaNuvem(file) {
             const formData = new FormData();
             formData.append("file", file);
-
             try {
-                const resposta = await fetch("/api/upload", {
-                    method: "POST",
-                    body: formData
-                });
+                const resposta = await fetch("/api/upload", { method: "POST", body: formData });
                 const dados = await resposta.json();
-                
-                if (dados.url) {
-                    return dados.url;
-                } else {
-                    alert("Erro ao enviar foto: " + dados.erro);
-                    return null;
-                }
-            } catch (erro) {
-                console.error("Erro na comunicação:", erro);
-                return null;
-            }
+                return dados.url ? dados.url : (alert("Erro ao enviar foto: " + dados.erro), null);
+            } catch (erro) { console.error("Erro na comunicação:", erro); return null; }
         }
 
         async function salvarProduto() {
             if(!document.getElementById('nome').value) return alert("Preencha o Nome do produto!");
-            
             const btn = document.getElementById('btn-salvar-produto');
             const textoOriginal = btn.innerText;
             btn.innerText = "A Enviar Fotos... Aguarde";
             btn.disabled = true;
-
             const inputFotos = document.getElementById('foto-input');
             
             if (inputFotos && inputFotos.files.length > 0) {
                 const limit = Math.min(inputFotos.files.length, 3);
                 for(let i=0; i<limit; i++) {
                     const urlLeve = await enviarFotoParaNuvem(inputFotos.files[i]);
-                    if (urlLeve) {
-                        if(i===0) linkFoto_1 = urlLeve;
-                        if(i===1) linkFoto_2 = urlLeve;
-                        if(i===2) linkFoto_3 = urlLeve;
-                    }
+                    if (urlLeve) { if(i===0) linkFoto_1 = urlLeve; if(i===1) linkFoto_2 = urlLeve; if(i===2) linkFoto_3 = urlLeve; }
                 }
             }
 
-            if (!linkFoto_1 && !produtoEditandoId) {
-                btn.innerText = textoOriginal;
-                btn.disabled = false;
-                return alert("Adicione pelo menos a foto principal!");
-            }
+            if (!linkFoto_1 && !produtoEditandoId) { btn.innerText = textoOriginal; btn.disabled = false; return alert("Adicione pelo menos a foto principal!"); }
 
             const dados = {
                 nome: document.getElementById('nome').value, preco: parseFloat(document.getElementById('preco').value||0),
                 estoque: parseInt(document.getElementById('estoque').value||0), 
-                imagem_url: linkFoto_1,
-                imagem_url_2: linkFoto_2, 
-                imagem_url_3: linkFoto_3,
+                imagem_url: linkFoto_1, imagem_url_2: linkFoto_2, imagem_url_3: linkFoto_3,
                 descricao: document.getElementById('descricao').value, tamanho: document.getElementById('tamanho').value,
                 cor: document.getElementById('etiqueta').value, categoria: document.getElementById('categoria').value,
                 etiqueta: document.getElementById('etiqueta').value
@@ -355,42 +368,26 @@
                 await fetch('/api/produtos', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(dados) });
                 alert("Produto cadastrado!"); 
             }
-        document.getElementById('nome').value = '';
-        document.getElementById('preco').value = '';
-        document.getElementById('estoque').value = '1'; 
-        document.getElementById('descricao').value = '';
-        document.getElementById('tamanho').value = '';
-
-        document.getElementById('foto-input').value = '';
-
-        linkFoto_1 = null;
-        linkFoto_2 = null;
-        linkFoto_3 = null;
-        produtoEditandoId = null; 
-
-        btn.innerText = textoOriginal;
-        btn.disabled = false;
+            document.getElementById('nome').value = ''; document.getElementById('preco').value = '';
+            document.getElementById('estoque').value = '1'; document.getElementById('descricao').value = ''; document.getElementById('tamanho').value = '';
+            document.getElementById('foto-input').value = '';
+            linkFoto_1 = null; linkFoto_2 = null; linkFoto_3 = null; produtoEditandoId = null; 
+            btn.innerText = textoOriginal; btn.disabled = false;
         }
 
-    function processarArquivo(event) {
-        const files = event.target.files;
-        if(files.length === 0) return;
-    
-        let count = Math.min(files.length, 3);
-    
-        const inputElement = document.getElementById('foto-input');
-    
-        const label = document.getElementById('upload-label');
-        label.innerHTML = `<i data-lucide="check-circle" style="width: 40px; height: 40px; color: var(--primary);"></i><p style="color: var(--primary);">${count} Foto(s) Selecionada(s)</p><span style="color: var(--primary);">Foto pronta! Clique em Atualizar Produto.</span>`;
-    
-        label.appendChild(inputElement);
-    
-        lucide.createIcons();
-
-        const r = new FileReader();
-        r.onload = e => { document.getElementById('prev-img').src = e.target.result; };
-        r.readAsDataURL(files[0]);
-    }
+        function processarArquivo(event) {
+            const files = event.target.files;
+            if(files.length === 0) return;
+            let count = Math.min(files.length, 3);
+            const inputElement = document.getElementById('foto-input');
+            const label = document.getElementById('upload-label');
+            label.innerHTML = `<i data-lucide="check-circle" style="width: 40px; height: 40px; color: var(--primary);"></i><p style="color: var(--primary);">${count} Foto(s) Selecionada(s)</p><span style="color: var(--primary);">Foto pronta! Clique em Atualizar Produto.</span>`;
+            label.appendChild(inputElement);
+            lucide.createIcons();
+            const r = new FileReader();
+            r.onload = e => { document.getElementById('prev-img').src = e.target.result; };
+            r.readAsDataURL(files[0]);
+        }
 
         function atualizarPreview() {
             document.getElementById('prev-nome').innerText = document.getElementById('nome').value || "Nome da Peça";
@@ -409,8 +406,7 @@
                 else { badge.style.display = 'none'; }
             } catch(e) {}
         }
-        verificarNotificacoes();
-        setInterval(verificarNotificacoes, 30000);
+        verificarNotificacoes(); setInterval(verificarNotificacoes, 30000);
 
         async function carregarDashboard() {
             verificarNotificacoes(); 
@@ -430,49 +426,130 @@
             });
         }
 
+        function mudarViewEstoque(modo) {
+            viewModeEstoque = modo;
+            document.getElementById('btn-view-lista').classList.toggle('active', modo === 'lista');
+            document.getElementById('btn-view-grid').classList.toggle('active', modo === 'grid');
+            filtrarEstoque();
+        }
+
         async function carregarEstoque() {
             const res = await fetch('/api/admin/produtos'); 
             arrayEstoqueCompleto = await res.json();
-            const body = document.getElementById('lista-estoque'); body.innerHTML = '';
             
-            arrayEstoqueCompleto.forEach(p => {
-                const visivel = p.ativo ? '<span style="color:var(--success);font-weight:600;font-size:12px;">👁️ Visível</span>' : '<span style="color:var(--danger);font-weight:600;font-size:12px;">🚫 Oculto</span>';
-                
-                const precoInfo = p.em_promocao 
-                    ? `<s style="color:#94a3b8;font-size:12px;">R$ ${p.preco.toFixed(2)}</s><br><b style="color:var(--danger);">R$ ${p.preco_promocao.toFixed(2)}</b> <span style="background:var(--danger);color:#fff;font-size:9px;padding:2px 4px;border-radius:4px;vertical-align:top;">PROMO</span>` 
-                    : `<b>R$ ${p.preco.toFixed(2)}</b>`;
+            const catSet = new Set(arrayEstoqueCompleto.map(p => p.categoria).filter(c => c));
+            const selectCat = document.getElementById('filtro-categoria-estoque');
+            selectCat.innerHTML = '<option value="">Todas as Categorias</option>';
+            catSet.forEach(c => selectCat.innerHTML += `<option value="${c}">${c}</option>`);
 
-                body.innerHTML += `<tr>
-                    <td><div style="display:flex;gap:12px;align-items:center;"><img src="${p.imagem_url}" class="img-mini"><div><b style="color:#0f172a;">${p.nome}</b><div style="font-size:12px;color:#64748b;">Tam: ${p.tamanho}</div></div></div></td>
-                    <td><span class="pill neutro">${p.categoria}</span></td>
-                    <td>${precoInfo}</td>
-                    <td><b style="color:${p.estoque>0?'var(--primary)':'var(--danger)'};">${p.estoque} un</b><br>${visivel}</td>
-                    <td>
-                        <div style="display:flex; gap:6px;">
-                            <button class="btn-action" title="Ocultar/Mostrar na Loja" onclick="toggleStatus(${p.id})"><i data-lucide="${p.ativo ? 'eye-off' : 'eye'}" style="width:16px;"></i></button>
-                            <button class="btn-action" title="Ativar Promoção" style="color:var(--warning); border-color:var(--border);" onclick="gerirPromo(${p.id}, ${p.em_promocao}, ${p.preco})"><i data-lucide="tag" style="width:16px;"></i></button>
-                            <button class="btn-action" title="Editar Peça" style="color:var(--primary); border-color:var(--border);" onclick="abrirEdicao(${p.id})"><i data-lucide="edit" style="width:16px;"></i></button>
-                            <button class="btn-action" title="Apagar Peça" style="color:var(--danger); border-color:var(--border);" onclick="excluir(${p.id})"><i data-lucide="trash-2" style="width:16px;"></i></button>
-                        </div>
-                    </td>
-                </tr>`;
+            filtrarEstoque();
+        }
+
+        function filtrarEstoque() {
+            const termo = document.getElementById('busca-estoque').value.toLowerCase();
+            const categoria = document.getElementById('filtro-categoria-estoque').value;
+
+            const produtosFiltrados = arrayEstoqueCompleto.filter(p => {
+                const termoValido = p.nome.toLowerCase().includes(termo) || (p.etiqueta && p.etiqueta.toLowerCase().includes(termo)) || (p.cor && p.cor.toLowerCase().includes(termo));
+                const categoriaValida = categoria === "" || p.categoria === categoria;
+                return termoValido && categoriaValida;
             });
+
+            renderizarEstoque(produtosFiltrados);
+        }
+
+        function renderizarEstoque(produtos) {
+            const container = document.getElementById('container-estoque');
+            container.innerHTML = '';
+
+            if(produtos.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding: 60px; color:#64748b; background: var(--card); border-radius: 12px; border: 1px dashed var(--border);">Nenhuma peça encontrada com este filtro.</div>';
+                return;
+            }
+
+            if(viewModeEstoque === 'lista') {
+                let htmlLista = `
+                <div class="card" style="padding: 0;">
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Produto / Detalhes</th><th>Categoria</th><th>Preço</th><th>Estoque</th><th>Gerenciar</th></tr></thead>
+                            <tbody>`;
+                produtos.forEach(p => {
+                    const alertaLinha = p.estoque < 3 ? 'alerta-linha' : '';
+                    const alertaIcone = p.estoque < 3 ? '<i data-lucide="alert-triangle" style="width:14px; margin-right:4px;"></i>' : '';
+                    const visivel = p.ativo ? '<span style="color:var(--success);font-weight:600;font-size:12px;">👁️ Visível</span>' : '<span style="color:var(--danger);font-weight:600;font-size:12px;">🚫 Oculto</span>';
+                    const precoInfo = p.em_promocao 
+                        ? `<s style="color:#94a3b8;font-size:12px;">R$ ${p.preco.toFixed(2)}</s><br><b style="color:var(--danger);">R$ ${p.preco_promocao.toFixed(2)}</b>` 
+                        : `<b>R$ ${p.preco.toFixed(2)}</b>`;
+
+                    htmlLista += `<tr class="${alertaLinha}">
+                        <td>
+                            <div style="display:flex;gap:12px;align-items:center;">
+                                <img src="${p.imagem_url}" class="img-mini">
+                                <div><b style="color:#0f172a;">${p.nome}</b><div style="font-size:12px;color:#64748b;">Tam: ${p.tamanho} ${p.etiqueta ? '• Ref: '+p.etiqueta : ''}</div></div>
+                            </div>
+                        </td>
+                        <td><span class="pill neutro">${p.categoria}</span></td>
+                        <td>${precoInfo}</td>
+                        <td><b style="color:${p.estoque>0?'var(--primary)':'var(--danger)'}; display:flex; align-items:center;">${alertaIcone} ${p.estoque} un</b>${visivel}</td>
+                        <td>
+                            <div style="display:flex; gap:6px;">
+                                <button class="btn-action" title="Ocultar/Mostrar" onclick="toggleStatus(${p.id})"><i data-lucide="${p.ativo ? 'eye-off' : 'eye'}" style="width:16px;"></i></button>
+                                <button class="btn-action" title="Ativar Promoção" style="color:var(--warning); border-color:var(--border);" onclick="gerirPromo(${p.id}, ${p.em_promocao}, ${p.preco})"><i data-lucide="tag" style="width:16px;"></i></button>
+                                <button class="btn-action" title="Editar Peça" style="color:var(--primary); border-color:var(--border);" onclick="abrirEdicao(${p.id})"><i data-lucide="edit" style="width:16px;"></i></button>
+                                <button class="btn-action" title="Apagar" style="color:var(--danger); border-color:var(--border);" onclick="excluir(${p.id})"><i data-lucide="trash-2" style="width:16px;"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+                });
+                htmlLista += `</tbody></table></div></div>`;
+                container.innerHTML = htmlLista;
+                
+            } else {
+                let htmlGrid = `<div class="estoque-grid">`;
+                produtos.forEach(p => {
+                    const alertaGrid = p.estoque < 3 ? 'alerta-estoque' : '';
+                    const alertaIcone = p.estoque < 3 ? '<i data-lucide="alert-triangle" style="width:14px;"></i>' : '';
+                    const precoInfo = p.em_promocao ? `<span style="color:var(--danger);">R$ ${p.preco_promocao.toFixed(2)}</span>` : `R$ ${p.preco.toFixed(2)}`;
+                    const opacidade = p.ativo ? '1' : '0.6';
+
+                    htmlGrid += `
+                    <div class="card-produto-grid ${alertaGrid}" style="opacity: ${opacidade};">
+                        <img src="${p.imagem_url}" class="grid-img">
+                        <div class="grid-info">
+                            <div class="grid-info-top">
+                                <h4 class="grid-nome">${p.nome}</h4>
+                                <span class="grid-tam">${p.tamanho}</span>
+                            </div>
+                            <div class="grid-cat">${p.categoria} ${p.etiqueta ? '• '+p.etiqueta : ''}</div>
+                            
+                            <div class="grid-preco">
+                                <span>${precoInfo}</span>
+                                <span class="grid-estoque" style="color:${p.estoque>0?'var(--primary)':'var(--danger)'};">${alertaIcone} ${p.estoque} un</span>
+                            </div>
+                            
+                            <div class="grid-acoes">
+                                <button class="btn-action" title="Ocultar" onclick="toggleStatus(${p.id})"><i data-lucide="${p.ativo ? 'eye-off' : 'eye'}" style="width:16px;"></i></button>
+                                <button class="btn-action" title="Promoção" style="color:var(--warning);" onclick="gerirPromo(${p.id}, ${p.em_promocao}, ${p.preco})"><i data-lucide="tag" style="width:16px;"></i></button>
+                                <button class="btn-action" title="Editar" style="color:var(--primary);" onclick="abrirEdicao(${p.id})"><i data-lucide="edit" style="width:16px;"></i></button>
+                                <button class="btn-action" title="Apagar" style="color:var(--danger);" onclick="excluir(${p.id})"><i data-lucide="trash-2" style="width:16px;"></i></button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                htmlGrid += `</div>`;
+                container.innerHTML = htmlGrid;
+            }
             lucide.createIcons();
         }
 
         async function toggleStatus(id) { await fetch(`/api/produtos/${id}/status`, { method: 'PATCH' }); carregarEstoque(); }
         async function gerirPromo(id, em_promo, preco_base) {
             if(em_promo) {
-                if(confirm("Deseja encerrar a promoção desta peça?")) { 
-                    await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: false}) }); 
-                    carregarEstoque(); 
-                }
+                if(confirm("Deseja encerrar a promoção desta peça?")) { await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: false}) }); carregarEstoque(); }
             } else {
                 let novoPreco = prompt(`O Preço normal é: R$ ${preco_base.toFixed(2)}.\nQual será o NOVO PREÇO de Promoção?`);
-                if(novoPreco) { 
-                    await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: true, preco_promocao: parseFloat(novoPreco.replace(',','.'))}) }); 
-                    carregarEstoque(); 
-                }
+                if(novoPreco) { await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: true, preco_promocao: parseFloat(novoPreco.replace(',','.'))}) }); carregarEstoque(); }
             }
         }
         async function excluir(id) { if(confirm("Tens a certeza que desejas apagar essa peça permanentemente?")) { await fetch(`/api/produtos/${id}`, { method: 'DELETE' }); carregarEstoque(); } }
