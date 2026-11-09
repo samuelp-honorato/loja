@@ -243,19 +243,30 @@ def aplicar_promocao(id: int, promo: PromocaoUpdate, db: Session = Depends(get_d
 
 @app.post("/api/comprar")
 def finalizar_compra(pedido: PedidoCreate, db: Session = Depends(get_db)):
-    total_compra = 0; resumo_itens = []
+    total_compra = 0
+    resumo_itens = []
+    
     for item in pedido.itens:
         produto = db.query(ProdutoDB).filter(ProdutoDB.id == item.produto_id).first()
-        if not produto or produto.estoque < item.quantidade: raise HTTPException(status_code=400, detail="Estoque insuficiente.")
+        if not produto or produto.estoque < item.quantidade: 
+            raise HTTPException(status_code=400, detail="Estoque insuficiente.")
+        
         preco_real = produto.preco_promocao if produto.em_promocao else produto.preco
         total_compra += (preco_real * item.quantidade)
-        resumo_itens.append(f"{item.quantidade}x {item.nome} ({item.tamanho}) - R$ {preco_real:.2f}")
+        
+        referencia = f" | Ref: {produto.etiqueta}" if produto.etiqueta else ""
+        
+        resumo_itens.append(f"▪️ {item.quantidade}x {item.nome} (Tam: {item.tamanho}{referencia}) - R$ {preco_real:.2f}")
     
-    texto_resumo = "\n- ".join(resumo_itens)
+    texto_resumo = "\n".join(resumo_itens)
     itens_dump = json.dumps([i.dict() for i in pedido.itens])
+    
     novo_pedido = PedidoDB(cliente_nome=pedido.cliente_nome, telefone=pedido.telefone, resumo_pedido=texto_resumo, itens_json=itens_dump, total=total_compra)
-    db.add(novo_pedido); db.commit()
-    mensagem = f"Olá! Sou {pedido.cliente_nome}.\n\n*Novo Pedido #{novo_pedido.id}:*\n- {texto_resumo}\n\n*Total: R$ {total_compra:.2f}*"
+    db.add(novo_pedido)
+    db.commit()
+    
+    mensagem = f"🛒 *NOVO PEDIDO #{novo_pedido.id}* 🛒\n\n*Cliente:* {pedido.cliente_nome}\n\n*Itens:*\n{texto_resumo}\n\n*Total: R$ {total_compra:.2f}*"
+    
     return {"status": "sucesso", "whatsapp_url": f"https://wa.me/{WHATSAPP_LOJA}?text={urllib.parse.quote(mensagem)}"}
 
 
