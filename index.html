@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Marli Essencial | Boutique Concept</title>
-    <!-- Favicon SVG Dinâmico -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231e1b20'/><text x='50%' y='50%' font-family='Inter, sans-serif' font-size='60' font-weight='800' fill='%23b48484' dominant-baseline='central' text-anchor='middle'>M</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -26,15 +25,22 @@
         
         #btn-menu-mobile { background: none; border: none; font-size: 28px; cursor: pointer; padding: 10px; color: var(--brand); display: flex; align-items: center; }
 
-        .hero { 
-            background: linear-gradient(180deg, #fdfbfb 0%, #f7eded 100%); 
-            padding: 90px 20px; 
-            text-align: center;
+        .hero-banner {
+            width: 100%;
+            background: #fdfbfb;
             border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
         }
-        .hero-badge { display: inline-block; background: #fff; border: 1px solid #e2cbd4; padding: 6px 16px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; box-shadow: 0 2px 6px rgba(180,132,132,0.08); }
-        .hero h1 { font-family: 'Playfair Display', serif; font-size: 48px; margin: 0 0 16px 0; color: #1e1b20; font-weight: 600; }
-        .hero p { color: var(--muted); font-size: 17px; max-width: 600px; margin: 0 auto; line-height: 1.6; }
+        .hero-banner img {
+            width: 100%;
+            max-width: 1600px; /* Limite para telas gigantes */
+            height: auto;
+            max-height: 550px;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
 
         .container { max-width: 1200px; margin: 60px auto; padding: 0 24px; }
         .section-title { font-family: 'Playfair Display', serif; font-size: 32px; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 30px; display: flex; align-items: center; gap: 12px; color: #1e1b20; }
@@ -103,9 +109,7 @@
         @media (max-width: 768px) {
             header { padding: 16px 20px; }
             .logo { font-size: 22px; }
-            .hero { padding: 50px 16px; }
-            .hero h1 { font-size: 32px; }
-            .hero p { font-size: 15px; }
+            .hero-banner img { max-height: 280px; }
             .container { padding: 0 16px; margin: 30px auto; }
             .section-title { font-size: 24px; margin-bottom: 20px; }
             .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -134,10 +138,9 @@
         </button>
     </header>
 
-    <div class="hero">
-        <span class="hero-badge">Curadoria Exclusiva</span>
-        <h1>Viva a Experiência Essencial</h1>
-        <p>Estilo, bem-estar, fragrâncias e praticidade pensados para o seu dia a dia.</p>
+    <!-- BANNER COM A IMAGEM -->
+    <div class="hero-banner">
+        <img src="banner.jpg" alt="Marli Essencial - Moda Íntima, Fragrâncias e Bem-Estar">
     </div>
 
     <div class="container">
