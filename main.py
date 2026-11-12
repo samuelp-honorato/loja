@@ -102,14 +102,16 @@ class PedidoCreate(BaseModel): cliente_nome: str; telefone: str; itens: List[Ite
 class PromocaoUpdate(BaseModel): em_promocao: bool; preco_promocao: Optional[float] = None
 
 @app.get("/")
-def abrir_loja(): return FileResponse("index.html")
+def abrir_loja(): 
+    return FileResponse("index.html")
 
 @app.get("/banner.webp")
 def carregar_banner():
-    return FileResponse("html/banner.webp")
+    return FileResponse("banner.webp")
 
 @app.get("/login")
-def tela_login(): return FileResponse("login.html")
+def tela_login(): 
+    return FileResponse("login.html")
 
 @app.post("/api/upload")
 async def upload_imagem(file: UploadFile = File(...)):
