@@ -104,6 +104,10 @@ class PromocaoUpdate(BaseModel): em_promocao: bool; preco_promocao: Optional[flo
 @app.get("/")
 def abrir_loja(): return FileResponse("index.html")
 
+@app.get("/banner.webp")
+def carregar_banner():
+    return FileResponse("html/banner.webp")
+
 @app.get("/login")
 def tela_login(): return FileResponse("login.html")
 
