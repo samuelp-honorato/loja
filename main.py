@@ -102,16 +102,16 @@ class PedidoCreate(BaseModel): cliente_nome: str; telefone: str; itens: List[Ite
 class PromocaoUpdate(BaseModel): em_promocao: bool; preco_promocao: Optional[float] = None
 
 @app.get("/")
-def abrir_loja(): 
-    return FileResponse("index.html")
+def abrir_loja():
+    return FileResponse("html/index.html")
 
 @app.get("/banner.webp")
 def carregar_banner():
-    return FileResponse("banner.webp")
+    return FileResponse("html/banner.webp")
 
 @app.get("/login")
-def tela_login(): 
-    return FileResponse("login.html")
+def tela_login():
+    return FileResponse("html/login.html")
 
 @app.post("/api/upload")
 async def upload_imagem(file: UploadFile = File(...)):
@@ -147,9 +147,10 @@ def fazer_login(response: Response, usuario: str = Form(...), senha: str = Form(
         return redirect
     return RedirectResponse(url="/login?erro=1", status_code=303)
 
+
 @app.get("/painel")
 def abrir_painel(request: Request):
-    try: verificar_admin(request); return FileResponse("admin.html")
+    try: verificar_admin(request); return FileResponse("html/admin.html")
     except HTTPException: return RedirectResponse(url="/login")
 
 @app.get("/api/logout")
