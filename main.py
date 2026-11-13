@@ -102,29 +102,44 @@ class PedidoCreate(BaseModel): cliente_nome: str; telefone: str; itens: List[Ite
 class PromocaoUpdate(BaseModel): em_promocao: bool; preco_promocao: Optional[float] = None
 
 # ==========================================
-# ROTAS BLINDADAS COM CAMINHO ABSOLUTO
+# BUSCA INTELIGENTE DE ARQUIVOS E ROTAS WEB
 # ==========================================
 DIRETORIO_ATUAL = os.path.dirname(os.path.abspath(__file__))
 
+def pegar_arquivo(nome: str):
+    caminho_html = os.path.join(DIRETORIO_ATUAL, "html", nome)
+    if os.path.exists(caminho_html):
+        return FileResponse(caminho_html)
+    caminho_raiz = os.path.join(DIRETORIO_ATUAL, nome)
+    if os.path.exists(caminho_raiz):
+        return FileResponse(caminho_raiz)
+    raise HTTPException(status_code=404, detail=f"Arquivo '{nome}' nao encontrado no servidor.")
+
 @app.get("/")
 def abrir_loja():
-    return FileResponse(os.path.join(DIRETORIO_ATUAL, "html", "index.html"))
+    return pegar_arquivo("index.html")
 
 @app.get("/banner.webp")
 def carregar_banner():
-    return FileResponse(os.path.join(DIRETORIO_ATUAL, "html", "banner.webp"))
+    return pegar_arquivo("banner.webp")
 
 @app.get("/login")
 def tela_login():
-    return FileResponse(os.path.join(DIRETORIO_ATUAL, "html", "login.html"))
+    return pegar_arquivo("login.html")
 
 @app.get("/painel")
 def abrir_painel(request: Request):
-    try: 
+    try:
         verificar_admin(request)
-        return FileResponse(os.path.join(DIRETORIO_ATUAL, "html", "admin.html"))
-    except HTTPException: 
+        return pegar_arquivo("admin.html")
+    except HTTPException:
         return RedirectResponse(url="/login")
+
+@app.get("/api/debug-arquivos")
+def debug_arquivos():
+    raiz = os.listdir(DIRETORIO_ATUAL)
+    pasta_html = os.listdir(os.path.join(DIRETORIO_ATUAL, "html")) if os.path.exists(os.path.join(DIRETORIO_ATUAL, "html")) else "Pasta html nao existe"
+    return {"raiz": raiz, "html": pasta_html}
 # ==========================================
 
 @app.post("/api/upload")
