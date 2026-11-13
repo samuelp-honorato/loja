@@ -15,7 +15,7 @@ from typing import List, Optional
 from supabase import create_client, Client
 
 
-NOME_LOJA = os.getenv("NOME_LOJA", "Marli Lingerie")
+NOME_LOJA = os.getenv("NOME_LOJA", "Marli Essencial")
 WHATSAPP_LOJA = os.getenv("WHATSAPP_LOJA", "5511999999999")
 ADMIN_USER = os.getenv("ADMIN_USER", "admin")
 ADMIN_PASS = os.getenv("ADMIN_PASS", "marli123")
@@ -101,17 +101,31 @@ class ItemCarrinho(BaseModel): produto_id: int; quantidade: int; nome: str; prec
 class PedidoCreate(BaseModel): cliente_nome: str; telefone: str; itens: List[ItemCarrinho]
 class PromocaoUpdate(BaseModel): em_promocao: bool; preco_promocao: Optional[float] = None
 
+# ==========================================
+# ROTAS BLINDADAS COM CAMINHO ABSOLUTO
+# ==========================================
+DIRETORIO_ATUAL = os.path.dirname(os.path.abspath(__file__))
+
 @app.get("/")
 def abrir_loja():
-    return FileResponse("html/index.html")
+    return FileResponse(os.path.join(DIRETORIO_ATUAL, "html", "index.html"))
 
 @app.get("/banner.webp")
 def carregar_banner():
-    return FileResponse("html/banner.webp")
+    return FileResponse(os.path.join(DIRETORIO_ATUAL, "html", "banner.webp"))
 
 @app.get("/login")
 def tela_login():
-    return FileResponse("html/login.html")
+    return FileResponse(os.path.join(DIRETORIO_ATUAL, "html", "login.html"))
+
+@app.get("/painel")
+def abrir_painel(request: Request):
+    try: 
+        verificar_admin(request)
+        return FileResponse(os.path.join(DIRETORIO_ATUAL, "html", "admin.html"))
+    except HTTPException: 
+        return RedirectResponse(url="/login")
+# ==========================================
 
 @app.post("/api/upload")
 async def upload_imagem(file: UploadFile = File(...)):
@@ -146,12 +160,6 @@ def fazer_login(response: Response, usuario: str = Form(...), senha: str = Form(
         redirect.set_cookie(key="session_token", value=token, httponly=True)
         return redirect
     return RedirectResponse(url="/login?erro=1", status_code=303)
-
-
-@app.get("/painel")
-def abrir_painel(request: Request):
-    try: verificar_admin(request); return FileResponse("html/admin.html")
-    except HTTPException: return RedirectResponse(url="/login")
 
 @app.get("/api/logout")
 def sair():
