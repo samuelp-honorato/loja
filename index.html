@@ -34,7 +34,7 @@
         }
         .hero-banner img {
             width: 100%;
-            max-width: 1600px; /* Limite para telas gigantes */
+            max-width: 1600px;
             height: auto;
             max-height: 550px;
             object-fit: cover;
@@ -101,10 +101,10 @@
         .cart-body { padding: 24px; flex-grow: 1; overflow-y: auto; }
         .cart-item { margin-bottom: 20px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
         .cart-footer { padding: 24px; border-top: 1px solid var(--border); background: #faf8f8; }
-        .cart-total { display: flex; justify-content: space-between; font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #1e1b20; }
-        .input-dark { width: 100%; height: 50px; padding: 0 16px; margin-bottom: 16px; border: 1px solid var(--border); border-radius: 10px; font-family: 'Inter'; font-size: 15px; }
+        .cart-total { display: flex; justify-content: space-between; font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #1e1b20; }
+        .input-dark { width: 100%; height: 48px; padding: 0 16px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 10px; font-family: 'Inter'; font-size: 15px; }
         .input-dark:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 4px rgba(180,132,132,0.15); }
-        .btn-checkout { background: var(--brand); color: #fff; height: 56px; width: 100%; border: none; font-weight: 600; font-size: 15px; border-radius: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .btn-checkout { background: var(--brand); color: #fff; height: 54px; width: 100%; border: none; font-weight: 600; font-size: 15px; border-radius: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 4px; }
 
         @media (max-width: 768px) {
             header { padding: 16px 20px; }
@@ -138,7 +138,6 @@
         </button>
     </header>
 
-    <!-- BANNER COM A IMAGEM -->
     <div class="hero-banner">
         <img src="banner.webp" alt="Marli Essencial - Moda Íntima, Fragrâncias e Bem-Estar">
     </div>
@@ -148,7 +147,7 @@
         <div class="grid" id="catalogo"></div>
     </div>
 
-    <a href="#" id="btn-wa-flutuante" class="fab-wa" target="_blank"><i data-lucide="message-circle"></i></a>
+    <a href="#" id="btn-wa-flutuante" class="fab-wa" target="_blank" rel="noopener noreferrer"><i data-lucide="message-circle"></i></a>
     <button class="cart-trigger" onclick="toggleCart()"><i data-lucide="shopping-bag" style="width: 18px;"></i> Sacola (<span id="cart-count">0</span>)</button>
 
     <div id="modal-produto" class="modal-overlay" onclick="fecharModal(event)">
@@ -164,7 +163,7 @@
                     <h2 class="modal-nome" id="modal-nome">Nome da Peça</h2>
                     <div class="modal-price" id="modal-price">R$ 0,00</div>
                     <p class="modal-desc" id="modal-desc">Descrição completa do produto e seus benefícios...</p>
-                    <button class="btn-add-modal" id="btn-add-modal" onclick=""><i data-lucide="shopping-bag" style="width: 20px;"></i> Adicionar à Sacola</button>
+                    <button class="btn-add-modal" id="btn-add-modal"><i data-lucide="shopping-bag" style="width: 20px;"></i> Adicionar à Sacola</button>
                 </div>
             </div>
         </div>
@@ -185,7 +184,8 @@
         <div class="cart-body" id="cart-items"></div>
         <div class="cart-footer">
             <div class="cart-total"><span>Total</span> <span>R$ <span id="cart-total">0.00</span></span></div>
-            <input type="text" id="nomeCliente" class="input-dark" placeholder="Como devemos chamá-la?">
+            <input type="text" id="nomeCliente" class="input-dark" maxlength="100" placeholder="Como devemos chamá-la?">
+            <input type="tel" id="telCliente" class="input-dark" maxlength="25" placeholder="Seu WhatsApp com DDD">
             <button class="btn-checkout" onclick="enviarWhatsApp()"><i data-lucide="send" style="width: 18px;"></i> Enviar Pedido</button>
         </div>
     </div>
@@ -194,12 +194,34 @@
         lucide.createIcons();
         let carrinho = []; let todosProdutos = []; let numeroLoja = "";
 
+        // Escudo Anti-XSS no Navegador
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return "";
+            const txt = document.createElement("textarea");
+            txt.innerHTML = String(str);
+            return txt.value
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function safeURL(url) {
+            if (!url) return "";
+            const u = String(url).trim();
+            if (u.startsWith("https://") || u.startsWith("http://") || u.startsWith("data:image/")) {
+                return escapeHTML(u);
+            }
+            return "";
+        }
+
         async function carregarConfiguracoes() {
             try {
                 const res = await fetch('/api/config');
                 const config = await res.json();
-                numeroLoja = config.whatsapp;
-                document.getElementById('logo-loja').innerText = config.nome_loja.toUpperCase();
+                numeroLoja = String(config.whatsapp || "").replace(/\D/g, "");
+                document.getElementById('logo-loja').textContent = (config.nome_loja || "MARLI ESSENCIAL").toUpperCase();
                 const btnWa = document.getElementById('btn-wa-flutuante');
                 if (btnWa && numeroLoja) btnWa.href = `https://wa.me/${numeroLoja}?text=Olá!%20Estou%20no%20site%20e%20gostaria%20de%20ajuda.`;
             } catch(e) { console.error("Erro config", e); }
@@ -221,7 +243,8 @@
             const categoriasUnicas = [...new Set(todosProdutos.map(p => p.categoria))];
             categoriasUnicas.forEach(cat => { 
                 if(cat && cat.trim() !== "") { 
-                    html += `<button onclick="mudarSessao('${cat}'); fecharTudo();"><i data-lucide="chevron-right" style="width: 16px; margin-right: 8px;"></i> ${cat}</button>`; 
+                    const catSafe = escapeHTML(cat);
+                    html += `<button data-cat="${catSafe}" onclick="mudarSessao(this.dataset.cat); fecharTudo();"><i data-lucide="chevron-right" style="width: 16px; margin-right: 8px;"></i> ${catSafe}</button>`; 
                 } 
             });
             menuContainer.innerHTML = html;
@@ -230,10 +253,11 @@
 
         function mudarSessao(tipo) {
             let filtro = [];
-            if(tipo === 'tudo') { filtro = todosProdutos; document.getElementById('titulo-secao').innerHTML = '<i data-lucide="layers"></i> Catálogo Completo'; }
-            else if(tipo === 'novidades') { filtro = todosProdutos.slice(0, 8); document.getElementById('titulo-secao').innerHTML = '<i data-lucide="sparkles"></i> Lançamentos'; }
-            else if(tipo === 'promocoes') { filtro = todosProdutos.filter(p => p.em_promocao); document.getElementById('titulo-secao').innerHTML = '<i data-lucide="tag" style="color:var(--promo);"></i> Ofertas Exclusivas'; }
-            else { filtro = todosProdutos.filter(p => p.categoria === tipo); document.getElementById('titulo-secao').innerHTML = `<i data-lucide="hash"></i> Linha ${tipo}`; }
+            const tituloEl = document.getElementById('titulo-secao');
+            if(tipo === 'tudo') { filtro = todosProdutos; tituloEl.innerHTML = '<i data-lucide="layers"></i> Catálogo Completo'; }
+            else if(tipo === 'novidades') { filtro = todosProdutos.slice(0, 8); tituloEl.innerHTML = '<i data-lucide="sparkles"></i> Lançamentos'; }
+            else if(tipo === 'promocoes') { filtro = todosProdutos.filter(p => p.em_promocao); tituloEl.innerHTML = '<i data-lucide="tag" style="color:var(--promo);"></i> Ofertas Exclusivas'; }
+            else { filtro = todosProdutos.filter(p => p.categoria === tipo); tituloEl.innerHTML = `<i data-lucide="hash"></i> Linha ${escapeHTML(tipo)}`; }
             
             renderizar(filtro); lucide.createIcons();
         }
@@ -244,15 +268,16 @@
             catalogo.innerHTML = '';
             
             produtos.forEach(p => {
+                const pid = Number(p.id);
                 const badge = p.em_promocao ? `<div class="badge-promo">PROMO</div>` : '';
-                const priceHTML = p.em_promocao ? `<span class="price-old">R$ ${p.preco.toFixed(2)}</span><span class="price-new">R$ ${p.preco_promocao.toFixed(2)}</span>` : `<span class="price-normal">R$ ${p.preco.toFixed(2)}</span>`;
+                const priceHTML = p.em_promocao ? `<span class="price-old">R$ ${Number(p.preco).toFixed(2)}</span><span class="price-new">R$ ${Number(p.preco_promocao).toFixed(2)}</span>` : `<span class="price-normal">R$ ${Number(p.preco).toFixed(2)}</span>`;
                 
                 catalogo.innerHTML += `
-                    <div class="card" onclick="abrirModal(${p.id})">
-                        <div class="img-wrap">${badge}<img src="${p.imagem_url}" loading="lazy" alt="${p.nome}"></div>
+                    <div class="card" onclick="abrirModal(${pid})">
+                        <div class="img-wrap">${badge}<img src="${safeURL(p.imagem_url)}" loading="lazy" alt="${escapeHTML(p.nome)}"></div>
                         <div class="card-info">
-                            <div class="card-meta">Tam ${p.tamanho} • ${p.categoria}</div>
-                            <h3>${p.nome}</h3>
+                            <div class="card-meta">Tam ${escapeHTML(p.tamanho)} • ${escapeHTML(p.categoria)}</div>
+                            <h3>${escapeHTML(p.nome)}</h3>
                             <div class="price-box">${priceHTML}</div>
                         </div>
                     </div>`;
@@ -263,39 +288,43 @@
             const p = todosProdutos.find(x => x.id === id);
             if(!p) return;
             
-            document.getElementById('modal-nome').innerText = p.nome;
-            document.getElementById('modal-desc').innerText = p.descricao || "Esta peça incrível chegou para trazer mais conforto ao seu dia a dia. Selecione seu tamanho e adicione à sacola!";
+            document.getElementById('modal-nome').textContent = p.nome;
+            document.getElementById('modal-desc').textContent = p.descricao || "Esta peça incrível chegou para trazer mais conforto ao seu dia a dia. Selecione seu tamanho e adicione à sacola!";
             
             const tags = document.getElementById('modal-tags');
-            tags.innerHTML = `<span class="modal-tag">TAM: ${p.tamanho}</span><span class="modal-tag">${p.categoria}</span>`;
-            if(p.etiqueta) tags.innerHTML += `<span class="modal-tag">${p.etiqueta}</span>`;
+            tags.innerHTML = `<span class="modal-tag">TAM: ${escapeHTML(p.tamanho)}</span><span class="modal-tag">${escapeHTML(p.categoria)}</span>`;
+            if(p.etiqueta) tags.innerHTML += `<span class="modal-tag">${escapeHTML(p.etiqueta)}</span>`;
             
             const priceBox = document.getElementById('modal-price');
             if(p.em_promocao) {
-                priceBox.innerHTML = `<s style="color:var(--muted); font-size:16px;">R$ ${p.preco.toFixed(2)}</s> <span style="color:var(--promo);">R$ ${p.preco_promocao.toFixed(2)}</span>`;
+                priceBox.innerHTML = `<s style="color:var(--muted); font-size:16px;">R$ ${Number(p.preco).toFixed(2)}</s> <span style="color:var(--promo);">R$ ${Number(p.preco_promocao).toFixed(2)}</span>`;
             } else {
-                priceBox.innerHTML = `R$ ${p.preco.toFixed(2)}`;
+                priceBox.innerHTML = `R$ ${Number(p.preco).toFixed(2)}`;
             }
             
-            document.getElementById('modal-main-img').src = p.imagem_url;
+            const url1 = safeURL(p.imagem_url);
+            const url2 = safeURL(p.imagem_url_2);
+            const url3 = safeURL(p.imagem_url_3);
+
+            document.getElementById('modal-main-img').src = url1;
             const thumbs = document.getElementById('modal-thumbs');
-            let thumbsHTML = `<img src="${p.imagem_url}" class="modal-thumb active" onclick="trocarImagem(this, '${p.imagem_url}')">`;
-            if(p.imagem_url_2) thumbsHTML += `<img src="${p.imagem_url_2}" class="modal-thumb" onclick="trocarImagem(this, '${p.imagem_url_2}')">`;
-            if(p.imagem_url_3) thumbsHTML += `<img src="${p.imagem_url_3}" class="modal-thumb" onclick="trocarImagem(this, '${p.imagem_url_3}')">`;
+            let thumbsHTML = `<img src="${url1}" class="modal-thumb active" onclick="trocarImagem(this)">`;
+            if(url2) thumbsHTML += `<img src="${url2}" class="modal-thumb" onclick="trocarImagem(this)">`;
+            if(url3) thumbsHTML += `<img src="${url3}" class="modal-thumb" onclick="trocarImagem(this)">`;
             thumbs.innerHTML = thumbsHTML;
             
-            const precoReal = p.em_promocao ? p.preco_promocao : p.preco;
-            const nomeSeguro = p.nome.replace(/'/g, "\\'"); 
-            
             const btnAdd = document.getElementById('btn-add-modal');
-            btnAdd.setAttribute("onclick", `addCart(${p.id}, '${nomeSeguro}', ${precoReal}, '${p.tamanho}'); fecharModal();`);
+            btnAdd.onclick = function() {
+                addCart(Number(p.id));
+                fecharModal();
+            };
             
             document.getElementById('modal-produto').style.display = 'flex';
             document.body.style.overflow = 'hidden'; 
         }
 
-        function trocarImagem(elemento, src) {
-            document.getElementById('modal-main-img').src = src;
+        function trocarImagem(elemento) {
+            document.getElementById('modal-main-img').src = elemento.src;
             document.querySelectorAll('.modal-thumb').forEach(t => t.classList.remove('active'));
             elemento.classList.add('active');
         }
@@ -341,31 +370,55 @@
             document.body.style.overflow = 'auto';
         }
 
-        function addCart(id, nome, preco, tam) {
+        function addCart(id) {
+            const p = todosProdutos.find(x => x.id === id);
+            if (!p) return;
+            const precoReal = p.em_promocao ? Number(p.preco_promocao) : Number(p.preco);
             const item = carrinho.find(i => i.produto_id === id);
-            if (item) item.quantidade++; else carrinho.push({ produto_id: id, nome, preco, tamanho: tam, quantidade: 1 });
+            if (item) item.quantidade++; 
+            else carrinho.push({ produto_id: id, nome: p.nome, preco: precoReal, tamanho: p.tamanho, quantidade: 1 });
             atualizarCart(); toggleCart(true);
         }
 
         function atualizarCart() {
-            document.getElementById('cart-count').innerText = carrinho.reduce((sum, i) => sum + i.quantidade, 0);
+            document.getElementById('cart-count').textContent = carrinho.reduce((sum, i) => sum + i.quantidade, 0);
             const div = document.getElementById('cart-items'); div.innerHTML = ''; let total = 0;
             carrinho.forEach(i => {
                 total += i.preco * i.quantidade;
-                div.innerHTML += `<div class="cart-item"><div><b style="color:#171717;">${i.quantidade}x ${i.nome}</b><br><span style="font-size:12px;color:#737373;">Tam: ${i.tamanho}</span></div><b style="color:#171717;">R$ ${(i.preco * i.quantidade).toFixed(2)}</b></div>`;
+                div.innerHTML += `<div class="cart-item"><div><b style="color:#171717;">${Number(i.quantidade)}x ${escapeHTML(i.nome)}</b><br><span style="font-size:12px;color:#737373;">Tam: ${escapeHTML(i.tamanho)}</span></div><b style="color:#171717;">R$ ${(i.preco * i.quantidade).toFixed(2)}</b></div>`;
             });
-            document.getElementById('cart-total').innerText = total.toFixed(2);
+            document.getElementById('cart-total').textContent = total.toFixed(2);
         }
 
         async function enviarWhatsApp() {
-            const nome = document.getElementById('nomeCliente').value;
-            if(!nome || carrinho.length===0) return alert("Preencha o nome e adicione peças.");
-            document.querySelector('.btn-checkout').innerText = "A redirecionar...";
-            const res = await fetch('/api/comprar', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({cliente_nome:nome, telefone:"", itens:carrinho}) });
-            const dados = await res.json();
-            if(dados.status === "sucesso") window.location.href = dados.whatsapp_url;
-            document.querySelector('.btn-checkout').innerHTML = `<i data-lucide="send" style="width: 18px;"></i> Enviar Pedido`;
-            lucide.createIcons();
+            const nome = document.getElementById('nomeCliente').value.trim();
+            const telefone = document.getElementById('telCliente').value.trim();
+            if(!nome || telefone.replace(/\D/g, '').length < 8 || carrinho.length === 0) {
+                return alert("Preencha seu nome, um WhatsApp válido com DDD e adicione peças à sacola.");
+            }
+            const btn = document.querySelector('.btn-checkout');
+            btn.textContent = "A redirecionar...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/comprar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cliente_nome: nome, telefone: telefone, itens: carrinho })
+                });
+                const dados = await res.json();
+                if(res.ok && dados.status === "sucesso") {
+                    window.location.href = dados.whatsapp_url;
+                } else {
+                    alert(dados.detail || "Não foi possível finalizar o pedido.");
+                }
+            } catch (e) {
+                alert("Erro de conexão ao enviar o pedido.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="send" style="width: 18px;"></i> Enviar Pedido`;
+                lucide.createIcons();
+            }
         }
         
         carregarConfiguracoes(); carregarProdutos();

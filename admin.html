@@ -4,18 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Marli Essencial | Gestão PRO</title>
-    <!-- Favicon SVG Dinâmico -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231e1b20'/><text x='50%' y='50%' font-family='Inter, sans-serif' font-size='60' font-weight='800' fill='%23b48484' dominant-baseline='central' text-anchor='middle'>M</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
         :root { 
-            --sidebar: #1e1b20; /* Chumbo luxuoso */
+            --sidebar: #1e1b20;
             --bg: #fdfbfb; 
             --card: #ffffff; 
             --text: #334155; 
-            --primary: #b48484; /* Rosé Seco / Nude */
+            --primary: #b48484;
             --danger: #ef4444; 
             --success: #10b981; 
             --warning: #f59e0b; 
@@ -24,7 +23,6 @@
         
         body { 
             margin: 0; display: flex; height: 100vh; color: var(--text); overflow: hidden;
-            /* Fundo SaaS Mesh Gradient Nude */
             background-color: var(--bg);
             background-image: radial-gradient(at 10% 0%, hsla(340, 24%, 85%, 0.4) 0px, transparent 50%),
                               radial-gradient(at 80% 100%, hsla(340, 24%, 90%, 0.4) 0px, transparent 50%),
@@ -248,15 +246,15 @@
                     <label class="upload-area" id="upload-label">
                         <i data-lucide="image-plus" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 12px;"></i>
                         <p style="font-weight: 700; color: #0f172a; font-size: 16px;">Adicionar Fotos do Produto</p>
-                        <span>Selecione até 3 imagens em alta resolução</span>
-                        <input type="file" id="foto-input" style="display: none;" accept="image/*" multiple onchange="processarArquivo(event)">
+                        <span>Selecione até 3 imagens em alta resolução (máx. 5 MB cada)</span>
+                        <input type="file" id="foto-input" style="display: none;" accept="image/jpeg,image/png,image/webp" multiple onchange="processarArquivo(event)">
                     </label>
 
                     <div class="grid-form">
                         <div><label>Nome da Peça</label><input type="text" id="nome" placeholder="Sutiã Renda Premium" oninput="atualizarPreview()"></div>
                         <div><label>Categoria</label><select id="categoria" onchange="atualizarPreview()"></select></div>
-                        <div><label>Preço (R$)</label><input type="number" id="preco" placeholder="59.90" oninput="atualizarPreview()"></div>
-                        <div><label>Estoque Atual</label><input type="number" id="estoque" value="10"></div>
+                        <div><label>Preço (R$)</label><input type="number" step="0.01" min="0.01" id="preco" placeholder="59.90" oninput="atualizarPreview()"></div>
+                        <div><label>Estoque Atual</label><input type="number" min="0" id="estoque" value="10"></div>
                         <div><label>Tamanho</label><input type="text" id="tamanho" placeholder="M" oninput="atualizarPreview()"></div>
                         <div><label>Referência / SKU</label><input type="text" id="etiqueta" placeholder="Ex: REF-100" oninput="atualizarPreview()"></div>
                     </div>
@@ -315,6 +313,37 @@
         let arrayEstoqueCompleto = []; 
         let viewModeEstoque = 'lista';
 
+        // Escudo Anti-XSS e Validação de URL no Painel
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return "";
+            const txt = document.createElement("textarea");
+            txt.innerHTML = String(str);
+            return txt.value
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function safeURL(url) {
+            if (!url) return "https://via.placeholder.com/400x400?text=Sem+Foto";
+            const u = String(url).trim();
+            if (u.startsWith("https://") || u.startsWith("http://") || u.startsWith("data:image/")) {
+                return escapeHTML(u);
+            }
+            return "https://via.placeholder.com/400x400?text=URL+Invalida";
+        }
+
+        async function fetchAdmin(url, options = {}) {
+            const res = await fetch(url, options);
+            if (res.status === 401) {
+                window.location.href = "/login";
+                throw new Error("Sessão expirada");
+            }
+            return res;
+        }
+
         function atualizarTitulos(id) {
             const titulo = document.getElementById('dinamic-header-title');
             if(id === 'aba-dashboard') titulo.innerHTML = '<p>Dashboard</p><h1>Visão Financeira</h1>';
@@ -349,9 +378,9 @@
             document.getElementById('prev-img').src = "https://via.placeholder.com/400x400?text=Preview+da+Foto";
             
             mudarAba('aba-cadastrar', el);
-            document.getElementById('titulo-form').innerText = "Cadastrar Nova Peça";
-            document.getElementById('btn-salvar-produto').innerText = "Publicar no Catálogo";
-            document.getElementById('upload-label').innerHTML = `<i data-lucide="image-plus" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 12px;"></i><p style="font-weight: 700; color: #0f172a; font-size: 16px;">Adicionar Fotos do Produto</p><span>Selecione até 3 imagens em alta resolução</span><input type="file" id="foto-input" style="display: none;" accept="image/*" multiple onchange="processarArquivo(event)">`;
+            document.getElementById('titulo-form').textContent = "Cadastrar Nova Peça";
+            document.getElementById('btn-salvar-produto').textContent = "Publicar no Catálogo";
+            document.getElementById('upload-label').innerHTML = `<i data-lucide="image-plus" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 12px;"></i><p style="font-weight: 700; color: #0f172a; font-size: 16px;">Adicionar Fotos do Produto</p><span>Selecione até 3 imagens em alta resolução (máx. 5 MB cada)</span><input type="file" id="foto-input" style="display: none;" accept="image/jpeg,image/png,image/webp" multiple onchange="processarArquivo(event)">`;
             
             lucide.createIcons(); atualizarPreview();
         }
@@ -366,12 +395,12 @@
             document.getElementById('categoria').value = p.categoria;
             
             linkFoto_1 = p.imagem_url; linkFoto_2 = p.imagem_url_2 || ""; linkFoto_3 = p.imagem_url_3 || "";
-            document.getElementById('prev-img').src = linkFoto_1 || "https://via.placeholder.com/400x400?text=Foto+Temporaria";
+            document.getElementById('prev-img').src = safeURL(linkFoto_1);
             
             mudarAba('aba-cadastrar', document.querySelectorAll('.menu-item')[3]);
-            document.getElementById('titulo-form').innerText = "Editar Peça #" + id;
-            document.getElementById('btn-salvar-produto').innerText = "Atualizar Produto";
-            document.getElementById('upload-label').innerHTML = `<i data-lucide="check-circle" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 12px;"></i><p style="font-weight: 700; color: var(--primary); font-size: 16px;">Fotos Carregadas</p><span style="color: var(--primary);">Toque para substituir se necessário</span><input type="file" id="foto-input" style="display: none;" accept="image/*" multiple onchange="processarArquivo(event)">`;
+            document.getElementById('titulo-form').textContent = "Editar Peça #" + Number(id);
+            document.getElementById('btn-salvar-produto').textContent = "Atualizar Produto";
+            document.getElementById('upload-label').innerHTML = `<i data-lucide="check-circle" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 12px;"></i><p style="font-weight: 700; color: var(--primary); font-size: 16px;">Fotos Carregadas</p><span style="color: var(--primary);">Toque para substituir se necessário</span><input type="file" id="foto-input" style="display: none;" accept="image/jpeg,image/png,image/webp" multiple onchange="processarArquivo(event)">`;
             
             lucide.createIcons(); atualizarPreview();
         }
@@ -379,16 +408,18 @@
         async function enviarFotoParaNuvem(file) {
             const formData = new FormData(); formData.append("file", file);
             try {
-                const resposta = await fetch("/api/upload", { method: "POST", body: formData });
+                const resposta = await fetchAdmin("/api/upload", { method: "POST", body: formData });
                 const dados = await resposta.json();
-                return dados.url ? dados.url : (alert("Erro ao enviar foto: " + dados.erro), null);
+                if (resposta.ok && dados.url) return dados.url;
+                alert("Erro ao enviar foto: " + (dados.detail || dados.erro || "Falha no upload"));
+                return null;
             } catch (erro) { console.error("Erro na comunicação:", erro); return null; }
         }
 
         async function salvarProduto() {
-            if(!document.getElementById('nome').value) return alert("Preencha o Nome do produto!");
+            if(!document.getElementById('nome').value.trim()) return alert("Preencha o Nome do produto!");
             const btn = document.getElementById('btn-salvar-produto');
-            const textoOriginal = btn.innerText; btn.innerText = "Enviando... Aguarde"; btn.disabled = true;
+            const textoOriginal = btn.textContent; btn.textContent = "Enviando... Aguarde"; btn.disabled = true;
             const inputFotos = document.getElementById('foto-input');
             
             if (inputFotos && inputFotos.files.length > 0) {
@@ -399,21 +430,29 @@
                 }
             }
 
-            if (!linkFoto_1 && !produtoEditandoId) { btn.innerText = textoOriginal; btn.disabled = false; return alert("Adicione pelo menos a foto principal!"); }
+            if (!linkFoto_1 && !produtoEditandoId) { btn.textContent = textoOriginal; btn.disabled = false; return alert("Adicione pelo menos a foto principal!"); }
 
             const dados = {
                 nome: document.getElementById('nome').value, preco: parseFloat(document.getElementById('preco').value||0),
-                estoque: parseInt(document.getElementById('estoque').value||0), imagem_url: linkFoto_1, imagem_url_2: linkFoto_2, imagem_url_3: linkFoto_3,
+                estoque: parseInt(document.getElementById('estoque').value||0), imagem_url: linkFoto_1, imagem_url_2: linkFoto_2 || null, imagem_url_3: linkFoto_3 || null,
                 descricao: document.getElementById('descricao').value, tamanho: document.getElementById('tamanho').value,
                 cor: document.getElementById('etiqueta').value, categoria: document.getElementById('categoria').value, etiqueta: document.getElementById('etiqueta').value
             };
             
-            if (produtoEditandoId) { await fetch(`/api/produtos/${produtoEditandoId}`, { method: 'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(dados) }); alert("Produto atualizado com sucesso!"); } 
-            else { await fetch('/api/produtos', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(dados) }); alert("Produto cadastrado!"); }
-            
+            const urlEndpoint = produtoEditandoId ? `/api/produtos/${Number(produtoEditandoId)}` : '/api/produtos';
+            const metodo = produtoEditandoId ? 'PUT' : 'POST';
+            const res = await fetchAdmin(urlEndpoint, { method: metodo, headers:{'Content-Type':'application/json'}, body: JSON.stringify(dados) });
+
+            if (!res.ok) {
+                const err = await res.json();
+                btn.textContent = textoOriginal; btn.disabled = false;
+                return alert("Erro ao salvar: " + (err.detail || "Verifique os campos preenchidos."));
+            }
+
+            alert(produtoEditandoId ? "Produto atualizado com sucesso!" : "Produto cadastrado!");
             document.getElementById('nome').value = ''; document.getElementById('preco').value = ''; document.getElementById('estoque').value = '1'; document.getElementById('descricao').value = ''; document.getElementById('tamanho').value = ''; document.getElementById('foto-input').value = '';
-            linkFoto_1 = null; linkFoto_2 = null; linkFoto_3 = null; produtoEditandoId = null; 
-            btn.innerText = textoOriginal; btn.disabled = false;
+            linkFoto_1 = ""; linkFoto_2 = ""; linkFoto_3 = ""; produtoEditandoId = null; 
+            btn.textContent = textoOriginal; btn.disabled = false;
         }
 
         function processarArquivo(event) {
@@ -427,34 +466,35 @@
         }
 
         function atualizarPreview() {
-            document.getElementById('prev-nome').innerText = document.getElementById('nome').value || "Nome da Peça";
-            document.getElementById('prev-desc').innerText = document.getElementById('descricao').value || "A descrição aparecerá aqui.";
-            document.getElementById('prev-tam').innerText = "TAM: " + (document.getElementById('tamanho').value || "M").toUpperCase();
-            document.getElementById('prev-cat').innerText = (document.getElementById('categoria').value || "CATEGORIA").toUpperCase();
-            document.getElementById('prev-preco').innerText = `R$ ${(parseFloat(document.getElementById('preco').value)||0).toFixed(2).replace('.',',')}`;
+            document.getElementById('prev-nome').textContent = document.getElementById('nome').value || "Nome da Peça";
+            document.getElementById('prev-desc').textContent = document.getElementById('descricao').value || "A descrição aparecerá aqui.";
+            document.getElementById('prev-tam').textContent = "TAM: " + (document.getElementById('tamanho').value || "M").toUpperCase();
+            document.getElementById('prev-cat').textContent = (document.getElementById('categoria').value || "CATEGORIA").toUpperCase();
+            document.getElementById('prev-preco').textContent = `R$ ${(parseFloat(document.getElementById('preco').value)||0).toFixed(2).replace('.',',')}`;
         }
 
         async function verificarNotificacoes() {
             try {
-                const res = await fetch('/api/admin/indicadores'); const data = await res.json();
+                const res = await fetchAdmin('/api/admin/indicadores'); const data = await res.json();
                 const badge = document.getElementById('badge-pedidos');
-                if (data.pedidos_pendentes > 0) { badge.innerText = data.pedidos_pendentes; badge.style.display = 'inline-block'; } else { badge.style.display = 'none'; }
+                if (data.pedidos_pendentes > 0) { badge.textContent = data.pedidos_pendentes; badge.style.display = 'inline-block'; } else { badge.style.display = 'none'; }
             } catch(e) {}
         }
         verificarNotificacoes(); setInterval(verificarNotificacoes, 30000);
 
         async function carregarDashboard() {
             verificarNotificacoes(); 
-            const res = await fetch('/api/admin/indicadores'); const data = await res.json();
-            document.getElementById('kpi-hoje').innerText = `R$ ${data.faturamento_hoje.toFixed(2).replace('.',',')}`;
-            document.getElementById('kpi-mes').innerText = `R$ ${data.faturamento_mes.toFixed(2).replace('.',',')}`;
-            document.getElementById('kpi-pendentes').innerText = data.pedidos_pendentes; document.getElementById('kpi-total').innerText = data.total_pedidos;
+            const res = await fetchAdmin('/api/admin/indicadores'); const data = await res.json();
+            document.getElementById('kpi-hoje').textContent = `R$ ${Number(data.faturamento_hoje).toFixed(2).replace('.',',')}`;
+            document.getElementById('kpi-mes').textContent = `R$ ${Number(data.faturamento_mes).toFixed(2).replace('.',',')}`;
+            document.getElementById('kpi-pendentes').textContent = Number(data.pedidos_pendentes); document.getElementById('kpi-total').textContent = Number(data.total_pedidos);
             
-            const resPed = await fetch('/api/admin/pedidos'); const pedidos = await resPed.json();
+            const resPed = await fetchAdmin('/api/admin/pedidos'); const pedidos = await resPed.json();
             const feed = document.getElementById('feed-resumo'); feed.innerHTML = '';
             pedidos.slice(0,5).forEach(p => {
                 let pill = p.status === 'Pago' ? '<span class="pill pago">Pago</span>' : (p.status === 'Cancelado' ? '<span class="pill cancelado">Cancelado</span>' : '<span class="pill pendente">Pendente</span>');
-                feed.innerHTML += `<tr><td>${new Date(p.data_criacao).toLocaleDateString()}</td><td><b>${p.cliente_nome}</b></td><td><div style="font-size:12px;color:#64748b;">${p.resumo_pedido.replace(/\n/g, '<br>')}</div></td><td><b style="color:#0f172a;">R$ ${p.total.toFixed(2)}</b></td><td>${pill}</td></tr>`;
+                const resumoSafe = escapeHTML(p.resumo_pedido).replace(/\n/g, '<br>');
+                feed.innerHTML += `<tr><td>${new Date(p.data_criacao).toLocaleDateString()}</td><td><b>${escapeHTML(p.cliente_nome)}</b></td><td><div style="font-size:12px;color:#64748b;">${resumoSafe}</div></td><td><b style="color:#0f172a;">R$ ${Number(p.total).toFixed(2)}</b></td><td>${pill}</td></tr>`;
             });
         }
 
@@ -466,11 +506,14 @@
         }
 
         async function carregarEstoque() {
-            const res = await fetch('/api/admin/produtos'); arrayEstoqueCompleto = await res.json();
+            const res = await fetchAdmin('/api/admin/produtos'); arrayEstoqueCompleto = await res.json();
             const catSet = new Set(arrayEstoqueCompleto.map(p => p.categoria).filter(c => c));
             const selectCat = document.getElementById('filtro-categoria-estoque');
             selectCat.innerHTML = '<option value="">Todas as Categorias</option>';
-            catSet.forEach(c => selectCat.innerHTML += `<option value="${c}">${c}</option>`);
+            catSet.forEach(c => {
+                const cSafe = escapeHTML(c);
+                selectCat.innerHTML += `<option value="${cSafe}">${cSafe}</option>`;
+            });
             filtrarEstoque();
         }
 
@@ -490,55 +533,59 @@
             if(viewModeEstoque === 'lista') {
                 let htmlLista = `<div class="card" style="padding: 0;"><div class="table-responsive"><table><thead><tr><th>Produto / Detalhes</th><th>Categoria</th><th>Preço</th><th>Estoque</th><th>Ações</th></tr></thead><tbody>`;
                 produtos.forEach(p => {
+                    const pid = Number(p.id);
                     const alertaLinha = p.estoque < 3 ? 'alerta-linha' : '';
                     const alertaIcone = p.estoque < 3 ? '<i data-lucide="alert-triangle" style="width:14px; margin-right:4px;"></i>' : '';
                     const visivel = p.ativo ? '<span style="color:var(--success);font-weight:700;font-size:11px;">👁️ VISÍVEL</span>' : '<span style="color:var(--danger);font-weight:700;font-size:11px;">🚫 OCULTO</span>';
-                    const precoInfo = p.em_promocao ? `<s style="color:#94a3b8;font-size:12px;">R$ ${p.preco.toFixed(2)}</s><br><b style="color:var(--danger);">R$ ${p.preco_promocao.toFixed(2)}</b>` : `<b>R$ ${p.preco.toFixed(2)}</b>`;
+                    const precoInfo = p.em_promocao ? `<s style="color:#94a3b8;font-size:12px;">R$ ${Number(p.preco).toFixed(2)}</s><br><b style="color:var(--danger);">R$ ${Number(p.preco_promocao).toFixed(2)}</b>` : `<b>R$ ${Number(p.preco).toFixed(2)}</b>`;
 
                     htmlLista += `<tr class="${alertaLinha}">
-                        <td><div style="display:flex;gap:16px;align-items:center;"><img src="${p.imagem_url}" class="img-mini"><div><b style="color:#0f172a;">${p.nome}</b><div style="font-size:12px;color:#64748b;margin-top:4px;">Tam: <b style="color:#0f172a">${p.tamanho}</b> ${p.etiqueta ? '• Ref: '+p.etiqueta : ''}</div></div></div></td>
-                        <td><span class="pill neutro">${p.categoria}</span></td><td>${precoInfo}</td>
-                        <td><b style="color:${p.estoque>0?'var(--primary)':'var(--danger)'}; display:flex; align-items:center;">${alertaIcone} ${p.estoque} un</b>${visivel}</td>
-                        <td><div style="display:flex; gap:6px;"><button class="btn-action" title="Ocultar" onclick="toggleStatus(${p.id})"><i data-lucide="${p.ativo ? 'eye-off' : 'eye'}" style="width:16px;"></i></button><button class="btn-action" title="Promoção" onclick="gerirPromo(${p.id}, ${p.em_promocao}, ${p.preco})"><i data-lucide="tag" style="width:16px;"></i></button><button class="btn-action" title="Editar" onclick="abrirEdicao(${p.id})"><i data-lucide="edit" style="width:16px;"></i></button><button class="btn-action" style="color:var(--danger);" onclick="excluir(${p.id})"><i data-lucide="trash-2" style="width:16px;"></i></button></div></td>
+                        <td><div style="display:flex;gap:16px;align-items:center;"><img src="${safeURL(p.imagem_url)}" class="img-mini"><div><b style="color:#0f172a;">${escapeHTML(p.nome)}</b><div style="font-size:12px;color:#64748b;margin-top:4px;">Tam: <b style="color:#0f172a">${escapeHTML(p.tamanho)}</b> ${p.etiqueta ? '• Ref: '+escapeHTML(p.etiqueta) : ''}</div></div></div></td>
+                        <td><span class="pill neutro">${escapeHTML(p.categoria)}</span></td><td>${precoInfo}</td>
+                        <td><b style="color:${p.estoque>0?'var(--primary)':'var(--danger)'}; display:flex; align-items:center;">${alertaIcone} ${Number(p.estoque)} un</b>${visivel}</td>
+                        <td><div style="display:flex; gap:6px;"><button class="btn-action" title="Ocultar" onclick="toggleStatus(${pid})"><i data-lucide="${p.ativo ? 'eye-off' : 'eye'}" style="width:16px;"></i></button><button class="btn-action" title="Promoção" onclick="gerirPromo(${pid}, ${Boolean(p.em_promocao)}, ${Number(p.preco)})"><i data-lucide="tag" style="width:16px;"></i></button><button class="btn-action" title="Editar" onclick="abrirEdicao(${pid})"><i data-lucide="edit" style="width:16px;"></i></button><button class="btn-action" style="color:var(--danger);" onclick="excluir(${pid})"><i data-lucide="trash-2" style="width:16px;"></i></button></div></td>
                     </tr>`;
                 });
                 htmlLista += `</tbody></table></div></div>`; container.innerHTML = htmlLista;
             } else {
                 let htmlGrid = `<div class="estoque-grid">`;
                 produtos.forEach(p => {
+                    const pid = Number(p.id);
                     const alertaGrid = p.estoque < 3 ? 'alerta-estoque' : '';
                     const alertaIcone = p.estoque < 3 ? '<i data-lucide="alert-triangle" style="width:14px;"></i>' : '';
-                    const precoInfo = p.em_promocao ? `<span style="color:var(--danger);">R$ ${p.preco_promocao.toFixed(2)}</span>` : `R$ ${p.preco.toFixed(2)}`;
+                    const precoInfo = p.em_promocao ? `<span style="color:var(--danger);">R$ ${Number(p.preco_promocao).toFixed(2)}</span>` : `R$ ${Number(p.preco).toFixed(2)}`;
                     htmlGrid += `<div class="card-produto-grid ${alertaGrid}" style="opacity: ${p.ativo ? '1' : '0.6'};">
-                        <img src="${p.imagem_url}" class="grid-img">
-                        <div class="grid-info"><div class="grid-info-top"><h4 class="grid-nome">${p.nome}</h4><span class="grid-tam">${p.tamanho}</span></div><div class="grid-cat">${p.categoria} ${p.etiqueta ? '• '+p.etiqueta : ''}</div>
-                        <div class="grid-preco"><span>${precoInfo}</span><span class="grid-estoque" style="color:${p.estoque>0?'var(--primary)':'var(--danger)'};">${alertaIcone} ${p.estoque} un</span></div>
-                        <div class="grid-acoes"><button class="btn-action" onclick="toggleStatus(${p.id})"><i data-lucide="${p.ativo ? 'eye-off' : 'eye'}" style="width:16px;"></i></button><button class="btn-action" onclick="gerirPromo(${p.id}, ${p.em_promocao}, ${p.preco})"><i data-lucide="tag" style="width:16px;"></i></button><button class="btn-action" onclick="abrirEdicao(${p.id})"><i data-lucide="edit" style="width:16px;"></i></button><button class="btn-action" style="color:var(--danger);" onclick="excluir(${p.id})"><i data-lucide="trash-2" style="width:16px;"></i></button></div></div></div>`;
+                        <img src="${safeURL(p.imagem_url)}" class="grid-img">
+                        <div class="grid-info"><div class="grid-info-top"><h4 class="grid-nome">${escapeHTML(p.nome)}</h4><span class="grid-tam">${escapeHTML(p.tamanho)}</span></div><div class="grid-cat">${escapeHTML(p.categoria)} ${p.etiqueta ? '• '+escapeHTML(p.etiqueta) : ''}</div>
+                        <div class="grid-preco"><span>${precoInfo}</span><span class="grid-estoque" style="color:${p.estoque>0?'var(--primary)':'var(--danger)'};">${alertaIcone} ${Number(p.estoque)} un</span></div>
+                        <div class="grid-acoes"><button class="btn-action" onclick="toggleStatus(${pid})"><i data-lucide="${p.ativo ? 'eye-off' : 'eye'}" style="width:16px;"></i></button><button class="btn-action" onclick="gerirPromo(${pid}, ${Boolean(p.em_promocao)}, ${Number(p.preco)})"><i data-lucide="tag" style="width:16px;"></i></button><button class="btn-action" onclick="abrirEdicao(${pid})"><i data-lucide="edit" style="width:16px;"></i></button><button class="btn-action" style="color:var(--danger);" onclick="excluir(${pid})"><i data-lucide="trash-2" style="width:16px;"></i></button></div></div></div>`;
                 });
                 htmlGrid += `</div>`; container.innerHTML = htmlGrid;
             }
             lucide.createIcons();
         }
 
-        async function toggleStatus(id) { await fetch(`/api/produtos/${id}/status`, { method: 'PATCH' }); carregarEstoque(); }
-        async function gerirPromo(id, em_promo, preco_base) { if(em_promo) { if(confirm("Deseja encerrar a promoção?")) { await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: false}) }); carregarEstoque(); } } else { let novoPreco = prompt(`O Preço normal é: R$ ${preco_base.toFixed(2)}.\nQual será o NOVO PREÇO de Promoção?`); if(novoPreco) { await fetch(`/api/produtos/${id}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: true, preco_promocao: parseFloat(novoPreco.replace(',','.'))}) }); carregarEstoque(); } } }
-        async function excluir(id) { if(confirm("Apagar peça permanentemente?")) { await fetch(`/api/produtos/${id}`, { method: 'DELETE' }); carregarEstoque(); } }
+        async function toggleStatus(id) { await fetchAdmin(`/api/produtos/${Number(id)}/status`, { method: 'PATCH' }); carregarEstoque(); }
+        async function gerirPromo(id, em_promo, preco_base) { if(em_promo) { if(confirm("Deseja encerrar a promoção?")) { await fetchAdmin(`/api/produtos/${Number(id)}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: false}) }); carregarEstoque(); } } else { let novoPreco = prompt(`O Preço normal é: R$ ${Number(preco_base).toFixed(2)}.\nQual será o NOVO PREÇO de Promoção?`); if(novoPreco) { const res = await fetchAdmin(`/api/produtos/${Number(id)}/promocao`, { method: 'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({em_promocao: true, preco_promocao: parseFloat(novoPreco.replace(',','.'))}) }); if(!res.ok) { const err = await res.json(); alert(err.detail || "Preço inválido."); } carregarEstoque(); } } }
+        async function excluir(id) { if(confirm("Apagar peça permanentemente?")) { await fetchAdmin(`/api/produtos/${Number(id)}`, { method: 'DELETE' }); carregarEstoque(); } }
 
         async function carregarPedidos() {
-            verificarNotificacoes(); const res = await fetch('/api/admin/pedidos'); const pedidos = await res.json();
+            verificarNotificacoes(); const res = await fetchAdmin('/api/admin/pedidos'); const pedidos = await res.json();
             const body = document.getElementById('lista-pedidos'); body.innerHTML = '';
             pedidos.forEach(p => {
+                const pid = Number(p.id);
                 let pill = p.status === 'Pago' ? '<span class="pill pago">Pago</span>' : (p.status === 'Cancelado' ? '<span class="pill cancelado">Cancelado</span>' : '<span class="pill pendente">Pendente</span>');
-                let action = p.status === 'Pendente' ? `<div style="display:flex; gap:8px;"><button class="btn-action success" onclick="mudarStatusPedido(${p.id}, 'Pago')">Confirmar</button><button class="btn-action" style="color:var(--danger); border-color:var(--border);" onclick="mudarStatusPedido(${p.id}, 'Cancelado')">Cancelar</button></div>` : (p.status === 'Pago' ? `<span style="font-size:12px;color:var(--success);font-weight:700;">✔ PAGO</span>` : `<span style="font-size:12px;color:var(--danger);font-weight:700;">✖ CANCELADO</span>`);
-                body.innerHTML += `<tr><td>#${p.id}</td><td><b style="color:#0f172a;">${p.cliente_nome}</b><br><span style="font-size:12px;color:#64748b;">${p.telefone||'Sem Tel'}</span></td><td><div style="font-size:12px;color:#64748b;line-height:1.5;">${p.resumo_pedido.replace(/\n/g, '<br>')}</div></td><td><b style="color:#0f172a;">R$ ${p.total.toFixed(2)}</b></td><td>${pill}</td><td>${action}</td></tr>`;
+                let action = p.status === 'Pendente' ? `<div style="display:flex; gap:8px;"><button class="btn-action success" onclick="mudarStatusPedido(${pid}, 'Pago')">Confirmar</button><button class="btn-action" style="color:var(--danger); border-color:var(--border);" onclick="mudarStatusPedido(${pid}, 'Cancelado')">Cancelar</button></div>` : (p.status === 'Pago' ? `<span style="font-size:12px;color:var(--success);font-weight:700;">✔ PAGO</span>` : `<span style="font-size:12px;color:var(--danger);font-weight:700;">✖ CANCELADO</span>`);
+                const resumoSafe = escapeHTML(p.resumo_pedido).replace(/\n/g, '<br>');
+                body.innerHTML += `<tr><td>#${pid}</td><td><b style="color:#0f172a;">${escapeHTML(p.cliente_nome)}</b><br><span style="font-size:12px;color:#64748b;">${escapeHTML(p.telefone||'Sem Tel')}</span></td><td><div style="font-size:12px;color:#64748b;line-height:1.5;">${resumoSafe}</div></td><td><b style="color:#0f172a;">R$ ${Number(p.total).toFixed(2)}</b></td><td>${pill}</td><td>${action}</td></tr>`;
             });
         }
         
-        async function mudarStatusPedido(id, status) { if (status === 'Cancelado' && !confirm("Cancelar este pedido? O estoque não será afetado.")) return; const fd = new FormData(); fd.append('status_novo', status); await fetch(`/api/admin/pedidos/${id}/status`, { method: 'PATCH', body: fd }); carregarPedidos(); carregarDashboard(); verificarNotificacoes(); }
-        async function carregarCategorias() { const res = await fetch('/api/categorias'); const categorias = await res.json(); const select = document.getElementById('categoria'); select.innerHTML = ''; categorias.forEach(c => select.innerHTML += `<option value="${c.nome}">${c.nome}</option>`); const tbody = document.getElementById('lista-categorias-admin'); tbody.innerHTML = ''; categorias.forEach(c => { tbody.innerHTML += `<tr><td><b style="color:#0f172a;">${c.nome}</b></td><td style="text-align:right;"><button class="btn-action" style="color:var(--danger); margin-left:auto;" onclick="excluirCategoria(${c.id})"><i data-lucide="trash-2" style="width:16px;"></i></button></td></tr>`; }); lucide.createIcons(); atualizarPreview(); }
-        async function criarCategoria() { const nome = document.getElementById('nova-cat-nome').value.trim(); if(!nome) return; await fetch('/api/categorias', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({nome}) }); document.getElementById('nova-cat-nome').value = ''; carregarCategorias(); }
-        async function excluirCategoria(id) { if(confirm("Excluir esta categoria?")) { await fetch(`/api/categorias/${id}`, { method: 'DELETE' }); carregarCategorias(); } }
-        async function carregarClientes() { const res = await fetch('/api/admin/pedidos'); const pedidos = await res.json(); const cli = {}; pedidos.forEach(p => { if(p.status === 'Cancelado') return; if(!cli[p.cliente_nome]) cli[p.cliente_nome]={t:p.telefone, val:0}; cli[p.cliente_nome].val += p.total; }); const body = document.getElementById('lista-clientes'); body.innerHTML = ''; Object.keys(cli).forEach(nome => { body.innerHTML += `<tr><td><b style="color:#0f172a;">${nome}</b></td><td>${cli[nome].t}</td><td><b style="color:var(--success);">R$ ${cli[nome].val.toFixed(2)}</b></td></tr>`; }); }
+        async function mudarStatusPedido(id, status) { if (status === 'Cancelado' && !confirm("Cancelar este pedido? O estoque não será afetado.")) return; const fd = new FormData(); fd.append('status_novo', status); await fetchAdmin(`/api/admin/pedidos/${Number(id)}/status`, { method: 'PATCH', body: fd }); carregarPedidos(); carregarDashboard(); verificarNotificacoes(); }
+        async function carregarCategorias() { const res = await fetchAdmin('/api/categorias'); const categorias = await res.json(); const select = document.getElementById('categoria'); select.innerHTML = ''; categorias.forEach(c => { const cSafe = escapeHTML(c.nome); select.innerHTML += `<option value="${cSafe}">${cSafe}</option>`; }); const tbody = document.getElementById('lista-categorias-admin'); tbody.innerHTML = ''; categorias.forEach(c => { tbody.innerHTML += `<tr><td><b style="color:#0f172a;">${escapeHTML(c.nome)}</b></td><td style="text-align:right;"><button class="btn-action" style="color:var(--danger); margin-left:auto;" onclick="excluirCategoria(${Number(c.id)})"><i data-lucide="trash-2" style="width:16px;"></i></button></td></tr>`; }); lucide.createIcons(); atualizarPreview(); }
+        async function criarCategoria() { const nome = document.getElementById('nova-cat-nome').value.trim(); if(!nome) return; await fetchAdmin('/api/categorias', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({nome}) }); document.getElementById('nova-cat-nome').value = ''; carregarCategorias(); }
+        async function excluirCategoria(id) { if(confirm("Excluir esta categoria?")) { await fetchAdmin(`/api/categorias/${Number(id)}`, { method: 'DELETE' }); carregarCategorias(); } }
+        async function carregarClientes() { const res = await fetchAdmin('/api/admin/pedidos'); const pedidos = await res.json(); const cli = {}; pedidos.forEach(p => { if(p.status === 'Cancelado') return; if(!cli[p.cliente_nome]) cli[p.cliente_nome]={t:p.telefone, val:0}; cli[p.cliente_nome].val += Number(p.total); }); const body = document.getElementById('lista-clientes'); body.innerHTML = ''; Object.keys(cli).forEach(nome => { body.innerHTML += `<tr><td><b style="color:#0f172a;">${escapeHTML(nome)}</b></td><td>${escapeHTML(cli[nome].t || 'Sem Tel')}</td><td><b style="color:var(--success);">R$ ${cli[nome].val.toFixed(2)}</b></td></tr>`; }); }
 
         carregarDashboard(); carregarCategorias();
     </script>
