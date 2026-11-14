@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#1e1b20">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Marli Express | Mobile</title>
+    <title>Marli Essencial | Painel Mobile</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231e1b20'/><text x='50%' y='50%' font-family='Inter, sans-serif' font-size='60' font-weight='800' fill='%23b48484' dominant-baseline='central' text-anchor='middle'>M</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -28,7 +28,7 @@
             margin: 0;
             background: var(--bg);
             color: var(--text);
-            padding-bottom: 92px;
+            padding-bottom: 94px;
         }
 
         /* Topo Fixo */
@@ -80,6 +80,8 @@
             grid-template-columns: 1fr 1fr;
             gap: 12px;
             padding: 16px 16px 6px;
+            max-width: 640px;
+            margin: 0 auto;
         }
         .kpi-mini {
             background: var(--card);
@@ -124,6 +126,24 @@
             background: var(--dark);
             color: #fff;
             border-color: var(--dark);
+        }
+
+        /* Cards Gerais */
+        .card-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+        .section-heading {
+            font-size: 17px;
+            font-weight: 800;
+            margin: 0 0 14px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         /* Cards de Pedidos */
@@ -213,10 +233,12 @@
             justify-content: center;
             gap: 6px;
             cursor: pointer;
+            width: 100%;
         }
         .btn-touch:active { transform: scale(0.98); }
         .btn-touch:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-confirm { background: var(--success); color: #fff; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); }
+        .btn-primary-mobile { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(180, 132, 132, 0.3); }
         .btn-cancel { background: #fff; color: var(--danger); border: 1px solid #fecaca; }
 
         /* Busca e Cards de Estoque */
@@ -241,7 +263,6 @@
             background: var(--card);
             font-size: 14px;
         }
-        .search-box input:focus { outline: none; border-color: var(--primary); }
 
         .stock-card {
             background: var(--card);
@@ -249,11 +270,13 @@
             border-radius: 16px;
             padding: 14px;
             margin-bottom: 12px;
+        }
+        .stock-card.hidden-item { opacity: 0.65; }
+        .stock-top {
             display: flex;
             gap: 12px;
             align-items: center;
         }
-        .stock-card.hidden-item { opacity: 0.62; }
         .stock-img {
             width: 64px;
             height: 64px;
@@ -273,16 +296,9 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .stock-meta { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
-        .stock-price { font-size: 14px; font-weight: 800; color: var(--dark); }
+        .stock-meta { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+        .stock-price { font-size: 15px; font-weight: 800; color: var(--dark); }
 
-        .stock-controls {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 8px;
-            flex-shrink: 0;
-        }
         .stepper {
             display: flex;
             align-items: center;
@@ -290,6 +306,7 @@
             border-radius: 10px;
             padding: 3px;
             border: 1px solid var(--border);
+            flex-shrink: 0;
         }
         .step-btn {
             width: 34px;
@@ -306,7 +323,6 @@
             justify-content: center;
             box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
-        .step-btn:active { transform: scale(0.92); }
         .step-val {
             min-width: 34px;
             text-align: center;
@@ -315,21 +331,91 @@
         }
         .step-val.low { color: var(--danger); }
 
-        .btn-vis {
-            background: none;
-            border: 1px solid var(--border);
+        .stock-actions-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr 42px;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #f1ecec;
+        }
+        .mini-act-btn {
+            height: 36px;
             border-radius: 8px;
-            padding: 4px 8px;
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--muted);
-            display: inline-flex;
+            border: 1px solid var(--border);
+            background: #fdfbfb;
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
             align-items: center;
-            gap: 4px;
+            justify-content: center;
+            gap: 5px;
             cursor: pointer;
         }
+        .mini-act-btn.danger { color: var(--danger); border-color: #fecaca; background: #fff5f5; }
 
-        /* Navegação Inferior Fixa */
+        /* Formulário Mobile (+ Produto e Categorias) */
+        .field-group { margin-bottom: 14px; }
+        .field-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        label.lbl {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        input.inp, select.inp, textarea.inp {
+            width: 100%;
+            height: 46px;
+            padding: 0 14px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 15px;
+            background: #fdfbfb;
+            color: var(--text);
+        }
+        textarea.inp { height: auto; padding: 12px 14px; }
+        input.inp:focus, select.inp:focus, textarea.inp:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        .upload-box-mobile {
+            border: 2px dashed #cbbdbd;
+            background: #fdfbfb;
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 16px;
+            display: block;
+        }
+        .preview-thumb-mob {
+            width: 84px;
+            height: 84px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 0 auto 8px;
+            display: none;
+        }
+
+        /* Lista de Categorias */
+        .cat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            border-bottom: 1px solid #f1ecec;
+        }
+        .cat-row:last-child { border-bottom: none; }
+        .cat-name { font-size: 15px; font-weight: 700; }
+
+        /* Navegação Inferior Fixa (4 abas) */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -338,10 +424,10 @@
             background: #fff;
             border-top: 1px solid var(--border);
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(4, 1fr);
             height: 74px;
             z-index: 60;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
         }
         .nav-tab {
             background: none;
@@ -351,20 +437,18 @@
             align-items: center;
             justify-content: center;
             gap: 4px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
             color: var(--muted);
             cursor: pointer;
             position: relative;
+            padding: 0;
         }
         .nav-tab.active { color: var(--dark); }
-        .nav-tab.active::top {
-            content: '';
-        }
         .nav-indicator {
             position: absolute;
             top: 0;
-            width: 40px;
+            width: 32px;
             height: 3px;
             background: var(--primary);
             border-radius: 0 0 4px 4px;
@@ -373,13 +457,13 @@
         .nav-tab.active .nav-indicator { display: block; }
         .nav-badge {
             position: absolute;
-            top: 10px;
-            margin-left: 28px;
+            top: 8px;
+            margin-left: 24px;
             background: var(--danger);
             color: #fff;
             font-size: 10px;
             font-weight: 800;
-            padding: 2px 6px;
+            padding: 1px 5px;
             border-radius: 10px;
         }
 
@@ -387,7 +471,7 @@
         .tab-view.active { display: block; }
         .empty-state {
             text-align: center;
-            padding: 48px 20px;
+            padding: 40px 20px;
             color: var(--muted);
             background: #fff;
             border-radius: 16px;
@@ -401,14 +485,14 @@
     <header class="top-bar">
         <div class="brand-wrap">
             <span class="brand-title">Marli Essencial</span>
-            <span class="brand-badge">Express</span>
+            <span class="brand-badge">Mobile</span>
         </div>
         <div class="top-actions">
             <button class="icon-btn" id="btn-refresh" onclick="atualizarTudo()" title="Atualizar">
                 <i data-lucide="refresh-cw" style="width: 18px;"></i>
             </button>
-            <a href="/painel" class="icon-btn" title="Painel Completo Desktop">
-                <i data-lucide="layout-dashboard" style="width: 18px;"></i>
+            <a href="/painel" class="icon-btn" title="Visão Desktop">
+                <i data-lucide="monitor" style="width: 18px;"></i>
             </a>
             <a href="/api/logout" class="icon-btn" title="Sair">
                 <i data-lucide="log-out" style="width: 18px; color: #fca5a5;"></i>
@@ -437,11 +521,11 @@
             <div id="lista-pedidos-mobile"></div>
         </section>
 
-        <!-- ABA 2: ESTOQUE RÁPIDO -->
+        <!-- ABA 2: ESTOQUE -->
         <section id="view-estoque" class="tab-view">
             <div class="search-box">
                 <i data-lucide="search"></i>
-                <input type="text" id="busca-mobile" placeholder="Buscar peça ou SKU..." oninput="renderizarEstoqueMobile()">
+                <input type="text" id="busca-mobile" placeholder="Buscar peça, categoria ou SKU..." oninput="renderizarEstoqueMobile()">
             </div>
             <div class="filter-row">
                 <button class="chip active" id="chip-est-todos" onclick="setFiltroEstoque('todos')">Todas as Peças</button>
@@ -449,19 +533,103 @@
             </div>
             <div id="lista-estoque-mobile"></div>
         </section>
+
+        <!-- ABA 3: NOVO / EDITAR PRODUTO -->
+        <section id="view-produto" class="tab-view">
+            <div class="card-box">
+                <div class="section-heading">
+                    <span id="form-prod-titulo">Cadastrar Nova Peça</span>
+                    <button id="btn-cancelar-edicao" onclick="resetarFormProduto()" style="display:none; background:none; border:none; color:var(--danger); font-size:12px; font-weight:700; cursor:pointer;">Cancelar edição</button>
+                </div>
+
+                <label class="upload-box-mobile" id="label-foto-mob">
+                    <img id="preview-foto-mob" class="preview-thumb-mob" alt="Preview">
+                    <i data-lucide="camera" id="icone-cam-mob" style="width: 32px; height: 32px; color: var(--primary); margin-bottom: 6px;"></i>
+                    <div id="texto-foto-mob" style="font-size: 14px; font-weight: 700;">Tirar Foto ou Abrir Galeria</div>
+                    <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">Até 3 imagens (JPG, PNG ou WEBP)</div>
+                    <input type="file" id="input-foto-mob" style="display:none;" accept="image/jpeg,image/png,image/webp" multiple onchange="aoSelecionarFotos(event)">
+                </label>
+
+                <div class="field-group">
+                    <label class="lbl">Nome da Peça</label>
+                    <input type="text" id="mob-nome" class="inp" placeholder="Ex: Conjunto Renda Rosé">
+                </div>
+
+                <div class="field-group">
+                    <label class="lbl">Categoria</label>
+                    <select id="mob-categoria" class="inp"></select>
+                </div>
+
+                <div class="field-row-2 field-group">
+                    <div>
+                        <label class="lbl">Preço (R$)</label>
+                        <input type="number" step="0.01" min="0.01" id="mob-preco" class="inp" placeholder="59.90">
+                    </div>
+                    <div>
+                        <label class="lbl">Estoque</label>
+                        <input type="number" min="0" id="mob-estoque" class="inp" value="5">
+                    </div>
+                </div>
+
+                <div class="field-row-2 field-group">
+                    <div>
+                        <label class="lbl">Tamanho</label>
+                        <input type="text" id="mob-tamanho" class="inp" placeholder="P, M, G ou Único">
+                    </div>
+                    <div>
+                        <label class="lbl">Referência / SKU</label>
+                        <input type="text" id="mob-etiqueta" class="inp" placeholder="Ex: REF-102">
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label class="lbl">Descrição</label>
+                    <textarea id="mob-descricao" class="inp" rows="2" placeholder="Detalhes do tecido ou fragrância..."></textarea>
+                </div>
+
+                <button class="btn-touch btn-primary-mobile" id="btn-salvar-mob" onclick="salvarProdutoMobile()">
+                    <i data-lucide="check-circle" style="width: 18px;"></i> Publicar no Catálogo
+                </button>
+            </div>
+        </section>
+
+        <!-- ABA 4: CATEGORIAS -->
+        <section id="view-categorias" class="tab-view">
+            <div class="card-box">
+                <h3 class="section-heading">Nova Categoria</h3>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="mob-nova-cat" class="inp" placeholder="Ex: Perfumes, Conjuntos...">
+                    <button class="btn-touch btn-primary-mobile" style="width: auto; padding: 0 20px;" onclick="criarCategoriaMobile()">Criar</button>
+                </div>
+            </div>
+
+            <div class="card-box" style="padding: 6px 14px;">
+                <div id="lista-categorias-mobile"></div>
+            </div>
+        </section>
     </div>
 
     <nav class="bottom-nav">
         <button class="nav-tab active" id="tab-btn-pedidos" onclick="trocarAba('pedidos')">
             <span class="nav-indicator"></span>
-            <i data-lucide="shopping-bag" style="width: 22px;"></i>
+            <i data-lucide="shopping-bag" style="width: 20px;"></i>
             <span>Pedidos</span>
             <span class="nav-badge" id="badge-nav-pendentes" style="display: none;">0</span>
         </button>
         <button class="nav-tab" id="tab-btn-estoque" onclick="trocarAba('estoque')">
             <span class="nav-indicator"></span>
-            <i data-lucide="package" style="width: 22px;"></i>
-            <span>Estoque Rápido</span>
+            <i data-lucide="package" style="width: 20px;"></i>
+            <span>Estoque</span>
+        </button>
+        <button class="nav-tab" id="tab-btn-produto" onclick="abrirAbaNovoProduto()">
+            <span class="nav-indicator"></span>
+            <i data-lucide="plus-circle" style="width: 20px;"></i>
+            <span>+ Produto</span>
+        </button>
+        <button class="nav-tab" id="tab-btn-categorias" onclick="trocarAba('categorias')">
+            <span class="nav-indicator"></span>
+            <i data-lucide="tags" style="width: 20px;"></i>
+            <span>Categorias</span>
         </button>
     </nav>
 
@@ -470,8 +638,14 @@
 
         let pedidosCache = [];
         let produtosCache = [];
+        let categoriasCache = [];
         let filtroPedidoAtual = 'Pendente';
         let filtroEstoqueAtual = 'todos';
+
+        let editandoId = null;
+        let fotoUrl1 = "";
+        let fotoUrl2 = "";
+        let fotoUrl3 = "";
 
         function escapeHTML(str) {
             if (str === null || str === undefined) return "";
@@ -508,6 +682,7 @@
             document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
             document.getElementById(`view-${aba}`).classList.add('active');
             document.getElementById(`tab-btn-${aba}`).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function setFiltroPedido(filtro) {
@@ -657,21 +832,30 @@
 
                 html += `
                     <div class="stock-card ${p.ativo ? '' : 'hidden-item'}">
-                        <img src="${safeURL(p.imagem_url)}" class="stock-img" alt="${escapeHTML(p.nome)}">
-                        <div class="stock-info">
-                            <h3 class="stock-name">${escapeHTML(p.nome)}</h3>
-                            <div class="stock-meta">Tam ${escapeHTML(p.tamanho)} ${p.etiqueta ? '• ' + escapeHTML(p.etiqueta) : ''}</div>
-                            <div class="stock-price">R$ ${precoAtual.toFixed(2).replace('.', ',')}</div>
-                        </div>
-                        <div class="stock-controls">
+                        <div class="stock-top">
+                            <img src="${safeURL(p.imagem_url)}" class="stock-img" alt="${escapeHTML(p.nome)}">
+                            <div class="stock-info">
+                                <h3 class="stock-name">${escapeHTML(p.nome)}</h3>
+                                <div class="stock-meta">Tam ${escapeHTML(p.tamanho)} • ${escapeHTML(p.categoria)}</div>
+                                <div class="stock-price">R$ ${precoAtual.toFixed(2).replace('.', ',')}</div>
+                            </div>
                             <div class="stepper">
                                 <button class="step-btn" onclick="ajustarEstoque(${pid}, -1, this)">−</button>
                                 <span class="step-val ${est < 3 ? 'low' : ''}" id="est-val-${pid}">${est}</span>
                                 <button class="step-btn" onclick="ajustarEstoque(${pid}, 1, this)">+</button>
                             </div>
-                            <button class="btn-vis" onclick="alternarVisibilidade(${pid})">
-                                <i data-lucide="${p.ativo ? 'eye' : 'eye-off'}" style="width:12px;"></i>
-                                ${p.ativo ? 'Na loja' : 'Oculto'}
+                        </div>
+                        <div class="stock-actions-bar">
+                            <button class="mini-act-btn" onclick="alternarVisibilidade(${pid})">
+                                <i data-lucide="${p.ativo ? 'eye' : 'eye-off'}" style="width:14px;"></i>
+                                ${p.ativo ? 'Na Vitrine' : 'Oculto'}
+                            </button>
+                            <button class="mini-act-btn" onclick="editarProdutoMobile(${pid})">
+                                <i data-lucide="edit" style="width:14px;"></i>
+                                Editar
+                            </button>
+                            <button class="mini-act-btn danger" onclick="excluirProdutoMobile(${pid})" title="Excluir">
+                                <i data-lucide="trash-2" style="width:14px;"></i>
                             </button>
                         </div>
                     </div>
@@ -715,11 +899,248 @@
             }
         }
 
+        async function excluirProdutoMobile(id) {
+            if (!confirm("Excluir esta peça permanentemente?")) return;
+            const res = await fetchAdmin(`/api/produtos/${Number(id)}`, { method: 'DELETE' });
+            if (res.ok) {
+                await carregarProdutos();
+            }
+        }
+
+        // ==========================================
+        // CADASTRO & EDIÇÃO MOBILE DE PRODUTOS
+        // ==========================================
+        function abrirAbaNovoProduto() {
+            resetarFormProduto();
+            trocarAba('produto');
+        }
+
+        function resetarFormProduto() {
+            editandoId = null;
+            fotoUrl1 = ""; fotoUrl2 = ""; fotoUrl3 = "";
+            document.getElementById('form-prod-titulo').textContent = "Cadastrar Nova Peça";
+            document.getElementById('btn-cancelar-edicao').style.display = "none";
+            document.getElementById('btn-salvar-mob').innerHTML = `<i data-lucide="check-circle" style="width: 18px;"></i> Publicar no Catálogo`;
+            document.getElementById('mob-nome').value = "";
+            document.getElementById('mob-preco').value = "";
+            document.getElementById('mob-estoque').value = "5";
+            document.getElementById('mob-tamanho').value = "";
+            document.getElementById('mob-etiqueta').value = "";
+            document.getElementById('mob-descricao').value = "";
+            document.getElementById('input-foto-mob').value = "";
+            document.getElementById('preview-foto-mob').style.display = "none";
+            document.getElementById('icone-cam-mob').style.display = "inline-block";
+            document.getElementById('texto-foto-mob').textContent = "Tirar Foto ou Abrir Galeria";
+            lucide.createIcons();
+        }
+
+        function editarProdutoMobile(id) {
+            const p = produtosCache.find(x => x.id === id);
+            if (!p) return;
+
+            editandoId = id;
+            fotoUrl1 = p.imagem_url || "";
+            fotoUrl2 = p.imagem_url_2 || "";
+            fotoUrl3 = p.imagem_url_3 || "";
+
+            document.getElementById('form-prod-titulo').textContent = `Editar Peça #${Number(id)}`;
+            document.getElementById('btn-cancelar-edicao').style.display = "inline-block";
+            document.getElementById('btn-salvar-mob').innerHTML = `<i data-lucide="save" style="width: 18px;"></i> Salvar Alterações`;
+            document.getElementById('mob-nome').value = p.nome || "";
+            document.getElementById('mob-categoria').value = p.categoria || "";
+            document.getElementById('mob-preco').value = p.preco || "";
+            document.getElementById('mob-estoque').value = p.estoque ?? 1;
+            document.getElementById('mob-tamanho').value = p.tamanho || "";
+            document.getElementById('mob-etiqueta').value = p.etiqueta || p.cor || "";
+            document.getElementById('mob-descricao').value = p.descricao || "";
+            document.getElementById('input-foto-mob').value = "";
+
+            if (fotoUrl1) {
+                const prev = document.getElementById('preview-foto-mob');
+                prev.src = safeURL(fotoUrl1);
+                prev.style.display = "block";
+                document.getElementById('icone-cam-mob').style.display = "none";
+                document.getElementById('texto-foto-mob').textContent = "Toque para trocar a foto";
+            }
+
+            trocarAba('produto');
+            lucide.createIcons();
+        }
+
+        function aoSelecionarFotos(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+            const qtd = Math.min(files.length, 3);
+            document.getElementById('texto-foto-mob').textContent = `${qtd} foto(s) pronta(s) para envio`;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const prev = document.getElementById('preview-foto-mob');
+                prev.src = e.target.result;
+                prev.style.display = "block";
+                document.getElementById('icone-cam-mob').style.display = "none";
+            };
+            reader.readAsDataURL(files[0]);
+        }
+
+        async function uploadFotoMobile(file) {
+            const fd = new FormData();
+            fd.append("file", file);
+            const res = await fetchAdmin("/api/upload", { method: "POST", body: fd });
+            const data = await res.json();
+            if (!res.ok || !data.url) {
+                throw new Error(data.detail || "Falha ao enviar imagem.");
+            }
+            return data.url;
+        }
+
+        async function salvarProdutoMobile() {
+            const nome = document.getElementById('mob-nome').value.trim();
+            const categoria = document.getElementById('mob-categoria').value;
+            const preco = parseFloat(document.getElementById('mob-preco').value || 0);
+            const estoque = parseInt(document.getElementById('mob-estoque').value || 0);
+            const tamanho = document.getElementById('mob-tamanho').value.trim();
+            const etiqueta = document.getElementById('mob-etiqueta').value.trim();
+            const descricao = document.getElementById('mob-descricao').value.trim();
+
+            if (!nome || !categoria || preco <= 0 || !tamanho) {
+                return alert("Preencha Nome, Categoria, Preço e Tamanho.");
+            }
+
+            const btn = document.getElementById('btn-salvar-mob');
+            const htmlOriginal = btn.innerHTML;
+            btn.disabled = true;
+            btn.textContent = "Enviando...";
+
+            try {
+                const inputFotos = document.getElementById('input-foto-mob');
+                if (inputFotos.files && inputFotos.files.length > 0) {
+                    const limite = Math.min(inputFotos.files.length, 3);
+                    for (let i = 0; i < limite; i++) {
+                        const urlSubida = await uploadFotoMobile(inputFotos.files[i]);
+                        if (i === 0) fotoUrl1 = urlSubida;
+                        if (i === 1) fotoUrl2 = urlSubida;
+                        if (i === 2) fotoUrl3 = urlSubida;
+                    }
+                }
+
+                if (!fotoUrl1) {
+                    throw new Error("Selecione pelo menos 1 foto do produto.");
+                }
+
+                const payload = {
+                    nome,
+                    preco,
+                    estoque,
+                    imagem_url: fotoUrl1,
+                    imagem_url_2: fotoUrl2 || null,
+                    imagem_url_3: fotoUrl3 || null,
+                    descricao,
+                    tamanho,
+                    cor: etiqueta,
+                    categoria,
+                    etiqueta
+                };
+
+                const url = editandoId ? `/api/produtos/${Number(editandoId)}` : '/api/produtos';
+                const method = editandoId ? 'PUT' : 'POST';
+
+                const res = await fetchAdmin(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || "Erro ao salvar produto.");
+                }
+
+                alert(editandoId ? "Peça atualizada com sucesso!" : "Peça publicada na vitrine!");
+                resetarFormProduto();
+                await carregarProdutos();
+                trocarAba('estoque');
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = htmlOriginal;
+                lucide.createIcons();
+            }
+        }
+
+        // ==========================================
+        // CATEGORIAS MOBILE
+        // ==========================================
+        async function carregarCategorias() {
+            const res = await fetchAdmin('/api/categorias');
+            categoriasCache = await res.json();
+
+            const select = document.getElementById('mob-categoria');
+            const lista = document.getElementById('lista-categorias-mobile');
+
+            if (categoriasCache.length === 0) {
+                select.innerHTML = '<option value="">Crie uma categoria primeiro</option>';
+                lista.innerHTML = '<div style="padding:16px; text-align:center; color:var(--muted); font-size:13px;">Nenhuma categoria cadastrada.</div>';
+                return;
+            }
+
+            select.innerHTML = '';
+            lista.innerHTML = '';
+
+            categoriasCache.forEach(c => {
+                const cid = Number(c.id);
+                const cSafe = escapeHTML(c.nome);
+                select.innerHTML += `<option value="${cSafe}">${cSafe}</option>`;
+                lista.innerHTML += `
+                    <div class="cat-row">
+                        <span class="cat-name">${cSafe}</span>
+                        <button class="mini-act-btn danger" style="width: 38px;" onclick="excluirCategoriaMobile(${cid})">
+                            <i data-lucide="trash-2" style="width: 15px;"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        async function criarCategoriaMobile() {
+            const input = document.getElementById('mob-nova-cat');
+            const nome = input.value.trim();
+            if (!nome) return;
+
+            const res = await fetchAdmin('/api/categorias', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome })
+            });
+
+            if (res.ok) {
+                input.value = '';
+                await carregarCategorias();
+            } else {
+                const err = await res.json();
+                alert(err.detail || "Não foi possível criar a categoria.");
+            }
+        }
+
+        async function excluirCategoriaMobile(id) {
+            if (!confirm("Excluir esta categoria?")) return;
+            const res = await fetchAdmin(`/api/categorias/${Number(id)}`, { method: 'DELETE' });
+            if (res.ok) {
+                await carregarCategorias();
+            }
+        }
+
         async function atualizarTudo() {
             const icon = document.querySelector('#btn-refresh i');
             if (icon) icon.classList.add('spin');
             try {
-                await Promise.all([carregarIndicadores(), carregarPedidos(), carregarProdutos()]);
+                await Promise.all([
+                    carregarIndicadores(),
+                    carregarPedidos(),
+                    carregarProdutos(),
+                    carregarCategorias()
+                ]);
             } finally {
                 if (icon) setTimeout(() => icon.classList.remove('spin'), 300);
             }
