@@ -7,6 +7,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231e1b20'/><text x='50%' y='50%' font-family='Inter, sans-serif' font-size='60' font-weight='800' fill='%23b48484' dominant-baseline='central' text-anchor='middle'>M</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <style>
         * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
         :root { 
@@ -39,7 +40,7 @@
         .mobile-top-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
 
         .menu { padding: 20px 12px; flex-grow: 1; overflow-y: auto; }
-        .menu-label { font-size: 11px; text-transform: uppercase; color: #716975; letter-spacing: 1.5px; font-weight: 700; margin: 24px 12px 12px; }
+        .menu-label { font-size: 11px; text-transform: uppercase; color: #716975; letter-spacing: 1.5px; font-weight: 700; margin: 22px 12px 10px; }
         .menu-item { padding: 12px 16px; margin-bottom: 4px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; transition: all 0.2s ease; color: #a199a6; }
         .menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
         .menu-item.active { background: linear-gradient(90deg, rgba(180,132,132,0.22) 0%, transparent 100%); border-left: 3px solid var(--primary); color: #fff; border-radius: 0 8px 8px 0; }
@@ -127,8 +128,10 @@
         .alerta-linha { background-color: #fef2f2 !important; }
 
         /* ======== FORMS & BUTTONS ======== */
-        .btn-primary { background: var(--primary); color: #fff; border: none; height: 46px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; font-size: 14px; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: #fff; border: none; height: 46px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; font-size: 14px; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-primary:hover { background: #9c6c6c; }
+        .btn-dark { background: var(--sidebar); color: #fff; border: none; height: 46px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; font-size: 14px; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-dark:hover { background: #332e36; }
         .btn-action { background: #fff; border: 1px solid var(--border); padding: 7px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text); display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
         .btn-action:hover { background: #f1f5f9; }
         .btn-action.success { background: var(--success); color: #fff; border: none; }
@@ -143,6 +146,127 @@
         
         .cadastro-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; }
         .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+        /* ======== EDITOR DA LOJA (PIN + DRAG & DROP + LGPD) ======== */
+        .pin-lock-card {
+            max-width: 440px;
+            margin: 24px auto;
+            text-align: center;
+            padding: 36px 28px;
+        }
+        .pin-shield-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: #1e1b20;
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        .editor-status-bar {
+            background: #1e1b20;
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .editor-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .editor-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+        .sortable-vitrine-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+        .drag-prod-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px;
+            cursor: grab;
+            user-select: none;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+        .drag-prod-card:active { cursor: grabbing; }
+        .drag-prod-card.sortable-ghost { opacity: 0.45; border: 2px dashed var(--primary); background: #fdfbfb; }
+        .drag-pos-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: var(--sidebar);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 10px;
+            z-index: 2;
+        }
+        .drag-grip-icon {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255,255,255,0.9);
+            border: 1px solid var(--border);
+            color: #64748b;
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .drag-prod-img {
+            width: 100%;
+            height: 110px;
+            object-fit: contain;
+            background: #faf8f8;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            padding: 4px;
+        }
+        .drag-prod-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 2px;
+        }
+        .drag-prod-meta {
+            font-size: 11px;
+            color: #64748b;
+        }
+        .banner-preview-box {
+            width: 100%;
+            max-height: 180px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            margin-bottom: 12px;
+            background: #faf8f8;
+        }
 
         .aba { display: none; }
         .aba.ativa { display: block; }
@@ -173,12 +297,10 @@
             .kpi-card { padding: 14px; border-radius: 12px; }
             .kpi-value { font-size: 20px; }
 
-            /* Toolbar Estoque Mobile: 2 linhas limpas */
             .toolbar-estoque { flex-direction: column; align-items: stretch; padding: 12px; gap: 10px; margin-bottom: 14px; }
             .toolbar-controls-group { width: 100%; display: flex; gap: 8px; }
             .toolbar-controls-group select { width: auto; flex: 1; min-width: 0; height: 42px; font-size: 13px; }
 
-            /* Estoque em Grade Mobile: 2 COLUNAS COMPACTAS */
             .estoque-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
             .grid-img { height: 125px; padding: 8px; }
             .grid-info { padding: 10px; }
@@ -188,7 +310,9 @@
             .step-mini-btn { width: 24px; height: 24px; font-size: 14px; }
             .step-mini-val { min-width: 22px; font-size: 11px; }
 
-            /* Tabelas viram Cards no Mobile (zero corte lateral) */
+            .sortable-vitrine-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .drag-prod-img { height: 90px; }
+
             .table-responsive { overflow: visible; }
             table, thead, tbody, tr, td { display: block; width: 100%; }
             thead { display: none; }
@@ -207,7 +331,6 @@
             }
             .card[style*="padding: 0"] { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
 
-            /* Formulário Mobile */
             .cadastro-layout { grid-template-columns: 1fr; gap: 16px; }
             .grid-form { grid-template-columns: 1fr 1fr; gap: 10px; }
             .grid-form > div:nth-child(1),
@@ -238,7 +361,8 @@
             <div class="menu-item" onclick="abrirNovoProduto(this)"><i data-lucide="plus-circle"></i> + Produto</div>
             <div class="menu-item" onclick="mudarAba('aba-categorias', this)"><i data-lucide="tags"></i> Categorias</div>
             
-            <div class="menu-label">Relatórios</div>
+            <div class="menu-label">Loja & LGPD</div>
+            <div class="menu-item" onclick="mudarAba('aba-editor', this)"><i data-lucide="layout-template"></i> Editor da Loja</div>
             <div class="menu-item" onclick="mudarAba('aba-clientes', this)"><i data-lucide="users"></i> Clientes</div>
         </div>
         <div class="logout"><a href="/api/logout"><i data-lucide="log-out"></i> Sair do Sistema</a></div>
@@ -360,6 +484,108 @@
             </div>
         </div>
 
+        <!-- ABA: EDITOR DA LOJA (PROTEGIDO POR PIN + DRAG & DROP + LGPD) -->
+        <div id="aba-editor" class="aba">
+            <div id="editor-lock-box" class="card pin-lock-card">
+                <div class="pin-shield-icon">
+                    <i data-lucide="shield-check" style="width: 28px; height: 28px;"></i>
+                </div>
+                <h2 style="margin: 0 0 8px 0; font-size: 20px; color: #0f172a;">Acesso do Responsável</h2>
+                <p style="margin: 0 0 20px 0; font-size: 13px; color: #64748b; line-height: 1.5;">
+                    Para proteger a identidade da loja, a ordem da vitrine e os dados legais da LGPD, informe o <b>PIN Mestre</b> para desbloquear.
+                </p>
+                <div style="margin-bottom: 14px; text-align: left;">
+                    <label>PIN Mestre do Responsável</label>
+                    <input type="password" id="input-pin-editor" inputmode="numeric" placeholder="Digite o PIN..." onkeydown="if(event.key==='Enter') desbloquearEditor()">
+                </div>
+                <button class="btn-dark" id="btn-desbloquear-editor" onclick="desbloquearEditor()">
+                    <i data-lucide="unlock" style="width: 16px;"></i> Desbloquear Editor da Loja
+                </button>
+            </div>
+
+            <div id="editor-workspace" style="display: none;">
+                <div class="editor-status-bar">
+                    <div class="editor-status-badge">
+                        <span class="editor-status-dot"></span>
+                        <span>Modo Responsável Ativo (expira em 30 min)</span>
+                    </div>
+                    <button class="btn-action" style="background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.2);" onclick="bloquearEditorAgora()">
+                        <i data-lucide="lock" style="width: 14px;"></i> Bloquear Acesso
+                    </button>
+                </div>
+
+                <!-- 1. ARRASTA E SOLTA DA VITRINE -->
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <div>
+                            <h3 style="margin: 0 0 4px 0; font-size: 17px; color: #0f172a;">Organizar Vitrine (Arrasta e Solta)</h3>
+                            <p style="margin: 0; font-size: 13px; color: #64748b;">Segure e arraste os cards para escolher a ordem exata em que aparecem na loja.</p>
+                        </div>
+                        <button class="btn-primary" id="btn-salvar-ordem" style="width: auto; padding: 0 20px; height: 42px;" onclick="salvarOrdemVitrine()">
+                            <i data-lucide="save" style="width: 16px;"></i> Salvar Ordem
+                        </button>
+                    </div>
+                    <div id="grid-arrastar-produtos" class="sortable-vitrine-grid"></div>
+                </div>
+
+                <!-- 2. BANNER, AVISOS E CONTATO -->
+                <div class="card">
+                    <h3 style="margin: 0 0 16px 0; font-size: 17px; color: #0f172a;">Banner Principal & Identidade</h3>
+                    <img id="editor-preview-banner" src="banner.webp" class="banner-preview-box" alt="Banner Atual">
+                    <div style="display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap;">
+                        <label class="btn-action" style="cursor: pointer; height: 40px; padding: 0 16px; margin: 0;">
+                            <i data-lucide="image" style="width: 15px;"></i> Trocar Imagem do Banner
+                            <input type="file" id="input-banner-file" style="display: none;" accept="image/jpeg,image/png,image/webp" onchange="subirNovoBanner(event)">
+                        </label>
+                        <button type="button" class="btn-action" style="height: 40px;" onclick="restaurarBannerPadrao()">Usar Banner Padrão</button>
+                    </div>
+
+                    <div class="grid-form">
+                        <div>
+                            <label>Nome da Loja</label>
+                            <input type="text" id="cfg-nome-loja" placeholder="Marli Essencial">
+                        </div>
+                        <div>
+                            <label>WhatsApp Oficial (com DDI + DDD)</label>
+                            <input type="tel" id="cfg-whatsapp" placeholder="5511999999999">
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label>Barra de Avisos no Topo (Opcional)</label>
+                            <input type="text" id="cfg-aviso-topo" placeholder="Ex: Frete grátis acima de R$ 150 • Enviamos para todo o Brasil">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. DADOS OBRIGATÓRIOS LGPD -->
+                <div class="card">
+                    <h3 style="margin: 0 0 6px 0; font-size: 17px; color: #0f172a;">Conformidade LGPD (Lei nº 13.709/2018)</h3>
+                    <p style="margin: 0 0 16px 0; font-size: 13px; color: #64748b;">Informações exibidas no rodapé da loja e na Política de Privacidade para identificação do controlador dos dados.</p>
+                    <div class="grid-form">
+                        <div>
+                            <label>Nome do Responsável / Razão Social</label>
+                            <input type="text" id="cfg-lgpd-resp" placeholder="Ex: Marli Essencial Moda Íntima">
+                        </div>
+                        <div>
+                            <label>CPF ou CNPJ</label>
+                            <input type="text" id="cfg-lgpd-doc" placeholder="00.000.000/0001-00">
+                        </div>
+                        <div>
+                            <label>E-mail do Encarregado (DPO / Privacidade)</label>
+                            <input type="email" id="cfg-lgpd-email" placeholder="contato@marli-essencial.com.br">
+                        </div>
+                        <div>
+                            <label>Cidade / Estado</label>
+                            <input type="text" id="cfg-lgpd-cidade" placeholder="São Paulo - SP">
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" id="btn-salvar-config" style="margin-top: 22px;" onclick="salvarConfiguracoesLoja()">
+                        <i data-lucide="check-circle" style="width: 17px;"></i> Publicar Alterações na Loja
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div id="aba-clientes" class="aba">
             <div class="card" style="padding: 0;">
                 <div class="table-responsive">
@@ -379,6 +605,8 @@
         let produtoEditandoId = null; 
         let arrayEstoqueCompleto = []; 
         let viewModeEstoque = 'lista';
+        let bannerUrlAtual = "banner.webp";
+        let sortableInstancia = null;
 
         function escapeHTML(str) {
             if (str === null || str === undefined) return "";
@@ -395,7 +623,7 @@
         function safeURL(url) {
             if (!url) return "https://via.placeholder.com/400x400?text=Sem+Foto";
             const u = String(url).trim();
-            if (u.startsWith("https://") || u.startsWith("http://") || u.startsWith("data:image/")) {
+            if (u === "banner.webp" || u.startsWith("https://") || u.startsWith("http://") || u.startsWith("data:image/")) {
                 return escapeHTML(u);
             }
             return "https://via.placeholder.com/400x400?text=URL+Invalida";
@@ -403,7 +631,7 @@
 
         async function fetchAdmin(url, options = {}) {
             const res = await fetch(url, options);
-            if (res.status === 401) {
+            if (res.status === 401 && !url.includes("/verificar-editor")) {
                 window.location.href = "/login";
                 throw new Error("Sessão expirada");
             }
@@ -417,6 +645,7 @@
             if(id === 'aba-estoque') titulo.innerHTML = '<p>Catálogo</p><h1>Gestão de Estoque</h1>';
             if(id === 'aba-cadastrar') titulo.innerHTML = '<p>Catálogo</p><h1 id="titulo-form">Cadastrar Peça</h1>';
             if(id === 'aba-categorias') titulo.innerHTML = '<p>Configurações</p><h1>Categorias</h1>';
+            if(id === 'aba-editor') titulo.innerHTML = '<p>Vitrine & LGPD</p><h1>Editor da Loja</h1>';
             if(id === 'aba-clientes') titulo.innerHTML = '<p>CRM</p><h1>Meus Clientes</h1>';
         }
 
@@ -432,8 +661,195 @@
             if(id === 'aba-estoque') carregarEstoque();
             if(id === 'aba-clientes') carregarClientes();
             if(id === 'aba-categorias') carregarCategorias();
+            if(id === 'aba-editor') inicializarAbaEditor();
         }
 
+        // ==========================================
+        // EDITOR DA LOJA (PIN + DRAG & DROP + LGPD)
+        // ==========================================
+        async function inicializarAbaEditor() {
+            const res = await fetchAdmin('/api/admin/editor-status');
+            const data = await res.json();
+            if (data.autorizado) {
+                document.getElementById('editor-lock-box').style.display = 'none';
+                document.getElementById('editor-workspace').style.display = 'block';
+                await carregarDadosEditor();
+            } else {
+                document.getElementById('editor-lock-box').style.display = 'block';
+                document.getElementById('editor-workspace').style.display = 'none';
+            }
+            lucide.createIcons();
+        }
+
+        async function desbloquearEditor() {
+            const pin = document.getElementById('input-pin-editor').value.trim();
+            if (!pin) return alert("Digite o PIN Mestre do responsável.");
+
+            const btn = document.getElementById('btn-desbloquear-editor');
+            btn.disabled = true;
+            try {
+                const res = await fetchAdmin('/api/admin/verificar-editor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pin })
+                });
+                if (res.ok) {
+                    document.getElementById('input-pin-editor').value = '';
+                    await inicializarAbaEditor();
+                } else {
+                    const err = await res.json();
+                    alert(err.detail || "PIN incorreto.");
+                }
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function bloquearEditorAgora() {
+            await fetchAdmin('/api/admin/bloquear-editor', { method: 'POST' });
+            await inicializarAbaEditor();
+        }
+
+        async function carregarDadosEditor() {
+            const [resCfg, resProd] = await Promise.all([
+                fetch('/api/config'),
+                fetchAdmin('/api/admin/produtos')
+            ]);
+            const cfg = await resCfg.json();
+            const produtos = await resProd.json();
+
+            bannerUrlAtual = cfg.banner_url || "banner.webp";
+            document.getElementById('editor-preview-banner').src = safeURL(bannerUrlAtual);
+            document.getElementById('cfg-nome-loja').value = cfg.nome_loja || "";
+            document.getElementById('cfg-whatsapp').value = cfg.whatsapp || "";
+            document.getElementById('cfg-aviso-topo').value = cfg.aviso_topo || "";
+            document.getElementById('cfg-lgpd-resp').value = cfg.lgpd_responsavel || "";
+            document.getElementById('cfg-lgpd-doc').value = cfg.lgpd_documento || "";
+            document.getElementById('cfg-lgpd-email').value = cfg.lgpd_email || "";
+            document.getElementById('cfg-lgpd-cidade').value = cfg.lgpd_cidade || "";
+
+            renderizarGridArrastar(produtos.filter(p => p.ativo && p.estoque > 0));
+        }
+
+        function renderizarGridArrastar(produtosAtivos) {
+            const container = document.getElementById('grid-arrastar-produtos');
+            if (produtosAtivos.length === 0) {
+                container.innerHTML = '<p style="color:#64748b; font-size:13px; grid-column: 1/-1;">Nenhum produto ativo em estoque para ordenar.</p>';
+                return;
+            }
+
+            let html = '';
+            produtosAtivos.forEach((p, idx) => {
+                const pid = Number(p.id);
+                html += `
+                    <div class="drag-prod-card" data-id="${pid}">
+                        <span class="drag-pos-badge">#${idx + 1}</span>
+                        <span class="drag-grip-icon"><i data-lucide="grip-vertical" style="width:14px;"></i></span>
+                        <img src="${safeURL(p.imagem_url)}" class="drag-prod-img" alt="${escapeHTML(p.nome)}">
+                        <div class="drag-prod-name">${escapeHTML(p.nome)}</div>
+                        <div class="drag-prod-meta">Tam ${escapeHTML(p.tamanho)} • R$ ${Number(p.preco).toFixed(2)}</div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            lucide.createIcons();
+
+            if (sortableInstancia) sortableInstancia.destroy();
+            sortableInstancia = new Sortable(container, {
+                animation: 180,
+                ghostClass: 'sortable-ghost',
+                onEnd: function () {
+                    container.querySelectorAll('.drag-prod-card').forEach((card, i) => {
+                        const badge = card.querySelector('.drag-pos-badge');
+                        if (badge) badge.textContent = `#${i + 1}`;
+                    });
+                }
+            });
+        }
+
+        async function salvarOrdemVitrine() {
+            const cards = document.querySelectorAll('#grid-arrastar-produtos .drag-prod-card');
+            const itens = Array.from(cards).map((card, index) => ({
+                id: Number(card.dataset.id),
+                ordem: index + 1
+            }));
+
+            const btn = document.getElementById('btn-salvar-ordem');
+            btn.disabled = true;
+            try {
+                const res = await fetchAdmin('/api/admin/produtos/ordenar', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(itens)
+                });
+                if (res.status === 403) {
+                    alert("Sua sessão do Editor expirou. Digite o PIN novamente.");
+                    await inicializarAbaEditor();
+                    return;
+                }
+                if (res.ok) {
+                    alert("Ordem da vitrine salva com sucesso!");
+                }
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function subirNovoBanner(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const url = await enviarFotoParaNuvem(file);
+            if (url) {
+                bannerUrlAtual = url;
+                document.getElementById('editor-preview-banner').src = safeURL(url);
+            }
+        }
+
+        function restaurarBannerPadrao() {
+            bannerUrlAtual = "banner.webp";
+            document.getElementById('editor-preview-banner').src = "banner.webp";
+        }
+
+        async function salvarConfiguracoesLoja() {
+            const btn = document.getElementById('btn-salvar-config');
+            btn.disabled = true;
+
+            const payload = {
+                nome_loja: document.getElementById('cfg-nome-loja').value.trim(),
+                whatsapp: document.getElementById('cfg-whatsapp').value.trim(),
+                banner_url: bannerUrlAtual,
+                aviso_topo: document.getElementById('cfg-aviso-topo').value.trim(),
+                lgpd_responsavel: document.getElementById('cfg-lgpd-resp').value.trim(),
+                lgpd_documento: document.getElementById('cfg-lgpd-doc').value.trim(),
+                lgpd_email: document.getElementById('cfg-lgpd-email').value.trim(),
+                lgpd_cidade: document.getElementById('cfg-lgpd-cidade').value.trim()
+            };
+
+            try {
+                const res = await fetchAdmin('/api/admin/config', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.status === 403) {
+                    alert("Sessão do Editor expirou. Digite o PIN novamente.");
+                    await inicializarAbaEditor();
+                    return;
+                }
+                if (res.ok) {
+                    alert("Alterações publicadas na loja com sucesso!");
+                } else {
+                    const err = await res.json();
+                    alert(err.detail || "Não foi possível salvar as configurações.");
+                }
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ==========================================
+        // PRODUTOS, ESTOQUE & PEDIDOS
+        // ==========================================
         function abrirNovoProduto(el) {
             produtoEditandoId = null;
             document.getElementById('nome').value = ''; document.getElementById('preco').value = '';

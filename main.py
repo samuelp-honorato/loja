@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException, Depends, Request, Response, Form, UploadFile, File
 from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, DateTime, text
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from pydantic import BaseModel, Field
 from typing import List, Optional
@@ -36,6 +36,7 @@ WHATSAPP_LOJA = os.getenv("WHATSAPP_LOJA", "")
 ADMIN_USER = os.getenv("ADMIN_USER", "admin")
 ADMIN_PASS = os.getenv("ADMIN_PASS", "")
 ADMIN_PASS_HASH = os.getenv("ADMIN_PASS_HASH", "")
+PIN_EDITOR_LOJA = os.getenv("PIN_EDITOR_LOJA", "2026")
 
 SECRET_KEY = os.getenv("SECRET_KEY") or secrets.token_hex(32)
 DOMINIO_OFICIAL = os.getenv("DOMINIO_OFICIAL", "https://marli-lingerie.onrender.com").rstrip("/")
@@ -79,6 +80,7 @@ class ProdutoDB(Base):
     em_promocao = Column(Boolean, default=False)
     ativo = Column(Boolean, default=True)
     estoque = Column(Integer, default=1)
+    ordem = Column(Integer, default=0)
     imagem_url = Column(String)
     imagem_url_2 = Column(String, nullable=True)
     imagem_url_3 = Column(String, nullable=True)
@@ -99,10 +101,22 @@ class PedidoDB(Base):
     status = Column(String, default="Pendente")
     data_criacao = Column(DateTime, default=datetime.utcnow)
 
+class ConfigLojaDB(Base):
+    __tablename__ = "config_loja_v1"
+    chave = Column(String, primary_key=True, index=True)
+    valor = Column(String, default="")
+
 Base.metadata.create_all(bind=engine)
 
+# Migração segura para garantir a coluna 'ordem' em bancos já existentes
+try:
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE produtos_v5 ADD COLUMN ordem INTEGER DEFAULT 0"))
+except Exception:
+    pass
+
 # ==========================================
-# 3. FUNÇÕES DE SEGURANÇA (HASH, XSS, RATE LIMIT)
+# 3. FUNÇÕES DE SEGURANÇA (HASH, XSS, RATE LIMIT, PIN EDITOR)
 # ==========================================
 ALGORITHM = "HS256"
 TOKENS_RESET_USADOS = set()
@@ -126,16 +140,40 @@ def verificar_senha_admin(senha_digitada: str) -> bool:
         return hmac.compare_digest(senha_digitada.encode("utf-8"), ADMIN_PASS.encode("utf-8"))
     return False
 
+def gerar_token_editor() -> str:
+    expira = str(int(time.time()) + 1800)  # 30 minutos
+    assinatura = hmac.new(SECRET_KEY.encode("utf-8"), f"editor:{expira}".encode("utf-8"), hashlib.sha256).hexdigest()
+    return f"{expira}.{assinatura}"
+
+def validar_token_editor(token: str) -> bool:
+    if not token or "." not in token:
+        return False
+    try:
+        expira, assinatura = token.split(".", 1)
+        esperado = hmac.new(SECRET_KEY.encode("utf-8"), f"editor:{expira}".encode("utf-8"), hashlib.sha256).hexdigest()
+        return hmac.compare_digest(assinatura, esperado) and int(expira) >= int(time.time())
+    except Exception:
+        return False
+
+def exigir_editor(request: Request):
+    token = request.cookies.get("editor_auth", "")
+    if not validar_token_editor(token):
+        sec_logger.warning(f"[EDITOR_BLOQUEADO] Tentativa sem PIN válido | IP={obter_ip_cliente(request)}")
+        raise HTTPException(status_code=403, detail="Acesso restrito ao responsável. Digite o PIN Mestre para editar a loja.")
+    return True
+
 def sanitizar_texto(valor: Optional[str], max_len: int = 255) -> str:
     if not valor:
         return ""
     limpo = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", str(valor)).strip()
     return html.escape(limpo, quote=True)[:max_len]
 
-def validar_url_imagem(url: Optional[str]) -> Optional[str]:
+def validar_url_imagem(url: Optional[str], permitir_banner_local: bool = False) -> Optional[str]:
     if not url:
         return None
     u = url.strip()
+    if permitir_banner_local and u == "banner.webp":
+        return u
     if u.startswith("https://") or u.startswith("http://"):
         return u[:500]
     raise HTTPException(status_code=400, detail="URL de imagem inválida. Use apenas links HTTP/HTTPS.")
@@ -154,6 +192,19 @@ def verificar_rate_limit(ip: str, escopo: str, limite: int, janela_segundos: int
         sec_logger.warning(f"[RATE_LIMIT] Bloqueio no escopo '{escopo}' para o IP {ip}")
         raise HTTPException(status_code=429, detail="Muitas tentativas. Aguarde 1 minuto e tente novamente.")
     RATE_LIMIT_STORE[chave].append(agora)
+
+def obter_config_dict(db: Session) -> dict:
+    registros = {r.chave: r.valor for r in db.query(ConfigLojaDB).all()}
+    return {
+        "nome_loja": registros.get("nome_loja") or NOME_LOJA,
+        "whatsapp": registros.get("whatsapp") or WHATSAPP_LOJA,
+        "banner_url": registros.get("banner_url") or "banner.webp",
+        "aviso_topo": registros.get("aviso_topo", ""),
+        "lgpd_responsavel": registros.get("lgpd_responsavel", ""),
+        "lgpd_documento": registros.get("lgpd_documento", ""),
+        "lgpd_email": registros.get("lgpd_email", ""),
+        "lgpd_cidade": registros.get("lgpd_cidade", "")
+    }
 
 # ==========================================
 # 4. INICIALIZAÇÃO DO APP & MIDDLEWARES DE DEFESA
@@ -270,10 +321,28 @@ class PedidoCreate(BaseModel):
     cliente_nome: str = Field(..., min_length=2, max_length=100)
     telefone: str = Field(..., min_length=8, max_length=25)
     itens: List[ItemCarrinho] = Field(..., min_length=1, max_length=50)
+    lgpd_aceite: bool = Field(True)
 
 class PromocaoUpdate(BaseModel):
     em_promocao: bool
     preco_promocao: Optional[float] = Field(None, gt=0, le=100000)
+
+class PinEditorPayload(BaseModel):
+    pin: str = Field(..., min_length=1, max_length=50)
+
+class OrdemProdutoItem(BaseModel):
+    id: int = Field(..., gt=0)
+    ordem: int = Field(..., ge=0, le=100000)
+
+class ConfigLojaUpdate(BaseModel):
+    nome_loja: Optional[str] = Field(None, max_length=80)
+    whatsapp: Optional[str] = Field(None, max_length=25)
+    banner_url: Optional[str] = Field(None, max_length=500)
+    aviso_topo: Optional[str] = Field(None, max_length=160)
+    lgpd_responsavel: Optional[str] = Field(None, max_length=120)
+    lgpd_documento: Optional[str] = Field(None, max_length=30)
+    lgpd_email: Optional[str] = Field(None, max_length=120)
+    lgpd_cidade: Optional[str] = Field(None, max_length=80)
 
 # ==========================================
 # 6. ENTREGA SEGURA DE PÁGINAS E ARQUIVOS
@@ -356,7 +425,7 @@ async def upload_imagem(
         raise HTTPException(status_code=500, detail="Falha ao enviar imagem.")
 
 # ==========================================
-# 8. AUTENTICAÇÃO, COOKIES SEGUROS E RESET EXPIRÁVEL
+# 8. AUTENTICAÇÃO, COOKIES SEGUROS E EDITOR PIN
 # ==========================================
 @app.post("/api/login")
 def fazer_login(request: Request, usuario: str = Form(...), senha: str = Form(...)):
@@ -392,7 +461,44 @@ def fazer_login(request: Request, usuario: str = Form(...), senha: str = Form(..
 def sair():
     redirect = RedirectResponse(url="/login", status_code=303)
     redirect.delete_cookie("session_token", httponly=True, secure=IS_PROD, samesite="strict")
+    redirect.delete_cookie("editor_auth", httponly=True, secure=IS_PROD, samesite="strict")
     return redirect
+
+@app.get("/api/admin/editor-status")
+def status_editor_loja(request: Request, admin: bool = Depends(verificar_admin)):
+    token = request.cookies.get("editor_auth", "")
+    return {"autorizado": validar_token_editor(token)}
+
+@app.post("/api/admin/verificar-editor")
+def verificar_pin_editor(
+    payload: PinEditorPayload,
+    request: Request,
+    response: Response,
+    admin: bool = Depends(verificar_admin)
+):
+    ip = obter_ip_cliente(request)
+    verificar_rate_limit(ip, "pin_editor", limite=5, janela_segundos=60)
+
+    pin_ativo = os.getenv("PIN_EDITOR_LOJA", PIN_EDITOR_LOJA)
+    if not hmac.compare_digest(payload.pin.strip().encode("utf-8"), pin_ativo.encode("utf-8")):
+        sec_logger.warning(f"[PIN_EDITOR_FALHA] PIN incorreto | IP={ip}")
+        raise HTTPException(status_code=401, detail="PIN Mestre do responsável incorreto.")
+
+    response.set_cookie(
+        key="editor_auth",
+        value=gerar_token_editor(),
+        httponly=True,
+        secure=IS_PROD,
+        samesite="strict",
+        max_age=1800
+    )
+    sec_logger.info(f"[EDITOR_DESBLOQUEADO] Responsável autenticado | IP={ip}")
+    return {"status": "autorizado"}
+
+@app.post("/api/admin/bloquear-editor")
+def bloquear_editor(response: Response, admin: bool = Depends(verificar_admin)):
+    response.delete_cookie("editor_auth", httponly=True, secure=IS_PROD, samesite="strict")
+    return {"status": "bloqueado"}
 
 @app.post("/api/admin/gerar-hash")
 def endpoint_gerar_hash(nova_senha: str = Form(..., min_length=8, max_length=128), admin: bool = Depends(verificar_admin)):
@@ -402,11 +508,13 @@ def endpoint_gerar_hash(nova_senha: str = Form(..., min_length=8, max_length=128
     }
 
 @app.post("/api/recuperar-senha")
-def solicitar_reset_senha(request: Request):
+def solicitar_reset_senha(request: Request, db: Session = Depends(get_db)):
     ip = obter_ip_cliente(request)
     verificar_rate_limit(ip, "reset_senha", limite=3, janela_segundos=300)
 
-    if not WHATSAPP_LOJA:
+    cfg = obter_config_dict(db)
+    whats_destino = cfg["whatsapp"] or WHATSAPP_LOJA
+    if not whats_destino:
         raise HTTPException(status_code=400, detail="WhatsApp da loja não configurado.")
 
     jti = str(uuid.uuid4())
@@ -418,8 +526,8 @@ def solicitar_reset_senha(request: Request):
     )
     link_reset = f"{DOMINIO_OFICIAL}/redefinir-senha?token={token_reset}"
     enviar_mensagem_whatsapp(
-        WHATSAPP_LOJA,
-        f"🔐 *Recuperação de Senha - {NOME_LOJA}*\n\nAcesse o link abaixo para definir uma nova senha (expira em 15 minutos e vale para 1 único uso):\n{link_reset}"
+        whats_destino,
+        f"🔐 *Recuperação de Senha - {cfg['nome_loja']}*\n\nAcesse o link abaixo para definir uma nova senha (expira em 15 minutos e vale para 1 único uso):\n{link_reset}"
     )
     sec_logger.info(f"[RESET_SOLICITADO] Link enviado ao WhatsApp oficial | IP={ip}")
     return {"status": "Link de redefinição enviado para o WhatsApp oficial da loja (válido por 15 min)."}
@@ -456,11 +564,51 @@ def confirmar_reset_senha(
     }
 
 # ==========================================
-# 9. ROTAS DA LOJA & ERP (COM SANITIZAÇÃO XSS)
+# 9. ROTAS DA LOJA, EDITOR VISUAL & ERP
 # ==========================================
 @app.get("/api/config")
-def pegar_configuracoes():
-    return {"whatsapp": WHATSAPP_LOJA, "nome_loja": NOME_LOJA}
+def pegar_configuracoes(db: Session = Depends(get_db)):
+    return obter_config_dict(db)
+
+@app.put("/api/admin/config")
+def atualizar_configuracoes(
+    dados: ConfigLojaUpdate,
+    request: Request,
+    db: Session = Depends(get_db),
+    admin: bool = Depends(verificar_admin)
+):
+    exigir_editor(request)
+    payload = dados.model_dump(exclude_none=True)
+
+    for chave, valor in payload.items():
+        if chave == "banner_url":
+            valor_limpo = validar_url_imagem(valor, permitir_banner_local=True) or "banner.webp"
+        elif chave == "whatsapp":
+            valor_limpo = re.sub(r"\D", "", str(valor))[:20]
+        else:
+            valor_limpo = sanitizar_texto(valor, 200)
+
+        reg = db.query(ConfigLojaDB).filter(ConfigLojaDB.chave == chave).first()
+        if reg:
+            reg.valor = valor_limpo
+        else:
+            db.add(ConfigLojaDB(chave=chave, valor=valor_limpo))
+
+    db.commit()
+    return {"status": "salvo", "config": obter_config_dict(db)}
+
+@app.put("/api/admin/produtos/ordenar")
+def reordenar_produtos_vitrine(
+    itens: List[OrdemProdutoItem],
+    request: Request,
+    db: Session = Depends(get_db),
+    admin: bool = Depends(verificar_admin)
+):
+    exigir_editor(request)
+    for item in itens:
+        db.query(ProdutoDB).filter(ProdutoDB.id == item.id).update({"ordem": item.ordem})
+    db.commit()
+    return {"status": "ordenado"}
 
 @app.get("/api/categorias")
 def listar_categorias(db: Session = Depends(get_db)):
@@ -534,6 +682,7 @@ def cadastrar_produto(produto: ProdutoCreate, db: Session = Depends(get_db), adm
         nome=sanitizar_texto(produto.nome, 120),
         preco=produto.preco,
         estoque=produto.estoque,
+        ordem=0,
         imagem_url=validar_url_imagem(produto.imagem_url),
         imagem_url_2=validar_url_imagem(produto.imagem_url_2),
         imagem_url_3=validar_url_imagem(produto.imagem_url_3),
@@ -568,11 +717,16 @@ def editar_produto(id: int, produto: ProdutoCreate, db: Session = Depends(get_db
 
 @app.get("/api/produtos")
 def listar_produtos(db: Session = Depends(get_db)):
-    return db.query(ProdutoDB).filter(ProdutoDB.estoque > 0, ProdutoDB.ativo == True).order_by(ProdutoDB.id.desc()).all()
+    return (
+        db.query(ProdutoDB)
+        .filter(ProdutoDB.estoque > 0, ProdutoDB.ativo == True)
+        .order_by(ProdutoDB.ordem.asc(), ProdutoDB.id.desc())
+        .all()
+    )
 
 @app.get("/api/admin/produtos")
 def listar_estoque_admin(db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
-    return db.query(ProdutoDB).order_by(ProdutoDB.id.desc()).all()
+    return db.query(ProdutoDB).order_by(ProdutoDB.ordem.asc(), ProdutoDB.id.desc()).all()
 
 @app.delete("/api/produtos/{id}")
 def excluir_produto(id: int, db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
@@ -617,6 +771,9 @@ def finalizar_compra(request: Request, pedido: PedidoCreate, db: Session = Depen
     ip = obter_ip_cliente(request)
     verificar_rate_limit(ip, "checkout", limite=10, janela_segundos=60)
 
+    if not pedido.lgpd_aceite:
+        raise HTTPException(status_code=400, detail="É necessário concordar com a Política de Privacidade para finalizar o pedido.")
+
     cliente_limpo = sanitizar_texto(pedido.cliente_nome, 100)
     telefone_limpo = re.sub(r"[^0-9+\-\s()]", "", pedido.telefone)[:25]
     if len(re.sub(r"\D", "", telefone_limpo)) < 8:
@@ -658,8 +815,10 @@ def finalizar_compra(request: Request, pedido: PedidoCreate, db: Session = Depen
     db.add(novo_pedido)
     db.commit()
 
+    cfg = obter_config_dict(db)
+    whats_loja = cfg["whatsapp"] or WHATSAPP_LOJA
     mensagem = f"🛒 *NOVO PEDIDO #{novo_pedido.id}* 🛒\n\n*Cliente:* {cliente_limpo}\n\n*Itens:*\n{texto_resumo}\n\n*Total: R$ {total_compra:.2f}*"
-    return {"status": "sucesso", "whatsapp_url": f"https://wa.me/{WHATSAPP_LOJA}?text={urllib.parse.quote(mensagem)}"}
+    return {"status": "sucesso", "whatsapp_url": f"https://wa.me/{whats_loja}?text={urllib.parse.quote(mensagem)}"}
 
 # ==========================================
 # 10. WEBHOOK WHATSAPP META

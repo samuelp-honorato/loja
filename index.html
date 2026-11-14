@@ -18,8 +18,20 @@
             --accent: #b48484;
             --promo: #b48484; 
         }
-        html, body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; width: 100%; -webkit-font-smoothing: antialiased; padding-bottom: 90px; }
+        html, body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; width: 100%; -webkit-font-smoothing: antialiased; }
         
+        /* Barra de Avisos Dinâmica */
+        .top-announcement {
+            background: var(--brand);
+            color: #fff;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            padding: 9px 16px;
+            display: none;
+        }
+
         header { display: flex; flex-direction: row; justify-content: space-between; align-items: center; padding: 20px 40px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); z-index: 40; }
         .logo { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; letter-spacing: 1.5px; color: var(--brand); cursor: pointer; }
         
@@ -42,7 +54,7 @@
             display: block;
         }
 
-        .container { max-width: 1200px; margin: 60px auto; padding: 0 24px; }
+        .container { max-width: 1200px; margin: 56px auto 64px; padding: 0 24px; }
         .catalog-header {
             display: flex;
             justify-content: space-between;
@@ -199,7 +211,6 @@
             align-items: center;
             justify-content: center;
         }
-        .qty-btn:hover { background: #f1ecec; }
         .qty-val { min-width: 26px; text-align: center; font-size: 13px; font-weight: 700; }
         .btn-remove-item {
             width: 32px;
@@ -214,17 +225,123 @@
             cursor: pointer;
         }
 
-        .cart-footer { padding: 20px 24px 24px; border-top: 1px solid var(--border); background: #faf8f8; }
-        .cart-total { display: flex; justify-content: space-between; font-size: 18px; font-weight: 700; margin-bottom: 14px; color: #1e1b20; }
-        .input-dark { width: 100%; height: 48px; padding: 0 16px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 10px; font-family: 'Inter'; font-size: 15px; background: #fff; }
+        .cart-footer { padding: 18px 24px 24px; border-top: 1px solid var(--border); background: #faf8f8; }
+        .cart-total { display: flex; justify-content: space-between; font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #1e1b20; }
+        .input-dark { width: 100%; height: 46px; padding: 0 16px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 10px; font-family: 'Inter'; font-size: 14px; background: #fff; }
         .input-dark:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 4px rgba(180,132,132,0.15); }
-        .btn-checkout { background: var(--brand); color: #fff; height: 54px; width: 100%; border: none; font-weight: 600; font-size: 15px; border-radius: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 4px; }
+        
+        /* Consentimento LGPD no Checkout */
+        .lgpd-check-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin: 4px 0 12px 0;
+            font-size: 11px;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+        .lgpd-check-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin-top: 1px;
+            accent-color: var(--brand);
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .lgpd-link-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            color: var(--brand);
+            font-weight: 700;
+            text-decoration: underline;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .btn-checkout { background: var(--brand); color: #fff; height: 52px; width: 100%; border: none; font-weight: 600; font-size: 15px; border-radius: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; }
+
+        /* Rodapé Institucional LGPD */
+        .site-footer {
+            background: #faf8f8;
+            border-top: 1px solid var(--border);
+            padding: 40px 24px 110px;
+            margin-top: 40px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            text-align: center;
+        }
+        .footer-brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--brand);
+            letter-spacing: 1px;
+        }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+        .footer-links button, .footer-links a {
+            background: none;
+            border: none;
+            color: var(--brand);
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: underline;
+            cursor: pointer;
+            padding: 0;
+        }
+        .footer-legal {
+            line-height: 1.6;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        /* Modal LGPD */
+        .lgpd-modal-box {
+            background: #fff;
+            width: 100%;
+            max-width: 640px;
+            border-radius: 18px;
+            padding: 32px;
+            position: relative;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .lgpd-modal-box h2 {
+            font-family: 'Playfair Display', serif;
+            margin: 0 0 16px 0;
+            font-size: 24px;
+            color: var(--brand);
+        }
+        .lgpd-modal-box h4 {
+            margin: 18px 0 6px 0;
+            font-size: 14px;
+            color: var(--brand);
+        }
+        .lgpd-modal-box p {
+            margin: 0 0 10px 0;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #475569;
+        }
 
         @media (max-width: 768px) {
             header { padding: 16px 20px; }
             .logo { font-size: 22px; }
             .hero-banner img { max-height: 280px; }
-            .container { padding: 0 16px; margin: 28px auto; }
+            .container { padding: 0 16px; margin: 28px auto 40px; }
             .catalog-header { flex-direction: column; align-items: stretch; gap: 14px; margin-bottom: 20px; }
             .section-title { font-size: 24px; }
             .search-catalog-wrap { max-width: 100%; }
@@ -240,12 +357,14 @@
             .modal-info { padding: 24px; }
             .modal-main-img { height: 280px; width: auto; }
             .modal-overlay { padding: 0; align-items: flex-end; }
-            .modal-content { border-radius: 20px 20px 0 0; max-height: 92vh; }
+            .modal-content, .lgpd-modal-box { border-radius: 20px 20px 0 0; max-height: 92vh; }
             .modal-close { top: 10px; right: 10px; background: rgba(255,255,255,0.9); box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         }
     </style>
 </head>
 <body>
+
+    <div id="top-announcement" class="top-announcement"></div>
 
     <header>
         <div class="logo" id="logo-loja" onclick="mudarSessao('tudo')">MARLI ESSENCIAL</div>
@@ -255,7 +374,7 @@
     </header>
 
     <div class="hero-banner">
-        <img src="banner.webp" alt="Marli Essencial - Moda Íntima, Fragrâncias e Bem-Estar">
+        <img id="hero-banner-img" src="banner.webp" alt="Marli Essencial - Moda Íntima, Fragrâncias e Bem-Estar">
     </div>
 
     <div class="container">
@@ -272,9 +391,25 @@
         <div class="grid" id="catalogo"></div>
     </div>
 
+    <!-- Rodapé Institucional & Conformidade LGPD -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand" id="footer-brand-name">MARLI ESSENCIAL</div>
+            <div class="footer-links">
+                <button type="button" onclick="abrirModalLGPD('privacidade')">Política de Privacidade (LGPD)</button>
+                <button type="button" onclick="abrirModalLGPD('termos')">Termos de Uso e Trocas</button>
+                <a href="#" id="footer-link-direitos" target="_blank" rel="noopener noreferrer">Exercer Direitos de Dados</a>
+            </div>
+            <div class="footer-legal" id="footer-legal-info">
+                Este site utiliza apenas armazenamento local técnico no seu navegador para manter os itens salvos na sacola, sem rastreamento publicitário de terceiros.
+            </div>
+        </div>
+    </footer>
+
     <a href="#" id="btn-wa-flutuante" class="fab-wa" target="_blank" rel="noopener noreferrer"><i data-lucide="message-circle"></i></a>
     <button class="cart-trigger" onclick="toggleCart()"><i data-lucide="shopping-bag" style="width: 18px;"></i> Sacola (<span id="cart-count">0</span>)</button>
 
+    <!-- Modal de Produto -->
     <div id="modal-produto" class="modal-overlay" onclick="fecharModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <button class="modal-close" onclick="fecharModal()"><i data-lucide="x"></i></button>
@@ -297,6 +432,14 @@
         </div>
     </div>
 
+    <!-- Modal LGPD / Termos -->
+    <div id="modal-lgpd" class="modal-overlay" onclick="fecharModalLGPD(event)">
+        <div class="lgpd-modal-box" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="fecharModalLGPD()"><i data-lucide="x"></i></button>
+            <div id="conteudo-modal-lgpd"></div>
+        </div>
+    </div>
+
     <div id="overlay-geral" onclick="fecharTudo()"></div>
 
     <div class="sidebar-right" id="menu-lateral">
@@ -314,6 +457,10 @@
             <div class="cart-total"><span>Total</span> <span>R$ <span id="cart-total">0.00</span></span></div>
             <input type="text" id="nomeCliente" class="input-dark" maxlength="100" placeholder="Como devemos chamá-la?">
             <input type="tel" id="telCliente" class="input-dark" maxlength="25" placeholder="Seu WhatsApp com DDD">
+            <label class="lgpd-check-row">
+                <input type="checkbox" id="check-lgpd-checkout">
+                <span>Li e concordo com o tratamento dos meus dados para processamento deste pedido conforme a <button type="button" class="lgpd-link-btn" onclick="abrirModalLGPD('privacidade')">Política de Privacidade</button>.</span>
+            </label>
             <button class="btn-checkout" onclick="enviarWhatsApp()"><i data-lucide="send" style="width: 18px;"></i> Enviar Pedido</button>
         </div>
     </div>
@@ -325,6 +472,7 @@
         let todosProdutos = [];
         let numeroLoja = "";
         let nomeLojaAtual = "Marli Essencial";
+        let configAtual = {};
         let sessaoAtual = "tudo";
 
         function escapeHTML(str) {
@@ -342,7 +490,7 @@
         function safeURL(url) {
             if (!url) return "";
             const u = String(url).trim();
-            if (u.startsWith("https://") || u.startsWith("http://") || u.startsWith("data:image/")) {
+            if (u === "banner.webp" || u.startsWith("https://") || u.startsWith("http://") || u.startsWith("data:image/")) {
                 return escapeHTML(u);
             }
             return "";
@@ -387,12 +535,91 @@
             try {
                 const res = await fetch('/api/config');
                 const config = await res.json();
+                configAtual = config;
+
                 numeroLoja = String(config.whatsapp || "").replace(/\D/g, "");
                 nomeLojaAtual = config.nome_loja || "Marli Essencial";
                 document.getElementById('logo-loja').textContent = nomeLojaAtual.toUpperCase();
+                document.getElementById('footer-brand-name').textContent = nomeLojaAtual.toUpperCase();
+                document.title = `${nomeLojaAtual} | Boutique Concept`;
+
+                if (config.banner_url) {
+                    const bannerImg = document.getElementById('hero-banner-img');
+                    if (bannerImg) bannerImg.src = safeURL(config.banner_url);
+                }
+
+                const avisoBar = document.getElementById('top-announcement');
+                if (config.aviso_topo && config.aviso_topo.trim() !== "") {
+                    avisoBar.textContent = config.aviso_topo;
+                    avisoBar.style.display = "block";
+                } else {
+                    avisoBar.style.display = "none";
+                }
+
                 const btnWa = document.getElementById('btn-wa-flutuante');
-                if (btnWa && numeroLoja) btnWa.href = `https://wa.me/${numeroLoja}?text=Olá!%20Estou%20no%20site%20e%20gostaria%20de%20ajuda.`;
+                if (btnWa && numeroLoja) {
+                    btnWa.href = `https://wa.me/${numeroLoja}?text=Olá!%20Estou%20no%20site%20e%20gostaria%20de%20ajuda.`;
+                }
+
+                const linkDireitos = document.getElementById('footer-link-direitos');
+                if (linkDireitos && numeroLoja) {
+                    linkDireitos.href = `https://wa.me/${numeroLoja}?text=${encodeURIComponent("Olá! Gostaria de exercer meus direitos de titular de dados (LGPD) na " + nomeLojaAtual + ".")}`;
+                }
+
+                // Monta rodapé legal com os dados configurados no Editor
+                const partesLegais = [];
+                if (config.lgpd_responsavel) partesLegais.push(`Responsável: ${escapeHTML(config.lgpd_responsavel)}`);
+                if (config.lgpd_documento) partesLegais.push(`CPF/CNPJ: ${escapeHTML(config.lgpd_documento)}`);
+                if (config.lgpd_cidade) partesLegais.push(escapeHTML(config.lgpd_cidade));
+                if (config.lgpd_email) partesLegais.push(`Privacidade: ${escapeHTML(config.lgpd_email)}`);
+
+                const footerLegal = document.getElementById('footer-legal-info');
+                const linhaIdentificacao = partesLegais.length > 0 ? `<strong>${partesLegais.join(" • ")}</strong><br>` : "";
+                footerLegal.innerHTML = `${linhaIdentificacao}Este site utiliza apenas armazenamento local técnico no seu navegador para manter os itens salvos na sacola, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).`;
             } catch(e) { console.error("Erro config", e); }
+        }
+
+        function abrirModalLGPD(tipo) {
+            const box = document.getElementById('conteudo-modal-lgpd');
+            const resp = escapeHTML(configAtual.lgpd_responsavel || nomeLojaAtual);
+            const doc = configAtual.lgpd_documento ? ` (CPF/CNPJ: ${escapeHTML(configAtual.lgpd_documento)})` : "";
+            const email = escapeHTML(configAtual.lgpd_email || "canal oficial de WhatsApp da loja");
+
+            if (tipo === 'privacidade') {
+                box.innerHTML = `
+                    <h2>Política de Privacidade (LGPD)</h2>
+                    <p>Em conformidade com a <b>Lei Geral de Proteção de Dados Pessoais (Lei nº 13.709/2018)</b>, explicamos de forma clara como seus dados são tratados na <b>${escapeHTML(nomeLojaAtual)}</b>.</p>
+                    <h4>1. Controlador dos Dados</h4>
+                    <p>${resp}${doc}. Canal de contato para assuntos de privacidade: <b>${email}</b>.</p>
+                    <h4>2. Dados Coletados e Finalidade</h4>
+                    <p>Coletamos apenas seu <b>nome</b>, <b>número de WhatsApp</b> e os <b>itens selecionados na sacola</b>. Esses dados são utilizados exclusivamente para identificar seu pedido, confirmar disponibilidade de estoque, combinar pagamento e realizar a entrega.</p>
+                    <h4>3. Compartilhamento e Segurança</h4>
+                    <p>Seus dados não são vendidos nem compartilhados com terceiros para fins publicitários. As informações trafegam em conexão criptografada (HTTPS) e são acessadas apenas pela equipe autorizada da loja.</p>
+                    <h4>4. Armazenamento Local (LocalStorage)</h4>
+                    <p>Utilizamos armazenamento local estritamente necessário no seu navegador para que os produtos adicionados à sacola não se percam caso você recarregue a página.</p>
+                    <h4>5. Seus Direitos como Titular (Art. 18 da LGPD)</h4>
+                    <p>Você pode solicitar a qualquer momento a confirmação, consulta, correção ou exclusão definitiva dos seus dados cadastrais entrando em contato pelo canal <b>${email}</b> ou pelo WhatsApp oficial da loja.</p>
+                `;
+            } else {
+                box.innerHTML = `
+                    <h2>Termos de Uso, Pagamento e Trocas</h2>
+                    <h4>1. Reserva e Confirmação de Pedido</h4>
+                    <p>Ao enviar seu pedido pela sacola, o atendimento é concluído diretamente pelo WhatsApp oficial da <b>${escapeHTML(nomeLojaAtual)}</b>. A baixa definitiva no estoque ocorre após a confirmação do pagamento.</p>
+                    <h4>2. Condições de Troca e Higiene</h4>
+                    <p>Por questões de higiene e saúde, peças íntimas (calcinhas, conjuntos íntimos e bodies) não possuem troca após violação da embalagem ou retirada da etiqueta de proteção, exceto em casos de defeito de fabricação constatado no recebimento (prazo legal de 7 dias corridos para compras online, conforme o Código de Defesa do Consumidor).</p>
+                    <h4>3. Disponibilidade e Preços</h4>
+                    <p>Os preços e estoques exibidos no catálogo são atualizados em tempo real e podem sofrer alterações sem aviso prévio antes da conclusão do pedido.</p>
+                `;
+            }
+
+            document.getElementById('modal-lgpd').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function fecharModalLGPD(e) {
+            if (e && e.target !== document.getElementById('modal-lgpd')) return;
+            document.getElementById('modal-lgpd').style.display = 'none';
+            document.body.style.overflow = 'auto';
         }
 
         async function carregarProdutos() {
@@ -402,7 +629,6 @@
             gerarMenuDinamico();
             mudarSessao('tudo');
 
-            // Abre direto no produto se vier ?p=ID na URL
             const params = new URLSearchParams(window.location.search);
             const produtoUrlId = parseInt(params.get('p'), 10);
             if (produtoUrlId && todosProdutos.some(x => x.id === produtoUrlId)) {
@@ -720,9 +946,15 @@
         async function enviarWhatsApp() {
             const nome = document.getElementById('nomeCliente').value.trim();
             const telefone = document.getElementById('telCliente').value.trim();
+            const lgpdOk = document.getElementById('check-lgpd-checkout').checked;
+
             if(!nome || telefone.replace(/\D/g, '').length < 8 || carrinho.length === 0) {
                 return alert("Preencha seu nome, um WhatsApp válido com DDD e adicione peças à sacola.");
             }
+            if(!lgpdOk) {
+                return alert("Marque a caixa de concordância com a Política de Privacidade para enviar o pedido.");
+            }
+
             const btn = document.querySelector('.btn-checkout');
             btn.textContent = "A redirecionar...";
             btn.disabled = true;
@@ -731,7 +963,12 @@
                 const res = await fetch('/api/comprar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cliente_nome: nome, telefone: telefone, itens: carrinho })
+                    body: JSON.stringify({
+                        cliente_nome: nome,
+                        telefone: telefone,
+                        itens: carrinho,
+                        lgpd_aceite: true
+                    })
                 });
                 const dados = await res.json();
                 if(res.ok && dados.status === "sucesso") {
