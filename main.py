@@ -114,7 +114,6 @@ def gerar_hash_senha(senha: str) -> str:
     return f"pbkdf2_sha256$260000${salt}${dk.hex()}"
 
 def verificar_senha_admin(senha_digitada: str) -> bool:
-    # 1. Prioriza hash salvo no ambiente (ou atualizado via redefinição)
     hash_ativo = os.getenv("ADMIN_PASS_HASH", ADMIN_PASS_HASH)
     if hash_ativo and hash_ativo.startswith("pbkdf2_sha256$"):
         try:
@@ -123,7 +122,6 @@ def verificar_senha_admin(senha_digitada: str) -> bool:
             return hmac.compare_digest(dk.hex(), hash_salvo)
         except Exception:
             return False
-    # 2. Compatibilidade temporária enquanto ADMIN_PASS_HASH não for colado no Render
     if ADMIN_PASS:
         return hmac.compare_digest(senha_digitada.encode("utf-8"), ADMIN_PASS.encode("utf-8"))
     return False
@@ -181,19 +179,16 @@ async def escudo_seguranca_middleware(request: Request, call_next):
     path = request.url.path
     metodo = request.method
 
-    # Força HTTPS em produção (Render envia X-Forwarded-Proto)
     proto = request.headers.get("x-forwarded-proto", "https")
     if IS_PROD and proto == "http":
         url_https = str(request.url).replace("http://", "https://", 1)
         return RedirectResponse(url=url_https, status_code=301)
 
-    # Rate limit global por IP
     try:
         verificar_rate_limit(ip, "global", limite=120, janela_segundos=60)
     except HTTPException as exc:
         return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
-    # Proteção contra CSRF em requisições que alteram estado (exceto webhook externo da Meta)
     if metodo in ("POST", "PUT", "PATCH", "DELETE") and not path.startswith("/api/webhook/whatsapp"):
         origin = request.headers.get("origin")
         referer = request.headers.get("referer")
@@ -212,7 +207,6 @@ async def escudo_seguranca_middleware(request: Request, call_next):
 
     response = await call_next(request)
 
-    # Cabeçalhos de Segurança HTTP
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
@@ -312,6 +306,14 @@ def abrir_painel(request: Request):
     try:
         verificar_admin(request)
         return pegar_arquivo("admin.html")
+    except HTTPException:
+        return RedirectResponse(url="/login")
+
+@app.get("/express")
+def abrir_painel_express(request: Request):
+    try:
+        verificar_admin(request)
+        return pegar_arquivo("express.html")
     except HTTPException:
         return RedirectResponse(url="/login")
 
@@ -587,6 +589,17 @@ def alterar_status(id: int, db: Session = Depends(get_db), admin: bool = Depends
         produto.ativo = not produto.ativo
         db.commit()
     return {"status": "ok"}
+
+@app.patch("/api/admin/produtos/{id}/estoque")
+def ajustar_estoque_rapido(id: int, delta: int = Form(...), db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
+    if delta < -100 or delta > 100 or delta == 0:
+        raise HTTPException(status_code=400, detail="Ajuste de estoque inválido.")
+    produto = db.query(ProdutoDB).filter(ProdutoDB.id == id).first()
+    if not produto:
+        raise HTTPException(status_code=404, detail="Produto não encontrado.")
+    produto.estoque = max(0, produto.estoque + delta)
+    db.commit()
+    return {"status": "ok", "estoque": produto.estoque}
 
 @app.patch("/api/produtos/{id}/promocao")
 def aplicar_promocao(id: int, promo: PromocaoUpdate, db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
