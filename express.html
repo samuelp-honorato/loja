@@ -234,10 +234,12 @@
             gap: 6px;
             cursor: pointer;
             width: 100%;
+            text-decoration: none;
         }
         .btn-touch:active { transform: scale(0.98); }
         .btn-touch:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-confirm { background: var(--success); color: #fff; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); }
+        .btn-wa-receipt { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
         .btn-primary-mobile { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(180, 132, 132, 0.3); }
         .btn-cancel { background: #fff; color: var(--danger); border: 1px solid #fecaca; }
 
@@ -738,20 +740,31 @@
                 const dataFormatada = new Date(p.data_criacao).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
                 const resumoSafe = escapeHTML(p.resumo_pedido).replace(/\n/g, '<br>');
                 const telDigitos = String(p.telefone || '').replace(/\D/g, '');
+                const waNumero = telDigitos.startsWith('55') ? telDigitos : '55' + telDigitos;
+
                 const waLink = telDigitos.length >= 8
-                    ? `<a href="https://wa.me/${telDigitos.startsWith('55') ? telDigitos : '55' + telDigitos}" target="_blank" rel="noopener noreferrer" class="btn-wa-mini"><i data-lucide="message-circle" style="width:14px;"></i> WhatsApp</a>`
+                    ? `<a href="https://wa.me/${waNumero}" target="_blank" rel="noopener noreferrer" class="btn-wa-mini"><i data-lucide="message-circle" style="width:14px;"></i> WhatsApp</a>`
                     : '';
 
-                const botoesAcao = p.status === 'Pendente'
-                    ? `<div class="action-grid">
+                const msgConfirmacao = encodeURIComponent(
+                    `Olá, ${p.cliente_nome}! ✨ Passando para confirmar que o pagamento do seu Pedido #${pid} (R$ ${Number(p.total).toFixed(2).replace('.', ',')}) na Marli Essencial foi aprovado! Já estamos separando suas peças com todo carinho.`
+                );
+
+                let botoesAcao = '';
+                if (p.status === 'Pendente') {
+                    botoesAcao = `<div class="action-grid">
                         <button class="btn-touch btn-confirm" onclick="atualizarPedido(${pid}, 'Pago', this)">
                             <i data-lucide="check" style="width:18px;"></i> Confirmar Pago
                         </button>
                         <button class="btn-touch btn-cancel" onclick="atualizarPedido(${pid}, 'Cancelado', this)">
                             Cancelar
                         </button>
-                       </div>`
-                    : '';
+                       </div>`;
+                } else if (p.status === 'Pago' && telDigitos.length >= 8) {
+                    botoesAcao = `<a href="https://wa.me/${waNumero}?text=${msgConfirmacao}" target="_blank" rel="noopener noreferrer" class="btn-touch btn-wa-receipt">
+                        <i data-lucide="send" style="width:16px;"></i> Enviar Comprovante no WhatsApp
+                    </a>`;
+                }
 
                 html += `
                     <div class="order-card ${escapeHTML(statusLower)}">
@@ -791,6 +804,7 @@
                     body: fd
                 });
                 if (res.ok) {
+                    if (novoStatus === 'Pago') setFiltroPedido('Todos');
                     await atualizarTudo();
                 } else {
                     alert("Não foi possível atualizar o pedido.");
@@ -907,9 +921,6 @@
             }
         }
 
-        // ==========================================
-        // CADASTRO & EDIÇÃO MOBILE DE PRODUTOS
-        // ==========================================
         function abrirAbaNovoProduto() {
             resetarFormProduto();
             trocarAba('produto');
@@ -1068,9 +1079,6 @@
             }
         }
 
-        // ==========================================
-        // CATEGORIAS MOBILE
-        // ==========================================
         async function carregarCategorias() {
             const res = await fetchAdmin('/api/categorias');
             categoriasCache = await res.json();

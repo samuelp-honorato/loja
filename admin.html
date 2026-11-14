@@ -313,7 +313,6 @@
         let arrayEstoqueCompleto = []; 
         let viewModeEstoque = 'lista';
 
-        // Escudo Anti-XSS e Validação de URL no Painel
         function escapeHTML(str) {
             if (str === null || str === undefined) return "";
             const txt = document.createElement("textarea");
@@ -574,11 +573,29 @@
             const body = document.getElementById('lista-pedidos'); body.innerHTML = '';
             pedidos.forEach(p => {
                 const pid = Number(p.id);
+                const telDigitos = String(p.telefone || '').replace(/\D/g, '');
+                const waNumero = telDigitos.startsWith('55') ? telDigitos : '55' + telDigitos;
+                const msgConfirmacao = encodeURIComponent(
+                    `Olá, ${p.cliente_nome}! ✨ Passando para confirmar que o pagamento do seu Pedido #${pid} (R$ ${Number(p.total).toFixed(2).replace('.', ',')}) na Marli Essencial foi aprovado! Já estamos separando suas peças com todo carinho.`
+                );
+
                 let pill = p.status === 'Pago' ? '<span class="pill pago">Pago</span>' : (p.status === 'Cancelado' ? '<span class="pill cancelado">Cancelado</span>' : '<span class="pill pendente">Pendente</span>');
-                let action = p.status === 'Pendente' ? `<div style="display:flex; gap:8px;"><button class="btn-action success" onclick="mudarStatusPedido(${pid}, 'Pago')">Confirmar</button><button class="btn-action" style="color:var(--danger); border-color:var(--border);" onclick="mudarStatusPedido(${pid}, 'Cancelado')">Cancelar</button></div>` : (p.status === 'Pago' ? `<span style="font-size:12px;color:var(--success);font-weight:700;">✔ PAGO</span>` : `<span style="font-size:12px;color:var(--danger);font-weight:700;">✖ CANCELADO</span>`);
+                let action = '';
+                if (p.status === 'Pendente') {
+                    action = `<div style="display:flex; gap:8px;"><button class="btn-action success" onclick="mudarStatusPedido(${pid}, 'Pago')">Confirmar</button><button class="btn-action" style="color:var(--danger); border-color:var(--border);" onclick="mudarStatusPedido(${pid}, 'Cancelado')">Cancelar</button></div>`;
+                } else if (p.status === 'Pago') {
+                    const btnWa = telDigitos.length >= 8
+                        ? `<a href="https://wa.me/${waNumero}?text=${msgConfirmacao}" target="_blank" rel="noopener noreferrer" class="btn-action" style="text-decoration:none; color:#047857; border-color:#a7f3d0; background:#ecfdf5; gap:5px;"><i data-lucide="message-circle" style="width:14px;"></i> Avisar Pago</a>`
+                        : '';
+                    action = `<div style="display:flex; align-items:center; gap:8px;"><span style="font-size:12px;color:var(--success);font-weight:700;">✔ PAGO</span>${btnWa}</div>`;
+                } else {
+                    action = `<span style="font-size:12px;color:var(--danger);font-weight:700;">✖ CANCELADO</span>`;
+                }
+
                 const resumoSafe = escapeHTML(p.resumo_pedido).replace(/\n/g, '<br>');
                 body.innerHTML += `<tr><td>#${pid}</td><td><b style="color:#0f172a;">${escapeHTML(p.cliente_nome)}</b><br><span style="font-size:12px;color:#64748b;">${escapeHTML(p.telefone||'Sem Tel')}</span></td><td><div style="font-size:12px;color:#64748b;line-height:1.5;">${resumoSafe}</div></td><td><b style="color:#0f172a;">R$ ${Number(p.total).toFixed(2)}</b></td><td>${pill}</td><td>${action}</td></tr>`;
             });
+            lucide.createIcons();
         }
         
         async function mudarStatusPedido(id, status) { if (status === 'Cancelado' && !confirm("Cancelar este pedido? O estoque não será afetado.")) return; const fd = new FormData(); fd.append('status_novo', status); await fetchAdmin(`/api/admin/pedidos/${Number(id)}/status`, { method: 'PATCH', body: fd }); carregarPedidos(); carregarDashboard(); verificarNotificacoes(); }
