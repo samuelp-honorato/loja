@@ -7,7 +7,6 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231e1b20'/><text x='50%' y='50%' font-family='Inter, sans-serif' font-size='60' font-weight='800' fill='%23b48484' dominant-baseline='central' text-anchor='middle'>M</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <style>
         * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
         :root { 
@@ -116,7 +115,6 @@
         .grid-bottom-row { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
         .grid-preco { font-size: 15px; font-weight: 800; color: #0f172a; }
         
-        /* Stepper Rápido - / + */
         .stepper-mini { display: inline-flex; align-items: center; background: #f4f1f1; border: 1px solid var(--border); border-radius: 8px; padding: 2px; }
         .step-mini-btn { width: 26px; height: 26px; border: none; background: #fff; border-radius: 6px; font-size: 15px; font-weight: 800; color: #0f172a; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .step-mini-btn:active { transform: scale(0.92); }
@@ -147,7 +145,7 @@
         .cadastro-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; }
         .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
-        /* ======== EDITOR DA LOJA (PIN + DRAG & DROP + LGPD) ======== */
+        /* ======== EDITOR DA LOJA (PIN + MAPA DE POSIÇÕES + LGPD) ======== */
         .pin-lock-card {
             max-width: 440px;
             margin: 24px auto;
@@ -190,74 +188,150 @@
             border-radius: 50%;
             background: var(--success);
         }
-        .sortable-vitrine-grid {
+
+        /* Mapa Visual de Posições da Vitrine */
+        .slots-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
-            gap: 12px;
-            margin-top: 14px;
+            grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+            gap: 14px;
+            margin-top: 18px;
         }
-        .drag-prod-card {
+        .slot-card {
             background: #fff;
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 10px;
-            cursor: grab;
-            user-select: none;
-            position: relative;
+            border-radius: 14px;
+            padding: 14px;
             display: flex;
             flex-direction: column;
-            transition: box-shadow 0.2s, border-color 0.2s;
+            justify-content: space-between;
+            min-height: 235px;
+            position: relative;
         }
-        .drag-prod-card:active { cursor: grabbing; }
-        .drag-prod-card.sortable-ghost { opacity: 0.45; border: 2px dashed var(--primary); background: #fdfbfb; }
-        .drag-pos-badge {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            background: var(--sidebar);
-            color: #fff;
+        .slot-card.vazio {
+            background: #faf8f8;
+            border: 1.5px dashed #cbbdbd;
+        }
+        .slot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .slot-label {
             font-size: 11px;
             font-weight: 800;
-            padding: 2px 8px;
-            border-radius: 10px;
-            z-index: 2;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--sidebar);
+            background: #f1ecec;
+            padding: 4px 9px;
+            border-radius: 8px;
         }
-        .drag-grip-icon {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: rgba(255,255,255,0.9);
-            border: 1px solid var(--border);
-            color: #64748b;
-            width: 26px;
-            height: 26px;
-            border-radius: 6px;
+        .slot-remove-pos {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 2px;
+        }
+        .slot-remove-pos:hover { color: var(--danger); }
+        .slot-empty-body {
+            flex-grow: 1;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            text-align: center;
+            padding: 12px 6px;
+            color: #64748b;
+            font-size: 12px;
+            gap: 10px;
         }
-        .drag-prod-img {
+        .slot-filled-img {
             width: 100%;
             height: 110px;
             object-fit: contain;
             background: #faf8f8;
             border-radius: 8px;
+            padding: 6px;
             margin-bottom: 8px;
-            padding: 4px;
         }
-        .drag-prod-name {
-            font-size: 12px;
+        .slot-filled-name {
+            font-size: 13px;
             font-weight: 700;
             color: #0f172a;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-bottom: 2px;
         }
-        .drag-prod-meta {
+        .slot-filled-meta {
             font-size: 11px;
             color: #64748b;
+            margin-bottom: 10px;
         }
+        .slot-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-top: auto;
+        }
+
+        /* Modal Seletor de Peça para Posição */
+        .picker-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(30,27,32,0.65);
+            z-index: 300;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            backdrop-filter: blur(4px);
+        }
+        .picker-modal-box {
+            background: #fff;
+            width: 100%;
+            max-width: 560px;
+            border-radius: 16px;
+            padding: 24px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .picker-modal-list {
+            overflow-y: auto;
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .picker-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .picker-row:hover {
+            border-color: var(--primary);
+            background: #fdfbfb;
+        }
+        .picker-row img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+            background: #faf8f8;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
         .banner-preview-box {
             width: 100%;
             max-height: 180px;
@@ -271,7 +345,7 @@
         .aba { display: none; }
         .aba.ativa { display: block; }
         
-        /* ======== RESPONSIVO MOBILE (IPHONE / ANDROID) ======== */
+        /* ======== RESPONSIVO MOBILE ======== */
         @media (max-width: 768px) {
             body { flex-direction: column; height: auto; min-height: 100vh; overflow-y: auto; }
             .sidebar { width: 100%; height: auto; position: sticky; top: 0; z-index: 40; box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
@@ -310,8 +384,9 @@
             .step-mini-btn { width: 24px; height: 24px; font-size: 14px; }
             .step-mini-val { min-width: 22px; font-size: 11px; }
 
-            .sortable-vitrine-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-            .drag-prod-img { height: 90px; }
+            .slots-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .slot-card { min-height: 210px; padding: 10px; }
+            .slot-filled-img { height: 86px; }
 
             .table-responsive { overflow: visible; }
             table, thead, tbody, tr, td { display: block; width: 100%; }
@@ -484,7 +559,7 @@
             </div>
         </div>
 
-        <!-- ABA: EDITOR DA LOJA (PROTEGIDO POR PIN + DRAG & DROP + LGPD) -->
+        <!-- ABA: EDITOR DA LOJA (PROTEGIDO POR PIN + MAPA DE POSIÇÕES + LGPD) -->
         <div id="aba-editor" class="aba">
             <div id="editor-lock-box" class="card pin-lock-card">
                 <div class="pin-shield-icon">
@@ -492,7 +567,7 @@
                 </div>
                 <h2 style="margin: 0 0 8px 0; font-size: 20px; color: #0f172a;">Acesso do Responsável</h2>
                 <p style="margin: 0 0 20px 0; font-size: 13px; color: #64748b; line-height: 1.5;">
-                    Para proteger a identidade da loja, a ordem da vitrine e os dados legais da LGPD, informe o <b>PIN Mestre</b> para desbloquear.
+                    Para proteger a identidade da loja, os espaços da capa e os dados da LGPD, informe o <b>PIN Mestre</b>.
                 </p>
                 <div style="margin-bottom: 14px; text-align: left;">
                     <label>PIN Mestre do Responsável</label>
@@ -507,25 +582,31 @@
                 <div class="editor-status-bar">
                     <div class="editor-status-badge">
                         <span class="editor-status-dot"></span>
-                        <span>Modo Responsável Ativo (expira em 30 min)</span>
+                        <span>Modo Responsável Ativo</span>
                     </div>
                     <button class="btn-action" style="background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.2);" onclick="bloquearEditorAgora()">
                         <i data-lucide="lock" style="width: 14px;"></i> Bloquear Acesso
                     </button>
                 </div>
 
-                <!-- 1. ARRASTA E SOLTA DA VITRINE -->
+                <!-- 1. MAPA DE POSIÇÕES DA CAPA (ESCOLHER O QUE VAI ESTAR LÁ E ONDE VAI FICAR) -->
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
                         <div>
-                            <h3 style="margin: 0 0 4px 0; font-size: 17px; color: #0f172a;">Organizar Vitrine (Arrasta e Solta)</h3>
-                            <p style="margin: 0; font-size: 13px; color: #64748b;">Segure e arraste os cards para escolher a ordem exata em que aparecem na loja.</p>
+                            <h3 style="margin: 0 0 4px 0; font-size: 17px; color: #0f172a;">Mapa da Vitrine da Capa</h3>
+                            <p style="margin: 0; font-size: 13px; color: #64748b;">Defina exatamente qual peça ocupa cada espaço da página inicial. O restante do catálogo fica acessível pelo menu hambúrguer.</p>
                         </div>
-                        <button class="btn-primary" id="btn-salvar-ordem" style="width: auto; padding: 0 20px; height: 42px;" onclick="salvarOrdemVitrine()">
-                            <i data-lucide="save" style="width: 16px;"></i> Salvar Ordem
-                        </button>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" class="btn-action" style="height: 40px; padding: 0 14px;" onclick="adicionarEspacoVitrine()">
+                                <i data-lucide="plus" style="width: 15px;"></i> Adicionar Espaço
+                            </button>
+                            <button type="button" class="btn-primary" id="btn-salvar-vitrine" style="width: auto; padding: 0 20px; height: 40px;" onclick="salvarMapaVitrine()">
+                                <i data-lucide="save" style="width: 15px;"></i> Salvar Vitrine
+                            </button>
+                        </div>
                     </div>
-                    <div id="grid-arrastar-produtos" class="sortable-vitrine-grid"></div>
+
+                    <div id="mapa-slots-vitrine" class="slots-grid"></div>
                 </div>
 
                 <!-- 2. BANNER, AVISOS E CONTATO -->
@@ -551,7 +632,7 @@
                         </div>
                         <div style="grid-column: 1 / -1;">
                             <label>Barra de Avisos no Topo (Opcional)</label>
-                            <input type="text" id="cfg-aviso-topo" placeholder="Ex: Frete grátis acima de R$ 150 • Enviamos para todo o Brasil">
+                            <input type="text" id="cfg-aviso-topo" placeholder="Ex: Frete grátis acima de R$ 150 • Toque no menu ☰ para ver todas as peças">
                         </div>
                     </div>
                 </div>
@@ -559,7 +640,7 @@
                 <!-- 3. DADOS OBRIGATÓRIOS LGPD -->
                 <div class="card">
                     <h3 style="margin: 0 0 6px 0; font-size: 17px; color: #0f172a;">Conformidade LGPD (Lei nº 13.709/2018)</h3>
-                    <p style="margin: 0 0 16px 0; font-size: 13px; color: #64748b;">Informações exibidas no rodapé da loja e na Política de Privacidade para identificação do controlador dos dados.</p>
+                    <p style="margin: 0 0 16px 0; font-size: 13px; color: #64748b;">Informações exibidas no rodapé da loja e na Política de Privacidade para identificação do responsável pelos dados.</p>
                     <div class="grid-form">
                         <div>
                             <label>Nome do Responsável / Razão Social</label>
@@ -570,7 +651,7 @@
                             <input type="text" id="cfg-lgpd-doc" placeholder="00.000.000/0001-00">
                         </div>
                         <div>
-                            <label>E-mail do Encarregado (DPO / Privacidade)</label>
+                            <label>E-mail de Privacidade</label>
                             <input type="email" id="cfg-lgpd-email" placeholder="contato@marli-essencial.com.br">
                         </div>
                         <div>
@@ -580,7 +661,7 @@
                     </div>
 
                     <button class="btn-primary" id="btn-salvar-config" style="margin-top: 22px;" onclick="salvarConfiguracoesLoja()">
-                        <i data-lucide="check-circle" style="width: 17px;"></i> Publicar Alterações na Loja
+                        <i data-lucide="check-circle" style="width: 17px;"></i> Publicar Dados e Banner na Loja
                     </button>
                 </div>
             </div>
@@ -599,6 +680,18 @@
 
     </div>
 
+    <!-- Modal Seletor de Peça para um Espaço da Vitrine -->
+    <div id="modal-picker-slot" class="picker-modal-overlay" onclick="fecharPickerSlot(event)">
+        <div class="picker-modal-box" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="margin:0; font-size:17px; color:#0f172a;" id="titulo-modal-picker">Escolher Peça</h3>
+                <button type="button" class="btn-action" onclick="fecharPickerSlot()"><i data-lucide="x" style="width:16px;"></i></button>
+            </div>
+            <input type="text" id="busca-modal-picker" placeholder="Buscar por nome, categoria ou SKU..." oninput="renderizarListaPickerModal()">
+            <div id="lista-modal-picker" class="picker-modal-list"></div>
+        </div>
+    </div>
+
     <script>
         lucide.createIcons();
         let linkFoto_1 = ""; let linkFoto_2 = ""; let linkFoto_3 = "";
@@ -606,7 +699,10 @@
         let arrayEstoqueCompleto = []; 
         let viewModeEstoque = 'lista';
         let bannerUrlAtual = "banner.webp";
-        let sortableInstancia = null;
+
+        let todosAtivosEditor = [];
+        let slotsVitrine = [null, null, null, null];
+        let slotEditandoIndex = null;
 
         function escapeHTML(str) {
             if (str === null || str === undefined) return "";
@@ -665,7 +761,7 @@
         }
 
         // ==========================================
-        // EDITOR DA LOJA (PIN + DRAG & DROP + LGPD)
+        // EDITOR DA LOJA (PIN + MAPA DE POSIÇÕES + LGPD)
         // ==========================================
         async function inicializarAbaEditor() {
             const res = await fetchAdmin('/api/admin/editor-status');
@@ -728,59 +824,179 @@
             document.getElementById('cfg-lgpd-email').value = cfg.lgpd_email || "";
             document.getElementById('cfg-lgpd-cidade').value = cfg.lgpd_cidade || "";
 
-            renderizarGridArrastar(produtos.filter(p => p.ativo && p.estoque > 0));
+            todosAtivosEditor = produtos.filter(p => p.ativo && p.estoque > 0);
+            const destacados = todosAtivosEditor
+                .filter(p => p.destaque)
+                .sort((a, b) => (Number(a.ordem_vitrine) || 999) - (Number(b.ordem_vitrine) || 999));
+
+            const totalSlots = Math.max(4, destacados.length);
+            slotsVitrine = new Array(totalSlots).fill(null);
+
+            destacados.forEach((prod, idx) => {
+                const posDesejada = (Number(prod.ordem_vitrine) || (idx + 1)) - 1;
+                if (posDesejada >= 0 && posDesejada < totalSlots && !slotsVitrine[posDesejada]) {
+                    slotsVitrine[posDesejada] = prod;
+                } else {
+                    const livre = slotsVitrine.findIndex(x => x === null);
+                    if (livre !== -1) slotsVitrine[livre] = prod;
+                }
+            });
+
+            renderizarMapaSlots();
         }
 
-        function renderizarGridArrastar(produtosAtivos) {
-            const container = document.getElementById('grid-arrastar-produtos');
-            if (produtosAtivos.length === 0) {
-                container.innerHTML = '<p style="color:#64748b; font-size:13px; grid-column: 1/-1;">Nenhum produto ativo em estoque para ordenar.</p>';
+        function descricaoPosicao(index) {
+            const nomes = [
+                "Espaço 1 • Topo Esquerda",
+                "Espaço 2 • Topo Direita",
+                "Espaço 3 • 2ª Linha Esquerda",
+                "Espaço 4 • 2ª Linha Direita"
+            ];
+            return nomes[index] || `Espaço ${index + 1} • Vitrine`;
+        }
+
+        function renderizarMapaSlots() {
+            const container = document.getElementById('mapa-slots-vitrine');
+            let html = '';
+
+            slotsVitrine.forEach((prod, idx) => {
+                const podeRemoverSlot = slotsVitrine.length > 2;
+                const btnRemoverSlot = podeRemoverSlot
+                    ? `<button type="button" class="slot-remove-pos" onclick="removerEspacoVitrine(${idx})" title="Remover este espaço"><i data-lucide="trash-2" style="width:14px;"></i></button>`
+                    : '';
+
+                if (!prod) {
+                    html += `
+                        <div class="slot-card vazio">
+                            <div class="slot-header">
+                                <span class="slot-label">${descricaoPosicao(idx)}</span>
+                                ${btnRemoverSlot}
+                            </div>
+                            <div class="slot-empty-body">
+                                <i data-lucide="plus-square" style="width:28px; height:28px; color:#b48484;"></i>
+                                <span>Espaço vazio na capa</span>
+                                <button type="button" class="btn-action" style="width:100%; height:36px;" onclick="abrirPickerSlot(${idx})">
+                                    Escolher Peça
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="slot-card">
+                            <div class="slot-header">
+                                <span class="slot-label">${descricaoPosicao(idx)}</span>
+                                ${btnRemoverSlot}
+                            </div>
+                            <img src="${safeURL(prod.imagem_url)}" class="slot-filled-img" alt="${escapeHTML(prod.nome)}">
+                            <div class="slot-filled-name">${escapeHTML(prod.nome)}</div>
+                            <div class="slot-filled-meta">Tam ${escapeHTML(prod.tamanho)} • R$ ${Number(prod.preco).toFixed(2)}</div>
+                            <div class="slot-actions">
+                                <button type="button" class="btn-action" onclick="abrirPickerSlot(${idx})">Trocar</button>
+                                <button type="button" class="btn-action" style="color:var(--danger);" onclick="limparSlot(${idx})">Limpar</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function adicionarEspacoVitrine() {
+            if (slotsVitrine.length >= 12) return alert("Limite máximo de 12 espaços na capa.");
+            slotsVitrine.push(null);
+            renderizarMapaSlots();
+        }
+
+        function removerEspacoVitrine(idx) {
+            slotsVitrine.splice(idx, 1);
+            renderizarMapaSlots();
+        }
+
+        function limparSlot(idx) {
+            slotsVitrine[idx] = null;
+            renderizarMapaSlots();
+        }
+
+        function abrirPickerSlot(idx) {
+            slotEditandoIndex = idx;
+            document.getElementById('titulo-modal-picker').textContent = `Escolher Peça para ${descricaoPosicao(idx)}`;
+            document.getElementById('busca-modal-picker').value = '';
+            renderizarListaPickerModal();
+            document.getElementById('modal-picker-slot').style.display = 'flex';
+        }
+
+        function fecharPickerSlot(e) {
+            if (e && e.target !== document.getElementById('modal-picker-slot')) return;
+            document.getElementById('modal-picker-slot').style.display = 'none';
+            slotEditandoIndex = null;
+        }
+
+        function renderizarListaPickerModal() {
+            const lista = document.getElementById('lista-modal-picker');
+            const termo = (document.getElementById('busca-modal-picker').value || '').toLowerCase().trim();
+            const idsJaUsados = new Set(slotsVitrine.filter(Boolean).map(p => p.id));
+
+            const filtrados = todosAtivosEditor.filter(p => {
+                if (!termo) return true;
+                return (p.nome && p.nome.toLowerCase().includes(termo)) ||
+                    (p.categoria && p.categoria.toLowerCase().includes(termo)) ||
+                    (p.etiqueta && p.etiqueta.toLowerCase().includes(termo));
+            });
+
+            if (filtrados.length === 0) {
+                lista.innerHTML = '<p style="text-align:center; color:#64748b; font-size:13px; padding:20px 0;">Nenhuma peça disponível encontrada.</p>';
                 return;
             }
 
             let html = '';
-            produtosAtivos.forEach((p, idx) => {
+            filtrados.forEach(p => {
                 const pid = Number(p.id);
+                const jaNaCapa = idsJaUsados.has(pid);
                 html += `
-                    <div class="drag-prod-card" data-id="${pid}">
-                        <span class="drag-pos-badge">#${idx + 1}</span>
-                        <span class="drag-grip-icon"><i data-lucide="grip-vertical" style="width:14px;"></i></span>
-                        <img src="${safeURL(p.imagem_url)}" class="drag-prod-img" alt="${escapeHTML(p.nome)}">
-                        <div class="drag-prod-name">${escapeHTML(p.nome)}</div>
-                        <div class="drag-prod-meta">Tam ${escapeHTML(p.tamanho)} • R$ ${Number(p.preco).toFixed(2)}</div>
+                    <div class="picker-row" onclick="selecionarPecaParaSlot(${pid})">
+                        <img src="${safeURL(p.imagem_url)}" alt="${escapeHTML(p.nome)}">
+                        <div style="flex-grow:1; min-width:0;">
+                            <b style="display:block; font-size:13px; color:#0f172a;">${escapeHTML(p.nome)}</b>
+                            <span style="font-size:11px; color:#64748b;">Tam ${escapeHTML(p.tamanho)} • ${escapeHTML(p.categoria)} • R$ ${Number(p.preco).toFixed(2)}</span>
+                        </div>
+                        ${jaNaCapa ? '<span class="pill neutro">Na capa</span>' : '<span class="pill pago">Selecionar</span>'}
                     </div>
                 `;
             });
-            container.innerHTML = html;
-            lucide.createIcons();
-
-            if (sortableInstancia) sortableInstancia.destroy();
-            sortableInstancia = new Sortable(container, {
-                animation: 180,
-                ghostClass: 'sortable-ghost',
-                onEnd: function () {
-                    container.querySelectorAll('.drag-prod-card').forEach((card, i) => {
-                        const badge = card.querySelector('.drag-pos-badge');
-                        if (badge) badge.textContent = `#${i + 1}`;
-                    });
-                }
-            });
+            lista.innerHTML = html;
         }
 
-        async function salvarOrdemVitrine() {
-            const cards = document.querySelectorAll('#grid-arrastar-produtos .drag-prod-card');
-            const itens = Array.from(cards).map((card, index) => ({
-                id: Number(card.dataset.id),
-                ordem: index + 1
-            }));
+        function selecionarPecaParaSlot(prodId) {
+            if (slotEditandoIndex === null) return;
+            const prod = todosAtivosEditor.find(p => p.id === prodId);
+            if (!prod) return;
 
-            const btn = document.getElementById('btn-salvar-ordem');
+            slotsVitrine = slotsVitrine.map(item => (item && item.id === prodId ? null : item));
+            slotsVitrine[slotEditandoIndex] = prod;
+
+            fecharPickerSlot();
+            renderizarMapaSlots();
+        }
+
+        async function salvarMapaVitrine() {
+            const slotsPayload = [];
+            slotsVitrine.forEach((prod, idx) => {
+                if (prod) {
+                    slotsPayload.push({ posicao: idx + 1, produto_id: Number(prod.id) });
+                }
+            });
+
+            const btn = document.getElementById('btn-salvar-vitrine');
             btn.disabled = true;
+
             try {
-                const res = await fetchAdmin('/api/admin/produtos/ordenar', {
+                const res = await fetchAdmin('/api/admin/vitrine', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(itens)
+                    body: JSON.stringify({ slots: slotsPayload })
                 });
                 if (res.status === 403) {
                     alert("Sua sessão do Editor expirou. Digite o PIN novamente.");
@@ -788,7 +1004,7 @@
                     return;
                 }
                 if (res.ok) {
-                    alert("Ordem da vitrine salva com sucesso!");
+                    alert("Vitrine da página inicial atualizada com sucesso!");
                 }
             } finally {
                 btn.disabled = false;
@@ -837,7 +1053,7 @@
                     return;
                 }
                 if (res.ok) {
-                    alert("Alterações publicadas na loja com sucesso!");
+                    alert("Dados e banner publicados na loja com sucesso!");
                 } else {
                     const err = await res.json();
                     alert(err.detail || "Não foi possível salvar as configurações.");

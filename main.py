@@ -81,6 +81,8 @@ class ProdutoDB(Base):
     ativo = Column(Boolean, default=True)
     estoque = Column(Integer, default=1)
     ordem = Column(Integer, default=0)
+    destaque = Column(Boolean, default=False)
+    ordem_vitrine = Column(Integer, default=999)
     imagem_url = Column(String)
     imagem_url_2 = Column(String, nullable=True)
     imagem_url_3 = Column(String, nullable=True)
@@ -108,12 +110,17 @@ class ConfigLojaDB(Base):
 
 Base.metadata.create_all(bind=engine)
 
-# Migração segura para garantir a coluna 'ordem' em bancos já existentes
-try:
-    with engine.begin() as conn:
-        conn.execute(text("ALTER TABLE produtos_v5 ADD COLUMN ordem INTEGER DEFAULT 0"))
-except Exception:
-    pass
+# Migração segura em transações independentes (compatível com SQLite e PostgreSQL/Supabase)
+for col_sql in [
+    "ALTER TABLE produtos_v5 ADD COLUMN ordem INTEGER DEFAULT 0",
+    "ALTER TABLE produtos_v5 ADD COLUMN destaque BOOLEAN DEFAULT FALSE",
+    "ALTER TABLE produtos_v5 ADD COLUMN ordem_vitrine INTEGER DEFAULT 999",
+]:
+    try:
+        with engine.begin() as conn:
+            conn.execute(text(col_sql))
+    except Exception:
+        pass
 
 # ==========================================
 # 3. FUNÇÕES DE SEGURANÇA (HASH, XSS, RATE LIMIT, PIN EDITOR)
@@ -330,9 +337,12 @@ class PromocaoUpdate(BaseModel):
 class PinEditorPayload(BaseModel):
     pin: str = Field(..., min_length=1, max_length=50)
 
-class OrdemProdutoItem(BaseModel):
-    id: int = Field(..., gt=0)
-    ordem: int = Field(..., ge=0, le=100000)
+class SlotVitrineItem(BaseModel):
+    posicao: int = Field(..., ge=1, le=20)
+    produto_id: int = Field(..., gt=0)
+
+class VitrineUpdatePayload(BaseModel):
+    slots: List[SlotVitrineItem] = Field(..., max_length=20)
 
 class ConfigLojaUpdate(BaseModel):
     nome_loja: Optional[str] = Field(None, max_length=80)
@@ -597,18 +607,22 @@ def atualizar_configuracoes(
     db.commit()
     return {"status": "salvo", "config": obter_config_dict(db)}
 
-@app.put("/api/admin/produtos/ordenar")
-def reordenar_produtos_vitrine(
-    itens: List[OrdemProdutoItem],
+@app.put("/api/admin/vitrine")
+def salvar_vitrine_capa(
+    payload: VitrineUpdatePayload,
     request: Request,
     db: Session = Depends(get_db),
     admin: bool = Depends(verificar_admin)
 ):
     exigir_editor(request)
-    for item in itens:
-        db.query(ProdutoDB).filter(ProdutoDB.id == item.id).update({"ordem": item.ordem})
+    db.query(ProdutoDB).update({"destaque": False, "ordem_vitrine": 999})
+    for slot in payload.slots:
+        db.query(ProdutoDB).filter(ProdutoDB.id == slot.produto_id).update({
+            "destaque": True,
+            "ordem_vitrine": slot.posicao
+        })
     db.commit()
-    return {"status": "ordenado"}
+    return {"status": "salvo"}
 
 @app.get("/api/categorias")
 def listar_categorias(db: Session = Depends(get_db)):
@@ -683,6 +697,8 @@ def cadastrar_produto(produto: ProdutoCreate, db: Session = Depends(get_db), adm
         preco=produto.preco,
         estoque=produto.estoque,
         ordem=0,
+        destaque=False,
+        ordem_vitrine=999,
         imagem_url=validar_url_imagem(produto.imagem_url),
         imagem_url_2=validar_url_imagem(produto.imagem_url_2),
         imagem_url_3=validar_url_imagem(produto.imagem_url_3),
@@ -720,13 +736,17 @@ def listar_produtos(db: Session = Depends(get_db)):
     return (
         db.query(ProdutoDB)
         .filter(ProdutoDB.estoque > 0, ProdutoDB.ativo == True)
-        .order_by(ProdutoDB.ordem.asc(), ProdutoDB.id.desc())
+        .order_by(ProdutoDB.destaque.desc(), ProdutoDB.ordem_vitrine.asc(), ProdutoDB.id.desc())
         .all()
     )
 
 @app.get("/api/admin/produtos")
 def listar_estoque_admin(db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
-    return db.query(ProdutoDB).order_by(ProdutoDB.ordem.asc(), ProdutoDB.id.desc()).all()
+    return (
+        db.query(ProdutoDB)
+        .order_by(ProdutoDB.destaque.desc(), ProdutoDB.ordem_vitrine.asc(), ProdutoDB.id.desc())
+        .all()
+    )
 
 @app.delete("/api/produtos/{id}")
 def excluir_produto(id: int, db: Session = Depends(get_db), admin: bool = Depends(verificar_admin)):
