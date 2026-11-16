@@ -37,6 +37,8 @@ ADMIN_USER = os.getenv("ADMIN_USER", "admin")
 ADMIN_PASS = os.getenv("ADMIN_PASS", "")
 ADMIN_PASS_HASH = os.getenv("ADMIN_PASS_HASH", "")
 PIN_EDITOR_LOJA = os.getenv("PIN_EDITOR_LOJA", "2026")
+SUPERFRETE_TOKEN_ENV = os.getenv("SUPERFRETE_TOKEN", "")
+CEP_ORIGEM_ENV = os.getenv("CEP_ORIGEM", "")
 
 SECRET_KEY = os.getenv("SECRET_KEY") or secrets.token_hex(32)
 DOMINIO_OFICIAL = os.getenv("DOMINIO_OFICIAL", "https://marli-lingerie.onrender.com").rstrip("/")
@@ -101,6 +103,11 @@ class PedidoDB(Base):
     itens_json = Column(String)
     total = Column(Float)
     status = Column(String, default="Pendente")
+    modalidade_entrega = Column(String, default="Retirada / Combinar Local")
+    frete_valor = Column(Float, default=0.0)
+    cep_destino = Column(String, default="")
+    endereco_destino = Column(String, default="")
+    cpf_cliente = Column(String, default="")
     data_criacao = Column(DateTime, default=datetime.utcnow)
 
 class ConfigLojaDB(Base):
@@ -115,6 +122,11 @@ for col_sql in [
     "ALTER TABLE produtos_v5 ADD COLUMN ordem INTEGER DEFAULT 0",
     "ALTER TABLE produtos_v5 ADD COLUMN destaque BOOLEAN DEFAULT FALSE",
     "ALTER TABLE produtos_v5 ADD COLUMN ordem_vitrine INTEGER DEFAULT 999",
+    "ALTER TABLE pedidos_v5 ADD COLUMN modalidade_entrega VARCHAR DEFAULT 'Retirada / Combinar Local'",
+    "ALTER TABLE pedidos_v5 ADD COLUMN frete_valor FLOAT DEFAULT 0.0",
+    "ALTER TABLE pedidos_v5 ADD COLUMN cep_destino VARCHAR DEFAULT ''",
+    "ALTER TABLE pedidos_v5 ADD COLUMN endereco_destino VARCHAR DEFAULT ''",
+    "ALTER TABLE pedidos_v5 ADD COLUMN cpf_cliente VARCHAR DEFAULT ''",
 ]:
     try:
         with engine.begin() as conn:
@@ -200,9 +212,10 @@ def verificar_rate_limit(ip: str, escopo: str, limite: int, janela_segundos: int
         raise HTTPException(status_code=429, detail="Muitas tentativas. Aguarde 1 minuto e tente novamente.")
     RATE_LIMIT_STORE[chave].append(agora)
 
-def obter_config_dict(db: Session) -> dict:
+def obter_config_dict(db: Session, incluir_segredos: bool = False) -> dict:
     registros = {r.chave: r.valor for r in db.query(ConfigLojaDB).all()}
-    return {
+    token_sf = registros.get("superfrete_token") or SUPERFRETE_TOKEN_ENV
+    cfg = {
         "nome_loja": registros.get("nome_loja") or NOME_LOJA,
         "whatsapp": registros.get("whatsapp") or WHATSAPP_LOJA,
         "banner_url": registros.get("banner_url") or "banner.webp",
@@ -210,8 +223,15 @@ def obter_config_dict(db: Session) -> dict:
         "lgpd_responsavel": registros.get("lgpd_responsavel", ""),
         "lgpd_documento": registros.get("lgpd_documento", ""),
         "lgpd_email": registros.get("lgpd_email", ""),
-        "lgpd_cidade": registros.get("lgpd_cidade", "")
+        "lgpd_cidade": registros.get("lgpd_cidade", ""),
+        "cep_origem": registros.get("cep_origem") or CEP_ORIGEM_ENV,
+        "endereco_origem": registros.get("endereco_origem", ""),
+        "taxa_local": registros.get("taxa_local", "0"),
+        "superfrete_ativo": bool(token_sf.strip())
     }
+    if incluir_segredos:
+        cfg["superfrete_token"] = token_sf
+    return cfg
 
 # ==========================================
 # 4. INICIALIZAÇÃO DO APP & MIDDLEWARES DE DEFESA
@@ -329,6 +349,15 @@ class PedidoCreate(BaseModel):
     telefone: str = Field(..., min_length=8, max_length=25)
     itens: List[ItemCarrinho] = Field(..., min_length=1, max_length=50)
     lgpd_aceite: bool = Field(True)
+    modalidade_entrega: str = Field("Retirada / Combinar Local", max_length=80)
+    frete_valor: float = Field(0.0, ge=0, le=2000)
+    cep_destino: str = Field("", max_length=15)
+    endereco_destino: str = Field("", max_length=300)
+    cpf_cliente: str = Field("", max_length=20)
+
+class CalculoFreteRequest(BaseModel):
+    cep_destino: str = Field(..., min_length=8, max_length=12)
+    quantidade_itens: int = Field(1, ge=1, le=50)
 
 class PromocaoUpdate(BaseModel):
     em_promocao: bool
@@ -353,6 +382,10 @@ class ConfigLojaUpdate(BaseModel):
     lgpd_documento: Optional[str] = Field(None, max_length=30)
     lgpd_email: Optional[str] = Field(None, max_length=120)
     lgpd_cidade: Optional[str] = Field(None, max_length=80)
+    cep_origem: Optional[str] = Field(None, max_length=12)
+    endereco_origem: Optional[str] = Field(None, max_length=250)
+    taxa_local: Optional[str] = Field(None, max_length=20)
+    superfrete_token: Optional[str] = Field(None, max_length=600)
 
 # ==========================================
 # 6. ENTREGA SEGURA DE PÁGINAS E ARQUIVOS
@@ -574,11 +607,20 @@ def confirmar_reset_senha(
     }
 
 # ==========================================
-# 9. ROTAS DA LOJA, EDITOR VISUAL & ERP
+# 9. ROTAS DA LOJA, FRETE HÍBRIDO, EDITOR & ERP
 # ==========================================
 @app.get("/api/config")
 def pegar_configuracoes(db: Session = Depends(get_db)):
-    return obter_config_dict(db)
+    return obter_config_dict(db, incluir_segredos=False)
+
+@app.get("/api/admin/config-completa")
+def pegar_configuracoes_editor(
+    request: Request,
+    db: Session = Depends(get_db),
+    admin: bool = Depends(verificar_admin)
+):
+    exigir_editor(request)
+    return obter_config_dict(db, incluir_segredos=True)
 
 @app.put("/api/admin/config")
 def atualizar_configuracoes(
@@ -595,8 +637,18 @@ def atualizar_configuracoes(
             valor_limpo = validar_url_imagem(valor, permitir_banner_local=True) or "banner.webp"
         elif chave == "whatsapp":
             valor_limpo = re.sub(r"\D", "", str(valor))[:20]
+        elif chave == "cep_origem":
+            valor_limpo = re.sub(r"\D", "", str(valor))[:8]
+        elif chave == "taxa_local":
+            try:
+                num = max(0.0, float(str(valor).replace(",", ".")))
+                valor_limpo = f"{num:.2f}"
+            except Exception:
+                valor_limpo = "0.00"
+        elif chave == "superfrete_token":
+            valor_limpo = str(valor).strip()[:600]
         else:
-            valor_limpo = sanitizar_texto(valor, 200)
+            valor_limpo = sanitizar_texto(valor, 250)
 
         reg = db.query(ConfigLojaDB).filter(ConfigLojaDB.chave == chave).first()
         if reg:
@@ -605,7 +657,90 @@ def atualizar_configuracoes(
             db.add(ConfigLojaDB(chave=chave, valor=valor_limpo))
 
     db.commit()
-    return {"status": "salvo", "config": obter_config_dict(db)}
+    return {"status": "salvo", "config": obter_config_dict(db, incluir_segredos=False)}
+
+@app.post("/api/frete/calcular")
+def calcular_frete_correios(
+    dados: CalculoFreteRequest,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    ip = obter_ip_cliente(request)
+    verificar_rate_limit(ip, "frete", limite=25, janela_segundos=60)
+
+    cep_dest = re.sub(r"\D", "", dados.cep_destino)
+    if len(cep_dest) != 8:
+        raise HTTPException(status_code=400, detail="Informe um CEP válido com 8 dígitos.")
+
+    cfg = obter_config_dict(db, incluir_segredos=True)
+    cep_orig = re.sub(r"\D", "", cfg.get("cep_origem", "")) or "01001000"
+    token_sf = (cfg.get("superfrete_token") or "").strip()
+
+    # Pacote padrão leve para moda íntima / essências
+    peso_kg = round(min(2.0, 0.25 + (dados.quantidade_itens - 1) * 0.12), 2)
+    pacote = {"height": 6, "width": 16, "length": 22, "weight": peso_kg}
+
+    opcoes_retorno = []
+
+    if token_sf:
+        try:
+            resp = requests.post(
+                "https://api.superfrete.com/api/v0/calculator",
+                headers={
+                    "Authorization": f"Bearer {token_sf}",
+                    "User-Agent": f"{cfg['nome_loja']} (contato@marli-essencial.com.br)",
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": {"postal_code": cep_orig},
+                    "to": {"postal_code": cep_dest},
+                    "services": "1,2,17",  # 1=PAC, 2=SEDEX, 17=Mini Envios
+                    "package": pacote,
+                    "options": {"own_hand": False, "receipt": False, "insurance_value": 0, "use_insurance_value": False}
+                },
+                timeout=8
+            )
+            if resp.status_code == 200:
+                lista_sf = resp.json()
+                if isinstance(lista_sf, list):
+                    for item in lista_sf:
+                        if item.get("error"):
+                            continue
+                        preco_sf = float(item.get("price") or item.get("custom_price") or 0)
+                        prazo_sf = int(item.get("delivery_time") or item.get("custom_delivery_time") or 5)
+                        nome_sf = str(item.get("name") or "Correios")
+                        if preco_sf > 0:
+                            opcoes_retorno.append({
+                                "codigo": f"correios_{item.get('id', nome_sf.lower())}",
+                                "nome": f"Correios {nome_sf}",
+                                "valor": round(preco_sf, 2),
+                                "prazo": f"{prazo_sf} dia(s) úteis"
+                            })
+        except Exception as e:
+            sec_logger.warning(f"[SUPERFRETE_FALLBACK] Falha na cotação online: {e}")
+
+    # Contingência inteligente caso o token ainda não tenha sido inserido ou a API oscile
+    if not opcoes_retorno:
+        mesmo_estado = cep_orig[:2] == cep_dest[:2]
+        mesma_regiao = cep_orig[0] == cep_dest[0]
+        if mesmo_estado:
+            opcoes_retorno = [
+                {"codigo": "correios_mini", "nome": "Correios Mini Envios", "valor": 11.90, "prazo": "3 a 5 dias úteis"},
+                {"codigo": "correios_sedex", "nome": "Correios SEDEX", "valor": 16.90, "prazo": "1 a 2 dias úteis"}
+            ]
+        elif mesma_regiao:
+            opcoes_retorno = [
+                {"codigo": "correios_pac", "nome": "Correios PAC", "valor": 18.90, "prazo": "5 a 8 dias úteis"},
+                {"codigo": "correios_sedex", "nome": "Correios SEDEX", "valor": 26.90, "prazo": "2 a 4 dias úteis"}
+            ]
+        else:
+            opcoes_retorno = [
+                {"codigo": "correios_pac", "nome": "Correios PAC", "valor": 24.90, "prazo": "7 a 12 dias úteis"},
+                {"codigo": "correios_sedex", "nome": "Correios SEDEX", "valor": 38.90, "prazo": "3 a 6 dias úteis"}
+            ]
+
+    return {"opcoes": opcoes_retorno}
 
 @app.put("/api/admin/vitrine")
 def salvar_vitrine_capa(
@@ -799,7 +934,21 @@ def finalizar_compra(request: Request, pedido: PedidoCreate, db: Session = Depen
     if len(re.sub(r"\D", "", telefone_limpo)) < 8:
         raise HTTPException(status_code=400, detail="Telefone inválido.")
 
-    total_compra = 0.0
+    modalidade_limpa = sanitizar_texto(pedido.modalidade_entrega, 80) or "Retirada / Combinar Local"
+    cep_limpo = re.sub(r"\D", "", pedido.cep_destino)[:8]
+    endereco_limpo = sanitizar_texto(pedido.endereco_destino, 300)
+    cpf_digitos = re.sub(r"\D", "", pedido.cpf_cliente)[:11]
+
+    if "Correios" in modalidade_limpa:
+        if len(cep_limpo) != 8 or not endereco_limpo:
+            raise HTTPException(status_code=400, detail="Preencha o CEP e o endereço completo para envio pelos Correios.")
+        if len(cpf_digitos) != 11:
+            raise HTTPException(status_code=400, detail="Informe um CPF válido (11 dígitos) para a Declaração de Conteúdo dos Correios.")
+    elif "Moto" in modalidade_limpa or "Local" in modalidade_limpa:
+        if "Retirada" not in modalidade_limpa and not endereco_limpo:
+            raise HTTPException(status_code=400, detail="Informe o endereço ou ponto de entrega para o Uber Moto.")
+
+    subtotal_itens = 0.0
     resumo_itens = []
     itens_validados = []
 
@@ -809,7 +958,7 @@ def finalizar_compra(request: Request, pedido: PedidoCreate, db: Session = Depen
             raise HTTPException(status_code=400, detail="Estoque insuficiente para um dos itens.")
 
         preco_real = produto.preco_promocao if (produto.em_promocao and produto.preco_promocao) else produto.preco
-        total_compra += (preco_real * item.quantidade)
+        subtotal_itens += (preco_real * item.quantidade)
 
         referencia = f" | Ref: {produto.etiqueta}" if produto.etiqueta else ""
         tam_limpo = sanitizar_texto(item.tamanho, 30)
@@ -822,6 +971,9 @@ def finalizar_compra(request: Request, pedido: PedidoCreate, db: Session = Depen
             "tamanho": tam_limpo
         })
 
+    frete_final = round(max(0.0, float(pedido.frete_valor)), 2)
+    total_final = round(subtotal_itens + frete_final, 2)
+
     texto_resumo = "\n".join(resumo_itens)
     itens_dump = json.dumps(itens_validados)
 
@@ -830,14 +982,36 @@ def finalizar_compra(request: Request, pedido: PedidoCreate, db: Session = Depen
         telefone=telefone_limpo,
         resumo_pedido=texto_resumo,
         itens_json=itens_dump,
-        total=round(total_compra, 2)
+        total=total_final,
+        modalidade_entrega=modalidade_limpa,
+        frete_valor=frete_final,
+        cep_destino=cep_limpo,
+        endereco_destino=endereco_limpo,
+        cpf_cliente=cpf_digitos
     )
     db.add(novo_pedido)
     db.commit()
 
     cfg = obter_config_dict(db)
     whats_loja = cfg["whatsapp"] or WHATSAPP_LOJA
-    mensagem = f"🛒 *NOVO PEDIDO #{novo_pedido.id}* 🛒\n\n*Cliente:* {cliente_limpo}\n\n*Itens:*\n{texto_resumo}\n\n*Total: R$ {total_compra:.2f}*"
+
+    frete_texto = f"R$ {frete_final:.2f}" if frete_final > 0 else ("A combinar" if "Moto" in modalidade_limpa and "Retirada" not in modalidade_limpa else "Grátis")
+    bloco_entrega = f"\n\n*Entrega:* {modalidade_limpa} ({frete_texto})"
+    if cep_limpo:
+        bloco_entrega += f"\n*CEP:* {cep_limpo[:5]}-{cep_limpo[5:]}"
+    if endereco_limpo:
+        bloco_entrega += f"\n*Endereço:* {endereco_limpo}"
+    if cpf_digitos:
+        cpf_fmt = f"{cpf_digitos[:3]}.{cpf_digitos[3:6]}.{cpf_digitos[6:9]}-{cpf_digitos[9:]}"
+        bloco_entrega += f"\n*CPF (Declaração Correios):* {cpf_fmt}"
+
+    mensagem = (
+        f"🛒 *NOVO PEDIDO #{novo_pedido.id}* 🛒\n\n"
+        f"*Cliente:* {cliente_limpo}\n\n"
+        f"*Itens:*\n{texto_resumo}"
+        f"{bloco_entrega}\n\n"
+        f"*Total: R$ {total_final:.2f}*"
+    )
     return {"status": "sucesso", "whatsapp_url": f"https://wa.me/{whats_loja}?text={urllib.parse.quote(mensagem)}"}
 
 # ==========================================

@@ -30,7 +30,6 @@
             background-attachment: fixed;
         }
         
-        /* ======== SIDEBAR DESKTOP ======== */
         .sidebar { width: 260px; background: var(--sidebar); color: #fff; display: flex; flex-direction: column; flex-shrink: 0; border-right: 1px solid rgba(255,255,255,0.05); z-index: 20; box-shadow: 4px 0 24px rgba(0,0,0,0.02); }
         .brand { padding: 24px; font-size: 19px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between; letter-spacing: -0.5px; }
         .brand-left { display: flex; align-items: center; gap: 10px; }
@@ -49,7 +48,6 @@
         .logout { padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); }
         .logout a { color: #f87171; text-decoration: none; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 10px; }
         
-        /* ======== CONTENT & HEADER ======== */
         .content { flex-grow: 1; overflow-y: auto; padding: 32px 48px; }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; gap: 16px; }
         .header-title p { margin: 0 0 4px 0; font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
@@ -61,7 +59,6 @@
         .user-info span { font-size: 12px; color: #64748b; }
         .user-avatar { width: 42px; height: 42px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.08); object-fit: cover; }
 
-        /* ======== CARDS & KPIS ======== */
         .card { 
             background: rgba(255, 255, 255, 0.94); 
             padding: 28px; 
@@ -76,7 +73,6 @@
         .kpi-title { font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         .kpi-value { font-size: 28px; font-weight: 800; color: #0f172a; letter-spacing: -0.8px; }
         
-        /* ======== TABLES DESKTOP ======== */
         .table-responsive { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--border); color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
@@ -90,7 +86,6 @@
         .pill.cancelado { background: #fee2e2; color: #991b1b; }
         .pill.neutro { background: #f1f5f9; color: #475569; }
 
-        /* ======== ESTOQUE TOOLBAR & GRID ======== */
         .toolbar-estoque { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; background: #fff; padding: 14px; border-radius: 14px; border: 1px solid var(--border); }
         .toolbar-estoque .input-wrapper { flex-grow: 1; position: relative; min-width: 0; }
         .toolbar-estoque .input-wrapper i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 17px; pointer-events: none; }
@@ -125,7 +120,6 @@
         .grid-acoes .btn-action { height: 32px; padding: 0; border-radius: 7px; }
         .alerta-linha { background-color: #fef2f2 !important; }
 
-        /* ======== FORMS & BUTTONS ======== */
         .btn-primary { background: var(--primary); color: #fff; border: none; height: 46px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; font-size: 14px; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-primary:hover { background: #9c6c6c; }
         .btn-dark { background: var(--sidebar); color: #fff; border: none; height: 46px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; font-size: 14px; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
@@ -145,207 +139,37 @@
         .cadastro-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; }
         .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
-        /* ======== EDITOR DA LOJA (PIN + MAPA DE POSIÇÕES + LGPD) ======== */
-        .pin-lock-card {
-            max-width: 440px;
-            margin: 24px auto;
-            text-align: center;
-            padding: 36px 28px;
-        }
-        .pin-shield-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
-            background: #1e1b20;
-            color: var(--primary);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-        }
-        .editor-status-bar {
-            background: #1e1b20;
-            color: #fff;
-            padding: 12px 18px;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .editor-status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        .editor-status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--success);
-        }
+        .pin-lock-card { max-width: 440px; margin: 24px auto; text-align: center; padding: 36px 28px; }
+        .pin-shield-icon { width: 56px; height: 56px; border-radius: 16px; background: #1e1b20; color: var(--primary); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+        .editor-status-bar { background: #1e1b20; color: #fff; padding: 12px 18px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
+        .editor-status-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+        .editor-status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
 
-        /* Mapa Visual de Posições da Vitrine */
-        .slots-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
-            gap: 14px;
-            margin-top: 18px;
-        }
-        .slot-card {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 235px;
-            position: relative;
-        }
-        .slot-card.vazio {
-            background: #faf8f8;
-            border: 1.5px dashed #cbbdbd;
-        }
-        .slot-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .slot-label {
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            color: var(--sidebar);
-            background: #f1ecec;
-            padding: 4px 9px;
-            border-radius: 8px;
-        }
-        .slot-remove-pos {
-            background: none;
-            border: none;
-            color: #94a3b8;
-            cursor: pointer;
-            padding: 2px;
-        }
+        .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 14px; margin-top: 18px; }
+        .slot-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; min-height: 235px; position: relative; }
+        .slot-card.vazio { background: #faf8f8; border: 1.5px dashed #cbbdbd; }
+        .slot-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .slot-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: var(--sidebar); background: #f1ecec; padding: 4px 9px; border-radius: 8px; }
+        .slot-remove-pos { background: none; border: none; color: #94a3b8; cursor: pointer; padding: 2px; }
         .slot-remove-pos:hover { color: var(--danger); }
-        .slot-empty-body {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 12px 6px;
-            color: #64748b;
-            font-size: 12px;
-            gap: 10px;
-        }
-        .slot-filled-img {
-            width: 100%;
-            height: 110px;
-            object-fit: contain;
-            background: #faf8f8;
-            border-radius: 8px;
-            padding: 6px;
-            margin-bottom: 8px;
-        }
-        .slot-filled-name {
-            font-size: 13px;
-            font-weight: 700;
-            color: #0f172a;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .slot-filled-meta {
-            font-size: 11px;
-            color: #64748b;
-            margin-bottom: 10px;
-        }
-        .slot-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-            margin-top: auto;
-        }
+        .slot-empty-body { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 12px 6px; color: #64748b; font-size: 12px; gap: 10px; }
+        .slot-filled-img { width: 100%; height: 110px; object-fit: contain; background: #faf8f8; border-radius: 8px; padding: 6px; margin-bottom: 8px; }
+        .slot-filled-name { font-size: 13px; font-weight: 700; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .slot-filled-meta { font-size: 11px; color: #64748b; margin-bottom: 10px; }
+        .slot-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: auto; }
 
-        /* Modal Seletor de Peça para Posição */
-        .picker-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            background: rgba(30,27,32,0.65);
-            z-index: 300;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            backdrop-filter: blur(4px);
-        }
-        .picker-modal-box {
-            background: #fff;
-            width: 100%;
-            max-width: 560px;
-            border-radius: 16px;
-            padding: 24px;
-            max-height: 85vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        }
-        .picker-modal-list {
-            overflow-y: auto;
-            margin-top: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .picker-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: 0.15s;
-        }
-        .picker-row:hover {
-            border-color: var(--primary);
-            background: #fdfbfb;
-        }
-        .picker-row img {
-            width: 48px;
-            height: 48px;
-            object-fit: contain;
-            background: #faf8f8;
-            border-radius: 8px;
-            flex-shrink: 0;
-        }
+        .picker-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(30,27,32,0.65); z-index: 300; display: none; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(4px); }
+        .picker-modal-box { background: #fff; width: 100%; max-width: 560px; border-radius: 16px; padding: 24px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .picker-modal-list { overflow-y: auto; margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .picker-row { display: flex; align-items: center; gap: 12px; padding: 10px; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; transition: 0.15s; }
+        .picker-row:hover { border-color: var(--primary); background: #fdfbfb; }
+        .picker-row img { width: 48px; height: 48px; object-fit: contain; background: #faf8f8; border-radius: 8px; flex-shrink: 0; }
 
-        .banner-preview-box {
-            width: 100%;
-            max-height: 180px;
-            object-fit: cover;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            margin-bottom: 12px;
-            background: #faf8f8;
-        }
+        .banner-preview-box { width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 12px; background: #faf8f8; }
 
         .aba { display: none; }
         .aba.ativa { display: block; }
         
-        /* ======== RESPONSIVO MOBILE ======== */
         @media (max-width: 768px) {
             body { flex-direction: column; height: auto; min-height: 100vh; overflow-y: auto; }
             .sidebar { width: 100%; height: auto; position: sticky; top: 0; z-index: 40; box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
@@ -399,11 +223,7 @@
                 margin-bottom: 10px;
                 box-shadow: 0 2px 6px rgba(0,0,0,0.02);
             }
-            td {
-                padding: 4px 0;
-                border: none;
-                font-size: 13px;
-            }
+            td { padding: 4px 0; border: none; font-size: 13px; }
             .card[style*="padding: 0"] { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
 
             .cadastro-layout { grid-template-columns: 1fr; gap: 16px; }
@@ -480,7 +300,7 @@
             <div class="card" style="padding: 0;">
                 <div class="table-responsive">
                     <table>
-                        <thead><tr><th>ID</th><th>Cliente / Tel</th><th>Itens</th><th>Total</th><th>Status</th><th>Ação</th></tr></thead>
+                        <thead><tr><th>ID</th><th>Cliente / Entrega</th><th>Itens</th><th>Total</th><th>Status</th><th>Ação</th></tr></thead>
                         <tbody id="lista-pedidos"></tbody>
                     </table>
                 </div>
@@ -559,7 +379,7 @@
             </div>
         </div>
 
-        <!-- ABA: EDITOR DA LOJA (PROTEGIDO POR PIN + MAPA DE POSIÇÕES + LGPD) -->
+        <!-- ABA: EDITOR DA LOJA -->
         <div id="aba-editor" class="aba">
             <div id="editor-lock-box" class="card pin-lock-card">
                 <div class="pin-shield-icon">
@@ -567,7 +387,7 @@
                 </div>
                 <h2 style="margin: 0 0 8px 0; font-size: 20px; color: #0f172a;">Acesso do Responsável</h2>
                 <p style="margin: 0 0 20px 0; font-size: 13px; color: #64748b; line-height: 1.5;">
-                    Para proteger a identidade da loja, os espaços da capa e os dados da LGPD, informe o <b>PIN Mestre</b>.
+                    Para proteger a identidade da loja, os espaços da capa, configurações de frete e dados da LGPD, informe o <b>PIN Mestre</b>.
                 </p>
                 <div style="margin-bottom: 14px; text-align: left;">
                     <label>PIN Mestre do Responsável</label>
@@ -589,7 +409,7 @@
                     </button>
                 </div>
 
-                <!-- 1. MAPA DE POSIÇÕES DA CAPA (ESCOLHER O QUE VAI ESTAR LÁ E ONDE VAI FICAR) -->
+                <!-- 1. MAPA DE POSIÇÕES DA CAPA -->
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
                         <div>
@@ -609,7 +429,31 @@
                     <div id="mapa-slots-vitrine" class="slots-grid"></div>
                 </div>
 
-                <!-- 2. BANNER, AVISOS E CONTATO -->
+                <!-- 2. FRETE HÍBRIDO & REMETENTE (CORREIOS / SUPERFRETE / UBER MOTO) -->
+                <div class="card">
+                    <h3 style="margin: 0 0 6px 0; font-size: 17px; color: #0f172a;">Frete Híbrido & Remetente (Correios / Uber Moto)</h3>
+                    <p style="margin: 0 0 16px 0; font-size: 13px; color: #64748b;">Configure seu CEP de envio e o endereço que aparecerá como remetente na Declaração de Conteúdo dos Correios (dispensa Nota Fiscal para CPF/MEI).</p>
+                    <div class="grid-form">
+                        <div>
+                            <label>CEP de Origem da Loja</label>
+                            <input type="text" id="cfg-cep-origem" maxlength="9" placeholder="Ex: 01001-000">
+                        </div>
+                        <div>
+                            <label>Valor Fixo Uber Moto (0 = A combinar)</label>
+                            <input type="number" step="0.50" min="0" id="cfg-taxa-local" placeholder="0.00">
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label>Endereço Completo do Remetente (para Declaração Correios)</label>
+                            <input type="text" id="cfg-endereco-origem" placeholder="Ex: Rua Exemplo, 123 - Bairro - Cidade/SP">
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label>Token API SuperFrete (Opcional — usa tabela estimada se vazio)</label>
+                            <input type="password" id="cfg-superfrete-token" placeholder="Cole aqui seu token gerado no app/site SuperFrete...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. BANNER, AVISOS E CONTATO -->
                 <div class="card">
                     <h3 style="margin: 0 0 16px 0; font-size: 17px; color: #0f172a;">Banner Principal & Identidade</h3>
                     <img id="editor-preview-banner" src="banner.webp" class="banner-preview-box" alt="Banner Atual">
@@ -632,23 +476,23 @@
                         </div>
                         <div style="grid-column: 1 / -1;">
                             <label>Barra de Avisos no Topo (Opcional)</label>
-                            <input type="text" id="cfg-aviso-topo" placeholder="Ex: Frete grátis acima de R$ 150 • Toque no menu ☰ para ver todas as peças">
+                            <input type="text" id="cfg-aviso-topo" placeholder="Ex: Enviamos para todo o Brasil • Retirada grátis na região">
                         </div>
                     </div>
                 </div>
 
-                <!-- 3. DADOS OBRIGATÓRIOS LGPD -->
+                <!-- 4. DADOS OBRIGATÓRIOS LGPD & REMETENTE CPF -->
                 <div class="card">
-                    <h3 style="margin: 0 0 6px 0; font-size: 17px; color: #0f172a;">Conformidade LGPD (Lei nº 13.709/2018)</h3>
-                    <p style="margin: 0 0 16px 0; font-size: 13px; color: #64748b;">Informações exibidas no rodapé da loja e na Política de Privacidade para identificação do responsável pelos dados.</p>
+                    <h3 style="margin: 0 0 6px 0; font-size: 17px; color: #0f172a;">Conformidade LGPD & Dados do Remetente</h3>
+                    <p style="margin: 0 0 16px 0; font-size: 13px; color: #64748b;">Usados tanto no rodapé da loja quanto no cabeçalho da Declaração de Conteúdo dos Correios.</p>
                     <div class="grid-form">
                         <div>
-                            <label>Nome do Responsável / Razão Social</label>
-                            <input type="text" id="cfg-lgpd-resp" placeholder="Ex: Marli Essencial Moda Íntima">
+                            <label>Nome Completo do Responsável / Razão Social</label>
+                            <input type="text" id="cfg-lgpd-resp" placeholder="Ex: Marli Essencial">
                         </div>
                         <div>
                             <label>CPF ou CNPJ</label>
-                            <input type="text" id="cfg-lgpd-doc" placeholder="00.000.000/0001-00">
+                            <input type="text" id="cfg-lgpd-doc" placeholder="000.000.000-00">
                         </div>
                         <div>
                             <label>E-mail de Privacidade</label>
@@ -661,7 +505,7 @@
                     </div>
 
                     <button class="btn-primary" id="btn-salvar-config" style="margin-top: 22px;" onclick="salvarConfiguracoesLoja()">
-                        <i data-lucide="check-circle" style="width: 17px;"></i> Publicar Dados e Banner na Loja
+                        <i data-lucide="check-circle" style="width: 17px;"></i> Salvar Todas as Configurações da Loja
                     </button>
                 </div>
             </div>
@@ -697,6 +541,8 @@
         let linkFoto_1 = ""; let linkFoto_2 = ""; let linkFoto_3 = "";
         let produtoEditandoId = null; 
         let arrayEstoqueCompleto = []; 
+        let arrayPedidosCompleto = [];
+        let configLojaCache = {};
         let viewModeEstoque = 'lista';
         let bannerUrlAtual = "banner.webp";
 
@@ -741,7 +587,7 @@
             if(id === 'aba-estoque') titulo.innerHTML = '<p>Catálogo</p><h1>Gestão de Estoque</h1>';
             if(id === 'aba-cadastrar') titulo.innerHTML = '<p>Catálogo</p><h1 id="titulo-form">Cadastrar Peça</h1>';
             if(id === 'aba-categorias') titulo.innerHTML = '<p>Configurações</p><h1>Categorias</h1>';
-            if(id === 'aba-editor') titulo.innerHTML = '<p>Vitrine & LGPD</p><h1>Editor da Loja</h1>';
+            if(id === 'aba-editor') titulo.innerHTML = '<p>Vitrine, Frete & LGPD</p><h1>Editor da Loja</h1>';
             if(id === 'aba-clientes') titulo.innerHTML = '<p>CRM</p><h1>Meus Clientes</h1>';
         }
 
@@ -761,7 +607,7 @@
         }
 
         // ==========================================
-        // EDITOR DA LOJA (PIN + MAPA DE POSIÇÕES + LGPD)
+        // EDITOR DA LOJA (PIN + VITRINE + FRETE + LGPD)
         // ==========================================
         async function inicializarAbaEditor() {
             const res = await fetchAdmin('/api/admin/editor-status');
@@ -808,10 +654,11 @@
 
         async function carregarDadosEditor() {
             const [resCfg, resProd] = await Promise.all([
-                fetch('/api/config'),
+                fetchAdmin('/api/admin/config-completa'),
                 fetchAdmin('/api/admin/produtos')
             ]);
             const cfg = await resCfg.json();
+            configLojaCache = cfg;
             const produtos = await resProd.json();
 
             bannerUrlAtual = cfg.banner_url || "banner.webp";
@@ -823,6 +670,11 @@
             document.getElementById('cfg-lgpd-doc').value = cfg.lgpd_documento || "";
             document.getElementById('cfg-lgpd-email').value = cfg.lgpd_email || "";
             document.getElementById('cfg-lgpd-cidade').value = cfg.lgpd_cidade || "";
+
+            document.getElementById('cfg-cep-origem').value = cfg.cep_origem || "";
+            document.getElementById('cfg-taxa-local').value = cfg.taxa_local || "0";
+            document.getElementById('cfg-endereco-origem').value = cfg.endereco_origem || "";
+            document.getElementById('cfg-superfrete-token').value = cfg.superfrete_token || "";
 
             todosAtivosEditor = produtos.filter(p => p.ativo && p.estoque > 0);
             const destacados = todosAtivosEditor
@@ -1038,7 +890,11 @@
                 lgpd_responsavel: document.getElementById('cfg-lgpd-resp').value.trim(),
                 lgpd_documento: document.getElementById('cfg-lgpd-doc').value.trim(),
                 lgpd_email: document.getElementById('cfg-lgpd-email').value.trim(),
-                lgpd_cidade: document.getElementById('cfg-lgpd-cidade').value.trim()
+                lgpd_cidade: document.getElementById('cfg-lgpd-cidade').value.trim(),
+                cep_origem: document.getElementById('cfg-cep-origem').value.trim(),
+                taxa_local: document.getElementById('cfg-taxa-local').value.trim() || "0",
+                endereco_origem: document.getElementById('cfg-endereco-origem').value.trim(),
+                superfrete_token: document.getElementById('cfg-superfrete-token').value.trim()
             };
 
             try {
@@ -1053,7 +909,7 @@
                     return;
                 }
                 if (res.ok) {
-                    alert("Dados e banner publicados na loja com sucesso!");
+                    alert("Configurações de vitrine, frete e LGPD salvas com sucesso!");
                 } else {
                     const err = await res.json();
                     alert(err.detail || "Não foi possível salvar as configurações.");
@@ -1061,6 +917,136 @@
             } finally {
                 btn.disabled = false;
             }
+        }
+
+        // ==========================================
+        // DECLARAÇÃO DE CONTEÚDO DOS CORREIOS (CPF / MEI)
+        // ==========================================
+        async function imprimirDeclaracaoConteudo(pedidoId) {
+            const pedido = arrayPedidosCompleto.find(p => p.id === pedidoId);
+            if (!pedido) return;
+
+            let cfg = configLojaCache;
+            if (!cfg || !cfg.nome_loja) {
+                const resCfg = await fetch('/api/config');
+                cfg = await resCfg.json();
+                configLojaCache = cfg;
+            }
+
+            let itens = [];
+            try { itens = JSON.parse(pedido.itens_json || "[]"); } catch(e) {}
+
+            let linhasItensHtml = "";
+            let totalQtd = 0;
+            let totalValorItens = 0;
+
+            itens.forEach((it, idx) => {
+                const qtd = Number(it.quantidade || 1);
+                const valUnit = Number(it.preco || 0);
+                const sub = qtd * valUnit;
+                totalQtd += qtd;
+                totalValorItens += sub;
+                linhasItensHtml += `
+                    <tr>
+                        <td style="text-align:center;">${idx + 1}</td>
+                        <td>${escapeHTML(it.nome)} (Tam: ${escapeHTML(it.tamanho || '-')})</td>
+                        <td style="text-align:center;">${qtd}</td>
+                        <td style="text-align:right;">R$ ${sub.toFixed(2).replace('.', ',')}</td>
+                    </tr>
+                `;
+            });
+
+            const cpfDest = pedido.cpf_cliente
+                ? pedido.cpf_cliente.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
+                : "_________________________";
+            const cepDest = pedido.cep_destino
+                ? pedido.cep_destino.replace(/(\d{5})(\d{3})/, "$1-$2")
+                : "__________";
+            const cepOrig = (cfg.cep_origem || "").replace(/\D/g, "").replace(/(\d{5})(\d{3})/, "$1-$2") || "__________";
+
+            const hoje = new Date();
+            const dataExtenso = `${cfg.lgpd_cidade || 'Brasil'}, ${hoje.toLocaleDateString('pt-BR')}`;
+
+            const janela = window.open("", "_blank", "width=850,height=900");
+            janela.document.write(`
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Declaração de Conteúdo - Pedido #${Number(pedido.id)}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; font-size: 12px; color: #000; padding: 20px; }
+                        .box { border: 1.5px solid #000; margin-bottom: 10px; }
+                        .title { background: #eee; font-weight: bold; text-align: center; padding: 6px; border-bottom: 1.5px solid #000; font-size: 14px; }
+                        .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+                        .cell { padding: 6px 8px; border-bottom: 1px solid #000; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { border: 1px solid #000; padding: 5px 7px; }
+                        th { background: #f3f3f3; }
+                        .decl { padding: 10px; font-size: 11px; line-height: 1.45; text-align: justify; }
+                        .assinatura { margin-top: 34px; text-align: center; }
+                        @media print { button.no-print { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <button class="no-print" onclick="window.print()" style="padding:10px 18px; background:#1e1b20; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer; margin-bottom:14px;">🖨️ Imprimir Declaração de Conteúdo</button>
+                    <div class="box">
+                        <div class="title">DECLARAÇÃO DE CONTEÚDO (CORREIOS)</div>
+                        <div class="grid2" style="gap:0;">
+                            <div style="border-right:1.5px solid #000;">
+                                <div class="cell" style="background:#f9f9f9;"><b>REMETENTE</b></div>
+                                <div class="cell"><b>Nome:</b> ${escapeHTML(cfg.lgpd_responsavel || cfg.nome_loja || 'Marli Essencial')}</div>
+                                <div class="cell"><b>Endereço:</b> ${escapeHTML(cfg.endereco_origem || '______________________________________')}</div>
+                                <div class="cell"><b>Cidade/UF:</b> ${escapeHTML(cfg.lgpd_cidade || '__________________')} &nbsp;|&nbsp; <b>CEP:</b> ${cepOrig}</div>
+                                <div class="cell" style="border-bottom:none;"><b>CPF/CNPJ:</b> ${escapeHTML(cfg.lgpd_documento || '_________________________')}</div>
+                            </div>
+                            <div>
+                                <div class="cell" style="background:#f9f9f9;"><b>DESTINATÁRIO</b></div>
+                                <div class="cell"><b>Nome:</b> ${escapeHTML(pedido.cliente_nome)}</div>
+                                <div class="cell"><b>Endereço:</b> ${escapeHTML(pedido.endereco_destino || '______________________________________')}</div>
+                                <div class="cell"><b>CEP:</b> ${cepDest} &nbsp;|&nbsp; <b>Tel:</b> ${escapeHTML(pedido.telefone || '')}</div>
+                                <div class="cell" style="border-bottom:none;"><b>CPF/CNPJ:</b> ${cpfDest}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="box">
+                        <div class="title" style="font-size:12px;">IDENTIFICAÇÃO DOS BENS (PEDIDO #${Number(pedido.id)})</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:45px;">ITEM</th>
+                                    <th>CONTEÚDO</th>
+                                    <th style="width:65px;">QUANT.</th>
+                                    <th style="width:95px;">VALOR</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${linhasItensHtml}
+                                <tr>
+                                    <td colspan="2" style="text-align:right;"><b>TOTAIS</b></td>
+                                    <td style="text-align:center;"><b>${totalQtd}</b></td>
+                                    <td style="text-align:right;"><b>R$ ${totalValorItens.toFixed(2).replace('.', ',')}</b></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="box">
+                        <div class="title" style="font-size:12px;">DECLARAÇÃO</div>
+                        <div class="decl">
+                            Declaro que não me enquadro no conceito de contribuinte previsto no art. 4º da Lei Complementar nº 87/1996, uma vez que não realizo, com habitualidade ou em volume que caracterize intuito comercial, operações de circulação de mercadoria, ainda que se iniciem no exterior, ou estou dispensado da emissão da nota fiscal por força da legislação tributária vigente, responsabilizando-me nos termos da lei e a quem de direito, por informações inverídicas.
+                            <div class="assinatura">
+                                ${dataExtenso}<br><br><br>
+                                _____________________________________________________________<br>
+                                Assinatura do Declarante / Remetente
+                            </div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `);
+            janela.document.close();
         }
 
         // ==========================================
@@ -1334,8 +1320,14 @@
         async function excluir(id) { if(confirm("Apagar peça permanentemente?")) { await fetchAdmin(`/api/produtos/${Number(id)}`, { method: 'DELETE' }); carregarEstoque(); } }
 
         async function carregarPedidos() {
-            verificarNotificacoes(); const res = await fetchAdmin('/api/admin/pedidos'); const pedidos = await res.json();
-            const body = document.getElementById('lista-pedidos'); body.innerHTML = '';
+            verificarNotificacoes();
+            const res = await fetchAdmin('/api/admin/pedidos');
+            const pedidos = await res.json();
+            arrayPedidosCompleto = pedidos;
+
+            const body = document.getElementById('lista-pedidos');
+            body.innerHTML = '';
+
             pedidos.forEach(p => {
                 const pid = Number(p.id);
                 const telDigitos = String(p.telefone || '').replace(/\D/g, '');
@@ -1343,6 +1335,11 @@
                 const msgConfirmacao = encodeURIComponent(
                     `Olá, ${p.cliente_nome}! ✨ Passando para confirmar que o pagamento do seu Pedido #${pid} (R$ ${Number(p.total).toFixed(2).replace('.', ',')}) na Marli Essencial foi aprovado! Já estamos separando suas peças com todo carinho.`
                 );
+
+                const modEntrega = escapeHTML(p.modalidade_entrega || 'Retirada / Combinar Local');
+                const freteVal = Number(p.frete_valor || 0);
+                const infoFrete = freteVal > 0 ? `R$ ${freteVal.toFixed(2)}` : 'Grátis / A combinar';
+                const endInfo = p.endereco_destino ? `<div style="font-size:11px; color:#475569; margin-top:3px;">📍 ${escapeHTML(p.endereco_destino)} ${p.cep_destino ? '(CEP ' + escapeHTML(p.cep_destino) + ')' : ''}</div>` : '';
 
                 let pill = p.status === 'Pago' ? '<span class="pill pago">Pago</span>' : (p.status === 'Cancelado' ? '<span class="pill cancelado">Cancelado</span>' : '<span class="pill pendente">Pendente</span>');
                 let action = '';
@@ -1352,7 +1349,8 @@
                     const btnWa = telDigitos.length >= 8
                         ? `<a href="https://wa.me/${waNumero}?text=${msgConfirmacao}" target="_blank" rel="noopener noreferrer" class="btn-action" style="text-decoration:none; color:#047857; border-color:#a7f3d0; background:#ecfdf5; height:36px;"><i data-lucide="message-circle" style="width:14px;"></i> Avisar Pago</a>`
                         : '';
-                    action = `<div style="display:flex; align-items:center; gap:8px; margin-top:4px;"><span style="font-size:12px;color:var(--success);font-weight:700;">✔ PAGO</span>${btnWa}</div>`;
+                    const btnDecl = `<button type="button" class="btn-action" style="height:36px;" onclick="imprimirDeclaracaoConteudo(${pid})" title="Gerar Declaração de Conteúdo para Correios"><i data-lucide="file-text" style="width:14px;"></i> Declaração</button>`;
+                    action = `<div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:4px;"><span style="font-size:12px;color:var(--success);font-weight:700;">✔ PAGO</span>${btnWa}${btnDecl}</div>`;
                 } else {
                     action = `<span style="font-size:12px;color:var(--danger);font-weight:700;">✖ CANCELADO</span>`;
                 }
@@ -1360,7 +1358,11 @@
                 const resumoSafe = escapeHTML(p.resumo_pedido).replace(/\n/g, '<br>');
                 body.innerHTML += `<tr>
                     <td><div style="display:flex; justify-content:space-between; align-items:center;"><b>#${pid}</b> ${pill}</div></td>
-                    <td><b style="color:#0f172a;">${escapeHTML(p.cliente_nome)}</b> <span style="font-size:12px;color:#64748b;">• ${escapeHTML(p.telefone||'Sem Tel')}</span></td>
+                    <td>
+                        <b style="color:#0f172a;">${escapeHTML(p.cliente_nome)}</b> <span style="font-size:12px;color:#64748b;">• ${escapeHTML(p.telefone||'Sem Tel')}</span>
+                        <div style="margin-top:4px;"><span class="pill neutro">${modEntrega} • ${infoFrete}</span></div>
+                        ${endInfo}
+                    </td>
                     <td><div style="font-size:12px;color:#64748b;line-height:1.5; background:#faf8f8; padding:8px 10px; border-radius:8px; border:1px solid #f1ecec;">${resumoSafe}</div></td>
                     <td><b style="color:#0f172a; font-size:16px;">R$ ${Number(p.total).toFixed(2)}</b></td>
                     <td style="display:none;">${pill}</td>
