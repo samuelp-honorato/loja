@@ -570,7 +570,7 @@ def solicitar_reset_senha(request: Request, db: Session = Depends(get_db)):
     link_reset = f"{DOMINIO_OFICIAL}/redefinir-senha?token={token_reset}"
     enviar_mensagem_whatsapp(
         whats_destino,
-        f"🔐 *Recuperação de Senha - {cfg['nome_loja']}*\n\nAcesse o link abaixo para definir uma nova senha (expira em 15 minutos e vale para 1 único uso):\n{link_reset}"
+        f"\U0001F510 *Recuperação de Senha - {cfg['nome_loja']}*\n\nAcesse o link abaixo para definir uma nova senha (expira em 15 minutos e vale para 1 único uso):\n{link_reset}"
     )
     sec_logger.info(f"[RESET_SOLICITADO] Link enviado ao WhatsApp oficial | IP={ip}")
     return {"status": "Link de redefinição enviado para o WhatsApp oficial da loja (válido por 15 min)."}
@@ -676,7 +676,6 @@ def calcular_frete_correios(
     cep_orig = re.sub(r"\D", "", cfg.get("cep_origem", "")) or "01001000"
     token_sf = (cfg.get("superfrete_token") or "").strip()
 
-    # Pacote padrão leve para moda íntima / essências
     peso_kg = round(min(2.0, 0.25 + (dados.quantidade_itens - 1) * 0.12), 2)
     pacote = {"height": 6, "width": 16, "length": 22, "weight": peso_kg}
 
@@ -720,7 +719,6 @@ def calcular_frete_correios(
         except Exception as e:
             sec_logger.warning(f"[SUPERFRETE_FALLBACK] Falha na cotação online: {e}")
 
-    # Contingência inteligente caso o token ainda não tenha sido inserido ou a API oscile
     if not opcoes_retorno:
         mesmo_estado = cep_orig[:2] == cep_dest[:2]
         mesma_regiao = cep_orig[0] == cep_dest[0]
@@ -962,7 +960,7 @@ def finalizar_compra(request: Request, pedido: PedidoCreate, db: Session = Depen
 
         referencia = f" | Ref: {produto.etiqueta}" if produto.etiqueta else ""
         tam_limpo = sanitizar_texto(item.tamanho, 30)
-        resumo_itens.append(f"▪️ {item.quantidade}x {produto.nome} (Tam: {tam_limpo}{referencia}) - R$ {preco_real:.2f}")
+        resumo_itens.append(f"\u25AA\uFE0F {item.quantidade}x {produto.nome} (Tam: {tam_limpo}{referencia}) - R$ {preco_real:.2f}")
         itens_validados.append({
             "produto_id": produto.id,
             "quantidade": item.quantidade,
@@ -997,16 +995,14 @@ def finalizar_compra(request: Request, pedido: PedidoCreate, db: Session = Depen
 
     frete_texto = f"R$ {frete_final:.2f}" if frete_final > 0 else ("A combinar" if "Moto" in modalidade_limpa and "Retirada" not in modalidade_limpa else "Grátis")
     bloco_entrega = f"\n\n*Entrega:* {modalidade_limpa} ({frete_texto})"
-    if cep_limpo:
-        bloco_entrega += f"\n*CEP:* {cep_limpo[:5]}-{cep_limpo[5:]}"
-    if endereco_limpo:
-        bloco_entrega += f"\n*Endereço:* {endereco_limpo}"
-    if cpf_digitos:
-        cpf_fmt = f"{cpf_digitos[:3]}.{cpf_digitos[3:6]}.{cpf_digitos[6:9]}-{cpf_digitos[9:]}"
-        bloco_entrega += f"\n*CPF (Declaração Correios):* {cpf_fmt}"
+
+    if "Correios" not in modalidade_limpa and endereco_limpo:
+        bloco_entrega += f"\n*Local / Endereço:* {endereco_limpo}"
+
+    emoji_carrinho = "\U0001F6D2"
 
     mensagem = (
-        f"🛒 *NOVO PEDIDO #{novo_pedido.id}* 🛒\n\n"
+        f"{emoji_carrinho} *NOVO PEDIDO #{novo_pedido.id}* {emoji_carrinho}\n\n"
         f"*Cliente:* {cliente_limpo}\n\n"
         f"*Itens:*\n{texto_resumo}"
         f"{bloco_entrega}\n\n"
@@ -1067,7 +1063,7 @@ async def receive_whatsapp(request: Request):
                 enviar_mensagem_whatsapp(telefone_remetente, resposta)
             elif msg["type"] == "image":
                 legenda = sanitizar_texto(msg.get("image", {}).get("caption", "Sem legenda"), 200)
-                resposta = f"📸 Foto recebida com sucesso!\nLegenda lida: {legenda}\n\nPreparando extração de dados..."
+                resposta = f"\U0001F4F8 Foto recebida com sucesso!\nLegenda lida: {legenda}\n\nPreparando extração de dados..."
                 enviar_mensagem_whatsapp(telefone_remetente, resposta)
 
         return Response(content="EVENT_RECEIVED", status_code=200)
